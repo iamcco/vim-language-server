@@ -22,6 +22,9 @@ export class Workspace {
 
   private getGlobalFunctionItems(uri: string): CompletionItem[] {
     const buf = this.buffers[uri]
+    if (!buf) {
+      return []
+    }
     return this.filterDuplicate(
       Object.values(this.buffers)
       .filter(b => b.isBelongToWorkdir(buf.getWorkDir()))
@@ -40,6 +43,9 @@ export class Workspace {
 
   private getGlobalIdentifierItems(uri: string): CompletionItem[] {
     const buf = this.buffers[uri]
+    if (!buf) {
+      return []
+    }
     return this.filterDuplicate(
       Object.values(this.buffers)
       .filter(b => b.isBelongToWorkdir(buf.getWorkDir()))
