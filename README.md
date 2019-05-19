@@ -29,7 +29,16 @@ yarn global add vim-language-server
 
 ## Config
 
-example with coc.nvim
+for document highlight
+
+``` vim
+let g:markdown_fenced_languages = [
+      \ 'vim',
+      \ 'help'
+      \]
+```
+
+lsp client config example with coc.nvim
 
 - Using node ipc
 
