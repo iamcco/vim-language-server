@@ -223,7 +223,7 @@ class Builtin {
     this.resolveMapArgs()
 
     // builtin docs
-    const [err, docs] = await pcb(readFile)(join(dirname(process.argv[1]), '../docs/builtin-docs.json'), 'utf-8')
+    const [err, docs] = await pcb(readFile)(join(__dirname, '../../docs/builtin-docs.json'), 'utf-8')
 
     if (err) {
       log.error(`[vimls]: read docs/builtin-doc.json fail => ${err.message || err}`)
