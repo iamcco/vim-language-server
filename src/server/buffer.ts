@@ -603,7 +603,7 @@ export class Buffer {
           documentation: 'User defined variable',
           insertText: name,
           insertTextFormat: InsertTextFormat.PlainText,
-          data: list
+          data: list || []
         }
       })
   }
@@ -660,10 +660,35 @@ export class Buffer {
         refs[name] = this.globalVariableRefs[name]
       }
     })
-    return this.getIdentifierItems(this.globalVariables, sortTexts.three)
+    const globalVariables: CompletionItem[] = []
+    const localVariables: CompletionItem[] = []
+    this.getIdentifierItems(this.globalVariables, sortTexts.three)
       .concat(
         this.getIdentifierItems(refs, sortTexts.three)
       )
+      .forEach(item => {
+        if (/^([a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*)$/.test(item.label)) {
+          localVariables.push(item)
+        } else {
+          globalVariables.push(item)
+        }
+      })
+    if (localVariables.length) {
+        const gloalFunctions = this.getGlobalFunctions()
+        const scriptFunctions = this.getScriptFunctions()
+        const funList = Object.values(gloalFunctions).concat(
+          Object.values(scriptFunctions)
+        ).reduce((res, fs) => res.concat(fs), [])
+
+        localVariables.forEach(l => {
+          if ((<IIdentifier[]>l.data).some(identifier => {
+            return funList.every(fun => !(fun.startLine < identifier.startLine && identifier.startLine < fun.endLine))
+          })) {
+            globalVariables.push(l)
+          }
+        })
+    }
+    return globalVariables
   }
 
   /*
@@ -700,12 +725,14 @@ export class Buffer {
       .concat(Object.values(this.globalFunctions).reduce((res, next) => res.concat(next), []))
       .concat(Object.values(this.scriptFunctions).reduce((res, next) => res.concat(next), []))
       .filter(fun => {
-        if (startLine === -1 || startLine > fun.startLine) {
+        if (startLine === -1 && endLine === -1 && fun.startLine < vimLineNum && vimLineNum < fun.endLine) {
           startLine = fun.startLine
-        }
-        if (endLine === -1 || endLine < fun.endLine) {
+          endLine = fun.endLine
+        } else if (fun.startLine > startLine && endLine > fun.endLine) {
+          startLine = fun.startLine
           endLine = fun.endLine
         }
+
         return fun.startLine < vimLineNum && vimLineNum < fun.endLine
       })
       .reduce<string[]>((res, next) => {
