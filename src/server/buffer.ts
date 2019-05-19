@@ -723,7 +723,7 @@ export class Buffer {
         insertText: `a:${name}`,
         insertTextFormat: InsertTextFormat.PlainText
       }))
-    if (funArgs.length) {
+    if (startLine !== -1 && endLine !== -1) {
       const funcLocalIdentifiers = this.getIdentifierItems(this.localVariables, sortTexts.one)
         .filter(item => {
           if (!/^l:/.test(item.label)) {

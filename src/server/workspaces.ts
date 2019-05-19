@@ -5,6 +5,9 @@ import { Node } from '../../lib/vimparser';
 import { findWorkDirectory } from '../common/util';
 import { dirname } from 'path';
 import { CompletionItem, Location, Range, Position } from 'vscode-languageserver';
+// import logger from '../common/logger';
+
+// const log = logger('workspace')
 
 export class Workspace {
   private buffers: Record<string, Buffer> = {}
@@ -96,16 +99,36 @@ export class Workspace {
           )
         }
       })
+      let tmp: Location[] = []
+      let list: Location[] = []
       const identifiers = locationType === 'definition'
         ? this.buffers[uri].getGlobalIdentifiers()
         : this.buffers[uri].getGlobalIdentifierRefs()
       Object.keys(identifiers).forEach(fname => {
         if (fname === name) {
-          res = res.concat(
+          tmp = tmp.concat(
             identifiers[fname].map(item => this.getLocation(uri, item))
           )
         }
       })
+      // filter function local variables
+      if (/^([a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*)$/.test(name)) {
+        const gloalFunctions = this.buffers[uri].getGlobalFunctions()
+        const scriptFunctions = this.buffers[uri].getScriptFunctions()
+        const funList = Object.values(gloalFunctions).concat(
+          Object.values(scriptFunctions)
+        ).reduce((res, fs) => res.concat(fs), [])
+        tmp.forEach(l => {
+          if (!funList.some(fun => {
+            return fun.startLine - 1 < l.range.start.line && l.range.start.line < fun.endLine - 1
+          })) {
+            list.push(l)
+          }
+        })
+      } else {
+        list = tmp
+      }
+      res = res.concat(list)
     })
     return res
   }
@@ -171,6 +194,20 @@ export class Workspace {
         }
       })
     if (startLine !== -1 && endLine !== -1) {
+      const globalVariables = locationType === 'definition'
+        ? this.buffers[uri].getGlobalIdentifiers()
+        : this.buffers[uri].getGlobalIdentifierRefs()
+      Object.keys(globalVariables).some(key => {
+        if (key === name) {
+          globalVariables[key].forEach(item => {
+            if (startLine < item.startLine && item.startLine < endLine) {
+              list.push(this.getLocation(uri, item))
+            }
+          })
+          return true
+        }
+        return false
+      })
       const localVariables = locationType === 'definition'
         ? this.buffers[uri].getLocalIdentifiers()
         : this.buffers[uri].getLocalIdentifierRefs()
@@ -437,7 +474,10 @@ export class Workspace {
       if (res.length) {
         isFunArg = true
       } else {
-        res = this.getGlobalLocaltion(name, uri, position, locationType)
+        res = this.getLocalLocation(name, uri, position, locationType)
+        if (!res.length) {
+          res = this.getGlobalLocaltion(name, uri, position, locationType)
+        }
       }
     } else if (/^((s:|<SID>)\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
       const names = [name]
