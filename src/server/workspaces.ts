@@ -383,6 +383,13 @@ export class Workspace {
     return res
   }
 
+  public isExistsBuffer(uri: string) {
+    if (this.buffers[uri]) {
+      return true
+    }
+    return false
+  }
+
   public async updateBuffer(uri: string, node: Node) {
     if (!node) {
       return

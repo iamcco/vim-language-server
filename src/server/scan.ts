@@ -1,30 +1,39 @@
 import os from 'os';
-import { Subscription, from, of } from 'rxjs';
+import { from, of, Subject } from 'rxjs';
 import fg from 'fast-glob';
 import { join } from 'path';
-import { mergeMap, switchMap, filter, map, catchError } from 'rxjs/operators';
+import { mergeMap, switchMap, filter, map, catchError, concatMap } from 'rxjs/operators';
 import vscUri from 'vscode-uri';
 
 import { readFileSync } from 'fs';
-import logger from '../common/logger';
-import { workspace } from './workspaces';
 import { handleParse, findWorkDirectory } from '../common/util';
 import { workDirPatterns } from '../common/constant';
 
-const log = logger('scan')
+const source$ = new Subject<string>()
+const indexs: Record<string, boolean> = {}
 
-const handScans: Record<string, Subscription> = {}
-
-export async function scan(uri: string) {
-  const workDir = await findWorkDirectory(
-    vscUri.parse(uri).fsPath,
-    workDirPatterns
-  )
-  if (!workDir || workDir === os.homedir()) {
-    return
-  }
-  if (!handScans[workDir]) {
-    handScans[workDir] = from(fg<string>([join(workDir, '**/*.vim'), '!**/node_modules/**'])).pipe(
+source$.pipe(
+  mergeMap(uri => {
+    return from(findWorkDirectory(
+      vscUri.parse(uri).fsPath,
+      workDirPatterns
+    )).pipe(
+      filter(workDir => workDir && workDir !== os.homedir()),
+      map(workDir => ({
+        uri,
+        workDir
+      }))
+    )
+  }),
+  filter(({ workDir }) => {
+    if (!indexs[workDir]) {
+      indexs[workDir] = true
+      return true
+    }
+    return false
+  }),
+  concatMap(({ workDir }) => {
+    return from(fg<string>([join(workDir, '**/*.vim'), '!**/node_modules/**'])).pipe(
       filter(list => list && list.length > 0),
       switchMap(list => {
         return of(...list)
@@ -38,20 +47,32 @@ export async function scan(uri: string) {
             uri: vscUri.file(fpath).toString()
           })),
           catchError(error => {
-            log.error(`${fpath}:\n${error.stack || error.message || error}`)
+            process.send({
+              log: `${fpath}:\n${error.stack || error.message || error}`
+            })
             return of(undefined)
           })
         )
       }, 3),
-    ).subscribe(
-      (res) => {
-        if (res) {
-          workspace.updateBuffer(res.uri, res.node)
-        }
-      },
-      (error) => {
-        log.error(error.stack || error.message || error)
-      }
     )
+  }),
+  filter(res => res)
+).subscribe(
+  (res) => {
+    process.send({
+      data: res
+    })
+  },
+  (error) => {
+    process.send({
+      log: error.stack || error.message || error
+    })
   }
-}
+)
+
+process.on('message', (mess) => {
+  const { uri } = mess
+  if (uri) {
+    source$.next(uri)
+  }
+})

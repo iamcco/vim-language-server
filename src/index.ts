@@ -58,7 +58,7 @@ connection.onInitialize((param: InitializeParams) => {
 
 // document change or open
 documents.onDidChangeContent(( change ) => {
-  next(change.document, connection)
+  next(change.document)
 });
 
 documents.onDidClose((evt) => {
