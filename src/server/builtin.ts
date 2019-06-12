@@ -44,6 +44,7 @@ class Builtin {
   private vimPredefinedVariablesItems: CompletionItem[] = []
   private vimOptionItems: CompletionItem[] = []
   private vimBuiltinFunctionItems: CompletionItem[] = []
+  private vimBuiltinFunctionMap: Record<string, boolean> = {}
   private vimCommandItems: CompletionItem[] = []
   private vimMapArgsItems: CompletionItem[] = []
   private vimFeatureItems: CompletionItem[] = []
@@ -75,6 +76,10 @@ class Builtin {
 
   public getBuiltinVimFunctions() {
     return this.vimBuiltinFunctionItems
+  }
+
+  public isBuiltinFunction(label: string) {
+    return this.vimBuiltinFunctionMap[label]
   }
 
   public getExpandKeywords() {
@@ -233,6 +238,11 @@ class Builtin {
     try {
       const data: BuiltinDoc = JSON.parse(docs)
       this.vimBuiltinFunctionItems = data.completionItems.functions
+      this.vimBuiltinFunctionItems.forEach(item => {
+        if (!this.vimBuiltinFunctionMap[item.label]) {
+          this.vimBuiltinFunctionItems[item.label] = true
+        }
+      })
       this.vimBuiltFunctionDocuments = data.documents.functions
       this.vimCommandItems = data.completionItems.commands
       this.vimCommandDocuments = data.documents.commands

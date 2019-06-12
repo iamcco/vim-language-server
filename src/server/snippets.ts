@@ -65,7 +65,7 @@ export const commandSnippets: CompletionItem[] = [
     label: 'autocmd',
     kind: CompletionItemKind.Snippet,
     insertText: [
-      "autocmd ${1:group} ${2:event} ${3:pat} ${4:once} ${4:nested} ${5:cmd}"
+      "autocmd ${1:group} ${2:event} ${3:pat} ${4:once} ${5:nested} ${6:cmd}"
     ].join('\n'),
     insertTextFormat: InsertTextFormat.Snippet
   },
@@ -73,7 +73,7 @@ export const commandSnippets: CompletionItem[] = [
     label: 'if',
     kind: CompletionItemKind.Snippet,
     insertText: [
-      "if",
+      "if ${1:condition}",
       "\t${0}",
       "endif"
     ].join('\n'),
