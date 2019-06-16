@@ -56,9 +56,13 @@ function provider(line: string, uri: string, position: Position): CompletionItem
   } else if (isSomeMatchPattern(notFunctionPattern, line)) {
     return []
   }
-  return workspace.getFunctionItems(uri).concat(
-    builtinDocs.getBuiltinVimFunctions()
-  )
+  return workspace.getFunctionItems(uri)
+    .filter(item => {
+      return builtinDocs.isBuiltinFunction(item.label)
+    })
+    .concat(
+      builtinDocs.getBuiltinVimFunctions()
+    )
 }
 
 useProvider(provider)
