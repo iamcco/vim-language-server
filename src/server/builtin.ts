@@ -240,7 +240,7 @@ class Builtin {
       this.vimBuiltinFunctionItems = data.completionItems.functions
       this.vimBuiltinFunctionItems.forEach(item => {
         if (!this.vimBuiltinFunctionMap[item.label]) {
-          this.vimBuiltinFunctionItems[item.label] = true
+          this.vimBuiltinFunctionMap[item.label] = true
         }
       })
       this.vimBuiltFunctionDocuments = data.documents.functions
