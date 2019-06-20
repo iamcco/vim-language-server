@@ -435,7 +435,7 @@ export class Workspace {
       this.buffers[uri].updateBufferByNode(node)
     } else {
       const workDir = await findWorkDirectory(
-        dirname(URIParser.parse(uri).fsPath),
+        URIParser.parse(uri).fsPath,
         ['.git', 'autoload', 'plugin']
       )
       this.buffers[uri] = new Buffer(uri, workDir, node)
