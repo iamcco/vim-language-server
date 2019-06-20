@@ -1,6 +1,6 @@
 {
   "name": "vim-language-server",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "vim language server",
   "keywords": [
     "viml",
@@ -29,7 +29,7 @@
     "fast-glob": "^2.2.6",
     "findup": "^0.1.5",
     "rxjs": "^6.4.0",
-    "rxjs-operators": "^1.1.0",
+    "rxjs-operators": "^1.1.2",
     "tslib": "^1.9.3",
     "vscode-languageserver": "^5.2.1",
     "vscode-uri": "^1.0.6"
