@@ -30,7 +30,7 @@ export const signatureHelpProvider =
 
     const preSegment = currentLine.slice(0, position.character)
 
-    const m = preSegment.match(/([\w#&:]+)[ \t]*\([^)]*$/)
+    const m = preSegment.match(/([\w#&:]+)[ \t]*\(([^()]*|\([^)]*\))*$/)
     if (!m) {
       return
     }
