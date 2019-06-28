@@ -49,5 +49,6 @@ export const expandPattern = [
 
 export const notIdentifierPattern = [
   commentPattern,
-  /('|"|#|&|\$|<|[^ \t]:)\w*$/
+  /^[ \t]*call[ \t]+[^ \t]*$/,
+  /('|"|#|&|\$|<)\w*$/
 ]

@@ -17,7 +17,9 @@ import { isSomeMatchPattern } from '../../common/util';
 import { notIdentifierPattern } from '../../common/patterns';
 
 function provider(line: string, uri: string, position: Position): CompletionItem[] {
-  if (/\b[gbsla]:\w*$/.test(line)) {
+  if (isSomeMatchPattern(notIdentifierPattern, line)) {
+    return []
+  } else if (/\b[gbsla]:\w*$/.test(line)) {
     let list = []
     if (/\bg:\w*$/.test(line)) {
       list = workspace.getIdentifierItems(uri, position.line)
@@ -59,8 +61,6 @@ function provider(line: string, uri: string, position: Position): CompletionItem
           }
         }
       })
-  } else if (isSomeMatchPattern(notIdentifierPattern, line)) {
-    return []
   }
   return workspace.getIdentifierItems(uri, position.line)
 }
