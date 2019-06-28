@@ -82,7 +82,7 @@ lsp client config example with coc.nvim
 - [ ] highlight type autocomplete
 - [ ] autocmd group event autocomplete
 - [ ] incremental
-- [ ] function / funcref
+- [x] function / funcref
 - [ ] function signature help parameters
 
 ## References

@@ -338,6 +338,7 @@ export class Buffer {
           if (node.left && node.left.type === NODE_DOT) {
             nodeList = nodeList.concat(node.left.left)
           }
+          this.takeFuncRefByRef(node)
           this.takeFuncRef(node)
           break
         case NODE_LET:
@@ -345,7 +346,10 @@ export class Buffer {
           if (node.left && node.left.type === NODE_DOT) {
             nodeList = nodeList.concat(node.left.left)
           }
-          this.takeLet(node)
+          // not a function by function()/funcref()
+          if (!this.takeFunctionByRef(node)) {
+            this.takeLet(node)
+          }
           break
         case NODE_ENV:
         case NODE_IDENTIFIER:
@@ -389,6 +393,49 @@ export class Buffer {
     }
   }
 
+  /*
+   * vim function
+   *
+   * - let funcName = function()
+   * - let funcName = funcref()
+   */
+  private takeFunctionByRef(node: Node): boolean {
+    const { left, right } = node;
+    if (!right || right.type !== NODE_CALL) {
+      return
+    }
+    const name = this.getDotName(left)
+    if (!name) {
+      return
+    }
+    const pos = this.getDotPos(left)
+    if (!pos) {
+      return false
+    }
+    const func: IFunction = {
+      name,
+      args: [],
+      startLine: pos.lnum,
+      startCol: pos.col,
+      endLine: pos.lnum,
+      endCol: pos.col
+    }
+    if (globalFuncPattern.test(name)) {
+      if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {
+        this.globalFunctions[name] = []
+      }
+      this.globalFunctions[name].push(func)
+      return true
+    } else if (scriptFuncPattern.test(name)) {
+      if (!this.scriptFunctions[name] || !Array.isArray(this.scriptFunctions[name])) {
+        this.scriptFunctions[name] = []
+      }
+      this.scriptFunctions[name].push(func)
+      return true
+    }
+    return false
+  }
+
   private takeFuncRef(node: Node) {
     const { left, rlist } = node
     let name = ''
@@ -426,6 +473,47 @@ export class Buffer {
       this.scriptFunctionRefs[name].push(funcRef)
     }
 
+  }
+
+  /*
+   * vim function ref
+   * first value is function name
+   *
+   * - function('funcName')
+   * - funcref('funcName')
+   */
+  private takeFuncRefByRef(node: Node) {
+    const { left, rlist } = node
+    const funcNode = rlist && rlist[0]
+    if (
+      !left ||
+      ['function', 'funcref'].indexOf(left.value) === -1 ||
+      !funcNode ||
+      !funcNode.pos
+    ) {
+      return
+    }
+
+    // delete '/" of function name
+    const name = (funcNode.value as string).replace(/^['"]|['"]$/g, '')
+    const funcRef: IFunRef = {
+      name,
+      args: [],
+      startLine: funcNode.pos.lnum,
+      startCol: funcNode.pos.col + 1 // +1 by '/"
+    }
+
+    if (globalFuncPattern.test(name)) {
+      if(!this.globalFunctionRefs[name] || !Array.isArray(this.globalFunctionRefs[name])) {
+        this.globalFunctionRefs[name] = []
+      }
+      this.globalFunctionRefs[name].push(funcRef)
+    } else if (scriptFuncPattern.test(name)) {
+      if(!this.scriptFunctionRefs[name] || !Array.isArray(this.scriptFunctionRefs[name])) {
+        this.scriptFunctionRefs[name] = []
+      }
+      this.scriptFunctionRefs[name].push(funcRef)
+    }
   }
 
   private takeLet(node: Node) {
