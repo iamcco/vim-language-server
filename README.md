@@ -79,7 +79,7 @@ lsp client config example with coc.nvim
 - [x] filter function ref from function declare to fix double function complete item
 - [x] function / funcref
 - [x] start with call only return function list
-- [ ] autocmd/command/map function
+- [x] autocmd/command/map function
 - [ ] highlight type autocomplete
 - [ ] autocmd group event autocomplete
 - [ ] incremental

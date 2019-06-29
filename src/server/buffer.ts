@@ -6,7 +6,7 @@ import { sortTexts } from '../common/constant';
 const log = logger('buffer')
 
 const NODE_TOPLEVEL = 1;
-const NODE_EXCMD = 3;            // TODO
+const NODE_EXCMD = 3;
 const NODE_FUNCTION = 4;
 const NODE_DELFUNCTION = 6;
 const NODE_RETURN = 7;
@@ -221,6 +221,10 @@ export class Buffer {
       switch (node.type) {
         case NODE_TOPLEVEL:
           nodeList = nodeList.concat(node.body)
+          break
+        // autocmd/command/map
+        case NODE_EXCMD:
+          this.takeFuncRefByExcmd(node)
           break
         case NODE_EXCALL:
         case NODE_RETURN:
@@ -513,6 +517,48 @@ export class Buffer {
         this.scriptFunctionRefs[name] = []
       }
       this.scriptFunctionRefs[name].push(funcRef)
+    }
+  }
+
+  /*
+   * take function ref by
+   *
+   * - autocmd
+   * - command
+   * - map
+   */
+  private takeFuncRefByExcmd(node: Node) {
+    const { pos, str } = node
+    if (!str) {
+      return
+    }
+
+    const regFunc = /([\w_#]+|[a-zA-Z]:[\w_#]+)[ \t]*\(/g
+    let m = regFunc.exec(str)
+
+    while(m) {
+      const name = m[1]
+      if (name) {
+      }
+      const funcRef: IFunRef = {
+        name,
+        args: [],
+        startLine: pos.lnum,
+        startCol: pos.col + m.index
+      }
+
+      if (globalFuncPattern.test(name)) {
+        if(!this.globalFunctionRefs[name] || !Array.isArray(this.globalFunctionRefs[name])) {
+          this.globalFunctionRefs[name] = []
+        }
+        this.globalFunctionRefs[name].push(funcRef)
+      } else if (scriptFuncPattern.test(name)) {
+        if(!this.scriptFunctionRefs[name] || !Array.isArray(this.scriptFunctionRefs[name])) {
+          this.scriptFunctionRefs[name] = []
+        }
+        this.scriptFunctionRefs[name].push(funcRef)
+      }
+      m = regFunc.exec(str)
     }
   }
 
