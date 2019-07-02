@@ -301,7 +301,17 @@ class Builtin {
       list.push(config.vimruntime)
     }
     const glob = runtimepath.map(p => path.join(p, 'colors/*.vim'))
-    const colorschemes: string[] = await fg(glob, { onlyFiles: false, deep: 0 })
+    let colorschemes: string[] = []
+    try {
+      colorschemes = await fg(glob, { onlyFiles: false, deep: 0 })
+    } catch (error) {
+      log.error(
+        [
+          `Index Colorschemes Error: ${JSON.stringify(glob)}`,
+          `Error => ${error.stack || error.message || error}`
+        ].join('\n')
+      )
+    }
     this.colorschemeItems = colorschemes.map(p => {
       const label = path.basename(p, '.vim')
       const item: CompletionItem = {
