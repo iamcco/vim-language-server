@@ -4754,6 +4754,51 @@
         "insertTextFormat": 1
       },
       {
+        "label": "cabove",
+        "kind": 24,
+        "detail": "cabo[ve]",
+        "documentation": "go to error above current line",
+        "sortText": "00004",
+        "insertText": "cabove",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "cafter",
+        "kind": 24,
+        "detail": "caf[ter]",
+        "documentation": "go to error after current cursor",
+        "sortText": "00004",
+        "insertText": "cafter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "cbefore",
+        "kind": 24,
+        "detail": "cbef[ore]",
+        "documentation": "go to error before current cursor",
+        "sortText": "00004",
+        "insertText": "cbefore",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "cbelow",
+        "kind": 24,
+        "detail": "cbel[ow]",
+        "documentation": "go to error below current line",
+        "sortText": "00004",
+        "insertText": "cbelow",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "const",
+        "kind": 24,
+        "detail": "cons[t]",
+        "documentation": "create a variable as a constant",
+        "sortText": "00004",
+        "insertText": "const",
+        "insertTextFormat": 1
+      },
+      {
         "label": "fixdel",
         "kind": 24,
         "detail": "fix[del]",
@@ -4769,6 +4814,42 @@
         "documentation": "dialog to open a help window",
         "sortText": "00004",
         "insertText": "helpfind",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "labove",
+        "kind": 24,
+        "detail": "lab[ove]",
+        "documentation": "go to location above current line",
+        "sortText": "00004",
+        "insertText": "labove",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "lafter",
+        "kind": 24,
+        "detail": "laf[ter]",
+        "documentation": "go to location after current cursor",
+        "sortText": "00004",
+        "insertText": "lafter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "lbefore",
+        "kind": 24,
+        "detail": "lbef[ore]",
+        "documentation": "go to location before current cursor",
+        "sortText": "00004",
+        "insertText": "lbefore",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "lbelow",
+        "kind": 24,
+        "detail": "lbel[ow]",
+        "documentation": "go to location below current line",
+        "sortText": "00004",
+        "insertText": "lbelow",
         "insertTextFormat": 1
       },
       {
@@ -4844,6 +4925,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "redrawtabline",
+        "kind": 24,
+        "detail": "redrawt[abline]",
+        "documentation": "force a redraw of the tabline",
+        "sortText": "00004",
+        "insertText": "redrawtabline",
+        "insertTextFormat": 1
+      },
+      {
         "label": "ruby",
         "kind": 24,
         "detail": "rub[y]",
@@ -4880,6 +4970,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "scriptversion",
+        "kind": 24,
+        "detail": "scriptv[ersion]",
+        "documentation": "version of Vim script used",
+        "sortText": "00004",
+        "insertText": "scriptversion",
+        "insertTextFormat": 1
+      },
+      {
         "label": "shell",
         "kind": 24,
         "detail": "sh[ell]",
@@ -4904,6 +5003,24 @@
         "documentation": "make the user happy",
         "sortText": "00004",
         "insertText": "smile",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "tcd",
+        "kind": 24,
+        "detail": "tcd",
+        "documentation": "change directory for tab page",
+        "sortText": "00004",
+        "insertText": "tcd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "tchdir",
+        "kind": 24,
+        "detail": "tch[dir]",
+        "documentation": "change directory for tab page",
+        "sortText": "00004",
+        "insertText": "tchdir",
         "insertTextFormat": 1
       },
       {
@@ -4970,21 +5087,21 @@
         "insertTextFormat": 1
       },
       {
-        "label": "wsverb",
-        "kind": 24,
-        "detail": "ws[verb]",
-        "documentation": "pass the verb to workshop over IPC",
-        "sortText": "00004",
-        "insertText": "wsverb",
-        "insertTextFormat": 1
-      },
-      {
         "label": "wviminfo",
         "kind": 24,
         "detail": "wv[iminfo]",
         "documentation": "write to viminfo file",
         "sortText": "00004",
         "insertText": "wviminfo",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "xrestore",
+        "kind": 24,
+        "detail": "xr[estore]",
+        "documentation": "restores the X server connection",
+        "sortText": "00004",
+        "insertText": "xrestore",
         "insertTextFormat": 1
       }
     ],
@@ -5478,6 +5595,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "deletebufline",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "deletebufline(${1:expr}, ${2:first})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "dictwatcheradd",
         "kind": 3,
         "detail": "Start",
@@ -5814,6 +5939,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "getchangelist",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "getchangelist(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "getchar",
         "kind": 3,
         "detail": "Number",
@@ -5931,6 +6064,14 @@
         "detail": "String",
         "sortText": "00004",
         "insertText": "getftype(${1:fname})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "getjumplist",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "getjumplist(${1})${0}",
         "insertTextFormat": 2
       },
       {
@@ -6718,6 +6859,22 @@
         "insertTextFormat": 2
       },
       {
+        "label": "reg_executing",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "reg_executing(${0})",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "reg_recording",
+        "kind": 3,
+        "detail": "String",
+        "sortText": "00004",
+        "insertText": "reg_recording(${0})",
+        "insertTextFormat": 2
+      },
+      {
         "label": "reltime",
         "kind": 3,
         "detail": "List",
@@ -6950,6 +7107,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "setbufline",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "setbufline(${1:expr}, ${2:lnum}, ${3:line})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "setbufvar",
         "kind": 3,
         "detail": "set",
@@ -7067,6 +7232,62 @@
         "detail": "Number",
         "sortText": "00004",
         "insertText": "shiftwidth(${0})",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_define",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sign_define(${1:name})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_getdefined",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "sign_getdefined(${1})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_getplaced",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "sign_getplaced(${1})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_jump",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sign_jump(${1:id}, ${2:group}, ${3:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_place",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sign_place(${1:id}, ${2:group}, ${3:name}, ${4:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_undefine",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sign_undefine(${1})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sign_unplace",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sign_unplace(${1:group})${0}",
         "insertTextFormat": 2
       },
       {
@@ -7651,6 +7872,14 @@
         "detail": "Number",
         "sortText": "00004",
         "insertText": "winheight(${1:nr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "winlayout",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "winlayout(${1})${0}",
         "insertTextFormat": 2
       },
       {
@@ -8813,6 +9042,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "balloon_gettext",
+        "kind": 3,
+        "detail": "String",
+        "sortText": "00004",
+        "insertText": "balloon_gettext(${0})",
+        "insertTextFormat": 2
+      },
+      {
         "label": "balloon_show",
         "kind": 3,
         "detail": "none",
@@ -8973,6 +9210,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "chdir",
+        "kind": 3,
+        "detail": "String",
+        "sortText": "00004",
+        "insertText": "chdir(${1:dir})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "debugbreak",
         "kind": 3,
         "detail": "Number",
@@ -8981,27 +9226,27 @@
         "insertTextFormat": 2
       },
       {
-        "label": "deletebufline",
+        "label": "environ",
         "kind": 3,
-        "detail": "Number",
+        "detail": "Dict",
         "sortText": "00004",
-        "insertText": "deletebufline(${1:expr}, ${2:first})${0}",
+        "insertText": "environ(${0})",
         "insertTextFormat": 2
       },
       {
-        "label": "getchangelist",
+        "label": "expandcmd",
         "kind": 3,
-        "detail": "List",
+        "detail": "String",
         "sortText": "00004",
-        "insertText": "getchangelist(${1:expr})${0}",
+        "insertText": "expandcmd(${1:expr})${0}",
         "insertTextFormat": 2
       },
       {
-        "label": "getjumplist",
+        "label": "getenv",
         "kind": 3,
-        "detail": "List",
+        "detail": "String",
         "sortText": "00004",
-        "insertText": "getjumplist(${1})${0}",
+        "insertText": "getenv(${1:name})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9010,6 +9255,14 @@
         "detail": "String",
         "sortText": "00004",
         "insertText": "inputdialog(${1:prompt})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "isinf",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "isinf(${1:expr})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9082,6 +9335,38 @@
         "detail": "String",
         "sortText": "00004",
         "insertText": "js_encode(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "list2str",
+        "kind": 3,
+        "detail": "String",
+        "sortText": "00004",
+        "insertText": "list2str(${1:list})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "listener_add",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "listener_add(${1:callback})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "listener_flush",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "listener_flush(${1})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "listener_remove",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "listener_remove(${1:id})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9205,19 +9490,35 @@
         "insertTextFormat": 2
       },
       {
-        "label": "reg_executing",
+        "label": "readdir",
         "kind": 3,
-        "detail": "String",
+        "detail": "List",
         "sortText": "00004",
-        "insertText": "reg_executing(${0})",
+        "insertText": "readdir(${1:dir})${0}",
         "insertTextFormat": 2
       },
       {
-        "label": "reg_recording",
+        "label": "rubyeval",
+        "kind": 3,
+        "detail": "any",
+        "sortText": "00004",
+        "insertText": "rubyeval(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "screenchars",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "screenchars(${1:row}, ${2:col})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "screenstring",
         "kind": 3,
         "detail": "String",
         "sortText": "00004",
-        "insertText": "reg_recording(${0})",
+        "insertText": "screenstring(${1:row}, ${2:col})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9237,67 +9538,51 @@
         "insertTextFormat": 2
       },
       {
-        "label": "setbufline",
+        "label": "setenv",
         "kind": 3,
-        "detail": "Number",
+        "detail": "none",
         "sortText": "00004",
-        "insertText": "setbufline(${1:expr}, ${2:lnum}, ${3:text})${0}",
+        "insertText": "setenv(${1:name}, ${2:val})${0}",
         "insertTextFormat": 2
       },
       {
-        "label": "sign_define",
+        "label": "sound_clear",
         "kind": 3,
-        "detail": "Number",
+        "detail": "none",
         "sortText": "00004",
-        "insertText": "sign_define(${1:name})${0}",
+        "insertText": "sound_clear(${0})",
         "insertTextFormat": 2
       },
       {
-        "label": "sign_getdefined",
+        "label": "sound_playevent",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sound_playevent(${1:name})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sound_playfile",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "sound_playfile(${1:path})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "sound_stop",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "sound_stop(${1:id})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "str2list",
         "kind": 3,
         "detail": "List",
         "sortText": "00004",
-        "insertText": "sign_getdefined(${1})${0}",
-        "insertTextFormat": 2
-      },
-      {
-        "label": "sign_getplaced",
-        "kind": 3,
-        "detail": "List",
-        "sortText": "00004",
-        "insertText": "sign_getplaced(${1})${0}",
-        "insertTextFormat": 2
-      },
-      {
-        "label": "sign_jump",
-        "kind": 3,
-        "detail": "Number",
-        "sortText": "00004",
-        "insertText": "sign_jump(${1:id}, ${2:group}, ${3:expr})${0}",
-        "insertTextFormat": 2
-      },
-      {
-        "label": "sign_place",
-        "kind": 3,
-        "detail": "Number",
-        "sortText": "00004",
-        "insertText": "sign_place(${1:id}, ${2:group}, ${3:name}, ${4:expr})${0}",
-        "insertTextFormat": 2
-      },
-      {
-        "label": "sign_undefine",
-        "kind": 3,
-        "detail": "Number",
-        "sortText": "00004",
-        "insertText": "sign_undefine(${1})${0}",
-        "insertTextFormat": 2
-      },
-      {
-        "label": "sign_unplace",
-        "kind": 3,
-        "detail": "Number",
-        "sortText": "00004",
-        "insertText": "sign_unplace(${1:group})${0}",
+        "insertText": "str2list(${1:expr})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9473,7 +9758,7 @@
         "kind": 3,
         "detail": "Number",
         "sortText": "00004",
-        "insertText": "term_start(${1:cmd}, ${2:options})${0}",
+        "insertText": "term_start(${1:cmd})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9506,6 +9791,22 @@
         "detail": "none",
         "sortText": "00004",
         "insertText": "test_feedinput(${1:string})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "test_garbagecollect_soon",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "test_garbagecollect_soon(${0})",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "test_getvalue",
+        "kind": 3,
+        "detail": "any",
+        "sortText": "00004",
+        "insertText": "test_getvalue(${1:string})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9589,11 +9890,27 @@
         "insertTextFormat": 2
       },
       {
+        "label": "test_refcount",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "test_refcount(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "test_scrollbar",
         "kind": 3,
         "detail": "none",
         "sortText": "00004",
         "insertText": "test_scrollbar(${1:which}, ${2:value}, ${3:dragging})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "test_setmouse",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "test_setmouse(${1:row}, ${2:col})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9605,11 +9922,11 @@
         "insertTextFormat": 2
       },
       {
-        "label": "winlayout",
+        "label": "win_execute",
         "kind": 3,
-        "detail": "List",
+        "detail": "String",
         "sortText": "00004",
-        "insertText": "winlayout(${1})${0}",
+        "insertText": "win_execute(${1:id}, ${2:command})${0}",
         "insertTextFormat": 2
       }
     ],
@@ -10221,6 +10538,13 @@
         "kind": 6,
         "sortText": "00004",
         "insertText": "termu7resp",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "v:versionlong",
+        "kind": 6,
+        "sortText": "00004",
+        "insertText": "versionlong",
         "insertTextFormat": 1
       }
     ],
@@ -10955,15 +11279,6 @@
         "insertTextFormat": 1
       },
       {
-        "label": "exrc",
-        "kind": 10,
-        "detail": "boolean",
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "exrc",
-        "insertTextFormat": 1
-      },
-      {
         "label": "fileencoding",
         "kind": 10,
         "detail": "string",
@@ -11162,21 +11477,21 @@
         "insertTextFormat": 1
       },
       {
-        "label": "formatoptions",
-        "kind": 10,
-        "detail": "string",
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "formatoptions",
-        "insertTextFormat": 1
-      },
-      {
         "label": "formatlistpat",
         "kind": 10,
         "detail": "string",
         "documentation": "",
         "sortText": "00004",
         "insertText": "formatlistpat",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "formatoptions",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "formatoptions",
         "insertTextFormat": 1
       },
       {
@@ -11783,6 +12098,24 @@
         "insertTextFormat": 1
       },
       {
+        "label": "modeline",
+        "kind": 10,
+        "detail": "boolean",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "modeline",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "modelineexpr",
+        "kind": 10,
+        "detail": "boolean",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "modelineexpr",
+        "insertTextFormat": 1
+      },
+      {
         "label": "modelines",
         "kind": 10,
         "detail": "number",
@@ -12221,6 +12554,15 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "ruler",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "rulerformat",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "rulerformat",
         "insertTextFormat": 1
       },
       {
@@ -13097,6 +13439,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "winblend",
+        "kind": 10,
+        "detail": "number",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "winblend",
+        "insertTextFormat": 1
+      },
+      {
         "label": "window",
         "kind": 10,
         "detail": "number",
@@ -13328,6 +13679,15 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "esckeys",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "exrc",
+        "kind": 10,
+        "detail": "boolean",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "exrc",
         "insertTextFormat": 1
       },
       {
@@ -13583,6 +13943,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "tagfunc",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "tagfunc",
+        "insertTextFormat": 1
+      },
+      {
         "label": "tcldll",
         "kind": 10,
         "detail": "string",
@@ -13610,15 +13979,6 @@
         "insertTextFormat": 1
       },
       {
-        "label": "termwinscroll",
-        "kind": 10,
-        "detail": "number",
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "termwinscroll",
-        "insertTextFormat": 1
-      },
-      {
         "label": "termwinkey",
         "kind": 10,
         "detail": "string",
@@ -13628,12 +13988,30 @@
         "insertTextFormat": 1
       },
       {
+        "label": "termwinscroll",
+        "kind": 10,
+        "detail": "number",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "termwinscroll",
+        "insertTextFormat": 1
+      },
+      {
         "label": "termwinsize",
         "kind": 10,
         "detail": "string",
         "documentation": "",
         "sortText": "00004",
         "insertText": "termwinsize",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "termwintype",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "termwintype",
         "insertTextFormat": 1
       },
       {
@@ -13751,6 +14129,15 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "weirdinvert",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "wincolor",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "wincolor",
         "insertTextFormat": 1
       },
       {
@@ -13973,6 +14360,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "bsd",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "bsd",
+        "insertTextFormat": 1
+      },
+      {
         "label": "builtin_terms",
         "kind": 20,
         "documentation": "",
@@ -14045,6 +14440,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "conpty",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "conpty",
+        "insertTextFormat": 1
+      },
+      {
         "label": "cryptv",
         "kind": 20,
         "documentation": "",
@@ -14058,6 +14461,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "cscope",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "cursorbind",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "cursorbind",
         "insertTextFormat": 1
       },
       {
@@ -14365,6 +14776,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "hpux",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "hpux",
+        "insertTextFormat": 1
+      },
+      {
         "label": "insert_expand",
         "kind": 20,
         "documentation": "",
@@ -14434,6 +14853,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "'breakindent'",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "linux",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "linux",
         "insertTextFormat": 1
       },
       {
@@ -14538,6 +14965,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "mouse_gpm",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "mouse_gpm_enabled",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "mouse_gpm_enabled",
         "insertTextFormat": 1
       },
       {
@@ -14853,6 +15288,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "sound",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "sound",
+        "insertTextFormat": 1
+      },
+      {
         "label": "spell",
         "kind": 20,
         "documentation": "",
@@ -14874,6 +15317,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "statusline",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "sun",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "sun",
         "insertTextFormat": 1
       },
       {
@@ -14930,22 +15381,6 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "tag_old_static",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "tag_any_white",
-        "kind": 20,
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "tag_any_white",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "files",
-        "kind": 20,
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "files",
         "insertTextFormat": 1
       },
       {
@@ -15085,11 +15520,43 @@
         "insertTextFormat": 1
       },
       {
+        "label": "(always",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "(always",
+        "insertTextFormat": 1
+      },
+      {
         "label": "viminfo",
         "kind": 20,
         "documentation": "",
         "sortText": "00004",
         "insertText": "viminfo",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "vimscript-1",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "vimscript-1",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "vimscript-2",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "vimscript-2",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "vimscript-3",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "vimscript-3",
         "insertTextFormat": 1
       },
       {
@@ -15501,6 +15968,10 @@
       "{expr}, {expr}",
       "Float"
     ],
+    "balloon_gettext": [
+      "",
+      "String"
+    ],
     "balloon_show": [
       "{expr}",
       "none"
@@ -15645,6 +16116,10 @@
       "{expr}[, {utf8}]",
       "Number"
     ],
+    "chdir": [
+      "{dir}",
+      "String"
+    ],
     "cindent": [
       "{lnum}",
       "Number"
@@ -15668,6 +16143,10 @@
     "complete_check": [
       "",
       "Number"
+    ],
+    "complete_info": [
+      "[{what}]",
+      "Dict"
     ],
     "confirm": [
       "{msg} [, {choices} [, {default} [, {type}]]]",
@@ -15710,7 +16189,7 @@
       "Number"
     ],
     "deletebufline": [
-      "{expr}, {first} [, {last}]",
+      "{expr}, {first}[, {last}]",
       "Number"
     ],
     "did_filetype": [
@@ -15728,6 +16207,10 @@
     "empty": [
       "{expr}",
       "Number"
+    ],
+    "environ": [
+      "",
+      "Dict"
     ],
     "escape": [
       "{string}, {chars}",
@@ -15768,6 +16251,10 @@
     "expand": [
       "{expr} [, {nosuf} [, {list}]]",
       "any"
+    ],
+    "expandcmd": [
+      "{expr}",
+      "String"
     ],
     "feedkeys": [
       "{string} [, {mode}]",
@@ -15907,6 +16394,10 @@
     ],
     "getcwd": [
       "[{winnr} [, {tabnr}]]",
+      "String"
+    ],
+    "getenv": [
+      "{name}",
       "String"
     ],
     "getfontname": [
@@ -16105,6 +16596,10 @@
       "{directory}",
       "Number"
     ],
+    "isinf": [
+      "{expr}",
+      "Number"
+    ],
     "islocked": [
       "{expr}",
       "Number"
@@ -16188,6 +16683,22 @@
     "lispindent": [
       "{lnum}",
       "Number"
+    ],
+    "list2str": [
+      "{list} [, {utf8}]",
+      "String"
+    ],
+    "listener_add": [
+      "{callback} [, {buf}]",
+      "Number"
+    ],
+    "listener_flush": [
+      "[{buf}]",
+      "none"
+    ],
+    "listener_remove": [
+      "{id}",
+      "none"
     ],
     "localtime": [
       "",
@@ -16377,13 +16888,17 @@
       "{expr} [, {max} [, {stride}]]",
       "List"
     ],
+    "readdir": [
+      "{dir} [, {expr}]",
+      "List"
+    ],
     "readfile": [
       "{fname} [, {binary} [, {max}]]",
       "List"
     ],
     "reg_executing": [
       "",
-      "String"
+      "Number"
     ],
     "reg_recording": [
       "",
@@ -16449,6 +16964,10 @@
       "{expr}",
       "Float"
     ],
+    "rubyeval": [
+      "{expr}",
+      "any"
+    ],
     "screenattr": [
       "{row}, {col}",
       "Number"
@@ -16457,6 +16976,10 @@
       "{row}, {col}",
       "Number"
     ],
+    "screenchars": [
+      "{row}, {col}",
+      "List"
+    ],
     "screencol": [
       "",
       "Number"
@@ -16464,6 +16987,10 @@
     "screenrow": [
       "",
       "Number"
+    ],
+    "screenstring": [
+      "{row}, {col}",
+      "String"
     ],
     "search": [
       "{pattern} [, {flags} [, {stopline} [, {timeout}]]]",
@@ -16494,7 +17021,7 @@
       "String"
     ],
     "setbufline": [
-      "{expr}, {lnum}, {text}",
+      " {expr}, {lnum}, {line}",
       "Number"
     ],
     "setbufvar": [
@@ -16508,6 +17035,10 @@
     "setcmdpos": [
       "{pos}",
       "Number"
+    ],
+    "setenv": [
+      "{name}, {val}",
+      "none"
     ],
     "setfperm": [
       "{fname}, {mode}",
@@ -16609,6 +17140,22 @@
       "{list} [, {func} [, {dict}]]",
       "List"
     ],
+    "sound_clear": [
+      "",
+      "none"
+    ],
+    "sound_playevent": [
+      "{name} [, {callback}]",
+      "Number"
+    ],
+    "sound_playfile": [
+      "{path} [, {callback}]",
+      "Number"
+    ],
+    "sound_stop": [
+      "{id}",
+      "none"
+    ],
     "soundfold": [
       "{word}",
       "String"
@@ -16632,6 +17179,10 @@
     "str2float": [
       "{expr}",
       "Float"
+    ],
+    "str2list": [
+      "{expr} [, {utf8}]",
+      "List"
     ],
     "str2nr": [
       "{expr} [, {base}]",
@@ -16846,7 +17397,7 @@
       "none"
     ],
     "term_start": [
-      "{cmd}, {options}",
+      "{cmd} [, {options}]",
       "Number"
     ],
     "term_wait": [
@@ -16868,6 +17419,14 @@
     "test_garbagecollect_now": [
       "",
       "none"
+    ],
+    "test_garbagecollect_soon": [
+      "",
+      "none"
+    ],
+    "test_getvalue": [
+      "{string}",
+      "any"
     ],
     "test_ignore_error": [
       "{expr}",
@@ -16909,8 +17468,16 @@
       "{expr}, {val}",
       "none"
     ],
+    "test_refcount": [
+      "{expr}",
+      "Number"
+    ],
     "test_scrollbar": [
       "{which}, {value}, {dragging}",
+      "none"
+    ],
+    "test_setmouse": [
+      "{row}, {col}",
       "none"
     ],
     "test_settime": [
@@ -16988,6 +17555,10 @@
     "wildmenumode": [
       "",
       "Number"
+    ],
+    "win_execute": [
+      "{id}, {command} [, {silent}]",
+      "String"
     ],
     "win_findbuf": [
       "{bufnr}",
@@ -17076,10 +17647,6 @@
     "chansend": [
       "{id}, {data}",
       "Number"
-    ],
-    "complete_info": [
-      "[{what}]",
-      "Dict"
     ],
     "dictwatcheradd": [
       "{dict}, {pattern}, {callback}",
@@ -19241,11 +19808,38 @@
       "X": [
         "ask for encryption key"
       ],
+      "cabove": [
+        "go to error above current line"
+      ],
+      "cafter": [
+        "go to error after current cursor"
+      ],
+      "cbefore": [
+        "go to error before current cursor"
+      ],
+      "cbelow": [
+        "go to error below current line"
+      ],
+      "const": [
+        "create a variable as a constant"
+      ],
       "fixdel": [
         "set key code of <Del>"
       ],
       "helpfind": [
         "dialog to open a help window"
+      ],
+      "labove": [
+        "go to location above current line"
+      ],
+      "lafter": [
+        "go to location after current cursor"
+      ],
+      "lbefore": [
+        "go to location before current cursor"
+      ],
+      "lbelow": [
+        "go to location below current line"
       ],
       "mzscheme": [
         "execute MzScheme command"
@@ -19271,6 +19865,9 @@
       "perldo": [
         "execute Perl command for each line"
       ],
+      "redrawtabline": [
+        "force a redraw of the tabline"
+      ],
       "ruby": [
         "execute Ruby command"
       ],
@@ -19283,6 +19880,9 @@
       "rviminfo": [
         "read from viminfo file"
       ],
+      "scriptversion": [
+        "version of Vim script used"
+      ],
       "shell": [
         "escape to a shell"
       ],
@@ -19291,6 +19891,12 @@
       ],
       "smile": [
         "make the user happy"
+      ],
+      "tcd": [
+        "change directory for tab page"
+      ],
+      "tchdir": [
+        "change directory for tab page"
       ],
       "tcl": [
         "execute Tcl command"
@@ -19313,11 +19919,11 @@
       "tlunmenu": [
         "remove menu for Terminal-Job mode"
       ],
-      "wsverb": [
-        "pass the verb to workshop over IPC"
-      ],
       "wviminfo": [
         "write to viminfo file"
+      ],
+      "xrestore": [
+        "restores the X server connection"
       ]
     },
     "functions": {
@@ -20128,6 +20734,17 @@
         "\t\tThe result is a Number, which is 0 if the delete operation was",
         "\t\tsuccessful and -1 when the deletion failed or partly failed."
       ],
+      "deletebufline": [
+        "\t\tDelete lines {first} to {last} (inclusive) from buffer {expr}.",
+        "\t\tIf {last} is omitted then delete line {first} only.",
+        "\t\tOn success 0 is returned, on failure 1 is returned.",
+        "",
+        "\t\tFor the use of {expr}, see |bufname()| above.",
+        "",
+        "\t\t{first} and {last} are used like with |setline()|. Note that",
+        "\t\twhen using |line()| this refers to the current buffer. Use \"$\"",
+        "\t\tto refer to the last line in buffer {expr}."
+      ],
       "dictwatcheradd": [
         "\t\tAdds a watcher to a dictionary. A dictionary watcher is",
         "\t\tidentified by three components:",
@@ -20502,20 +21119,24 @@
       "feedkeys": [
         "\t\tCharacters in {string} are queued for processing as if they",
         "\t\tcome from a mapping or were typed by the user.",
+        "",
         "\t\tBy default the string is added to the end of the typeahead",
         "\t\tbuffer, thus if a mapping is still being executed the",
         "\t\tcharacters come after them.  Use the 'i' flag to insert before",
         "\t\tother characters, they will be executed next, before any",
         "\t\tcharacters from a mapping.",
+        "",
         "\t\tThe function does not wait for processing of keys contained in",
         "\t\t{string}.",
+        "",
         "\t\tTo include special keys into {string}, use double-quotes",
         "\t\tand \"\\...\" notation |expr-quote|. For example,",
         "\t\tfeedkeys(\"\\<CR>\") simulates pressing of the <Enter> key. But",
         "\t\tfeedkeys('\\<CR>') pushes 5 characters.",
-        "\t\tIf {mode} is absent, keys are remapped.",
+        "",
         "\t\t{mode} is a String, which can contain these character flags:",
-        "\t\t'm'\tRemap keys. This is default.",
+        "\t\t'm'\tRemap keys. This is default.  If {mode} is absent,",
+        "\t\t\tkeys are remapped.",
         "\t\t'n'\tDo not remap keys.",
         "\t\t't'\tHandle keys as if typed; otherwise they are handled as",
         "\t\t\tif coming from a mapping.  This matters for undo,",
@@ -20529,6 +21150,9 @@
         "\t\t\twill behave as if <Esc> is typed, to avoid getting",
         "\t\t\tstuck, waiting for a character to be typed before the",
         "\t\t\tscript continues.",
+        "\t\t\tNote that if you manage to call feedkeys() while",
+        "\t\t\texecuting commands, thus calling it recursively, the",
+        "\t\t\tall typehead will be consumed by the last call.",
         "\t\t'!'\tWhen used with 'x' will not end Insert mode. Can be",
         "\t\t\tused in a test when a timer is set to exit Insert mode",
         "\t\t\ta little later.  Useful for testing CursorHoldI.",
@@ -20940,6 +21564,22 @@
         "\t\t\t:let bufmodified = getbufvar(1, \"&mod\")",
         "\t\t\t:echo \"todo myvar = \" . getbufvar(\"todo\", \"myvar\")"
       ],
+      "getchangelist": [
+        "\t\tReturns the |changelist| for the buffer {expr}. For the use",
+        "\t\tof {expr}, see |bufname()| above. If buffer {expr} doesn't",
+        "\t\texist, an empty list is returned.",
+        "",
+        "\t\tThe returned list contains two entries: a list with the change",
+        "\t\tlocations and the current position in the list.  Each",
+        "\t\tentry in the change list is a dictionary with the following",
+        "\t\tentries:",
+        "\t\t\tcol\t\tcolumn number",
+        "\t\t\tcoladd\t\tcolumn offset for 'virtualedit'",
+        "\t\t\tlnum\t\tline number",
+        "\t\tIf buffer {expr} is the current buffer, then the current",
+        "\t\tposition refers to the position in the list. For other",
+        "\t\tbuffers, it is set to the length of the list."
+      ],
       "getchar": [
         "\t\tGet a single character from the user or input stream.",
         "\t\tIf [expr] is omitted, wait until a character is available.",
@@ -21227,6 +21867,26 @@
         "<\t\tNote that a type such as \"link\" will only be returned on",
         "\t\tsystems that support it.  On some systems only \"dir\" and",
         "\t\t\"file\" are returned.",
+        ""
+      ],
+      "getjumplist": [
+        "\t\tReturns the |jumplist| for the specified window.",
+        "",
+        "\t\tWithout arguments use the current window.",
+        "\t\tWith {winnr} only use this window in the current tab page.",
+        "\t\t{winnr} can also be a |window-ID|.",
+        "\t\tWith {winnr} and {tabnr} use the window in the specified tab",
+        "\t\tpage.",
+        "",
+        "\t\tThe returned list contains two entries: a list with the jump",
+        "\t\tlocations and the last used jump position number in the list.",
+        "\t\tEach entry in the jump location list is a dictionary with",
+        "\t\tthe following entries:",
+        "\t\t\tbufnr\t\tbuffer number",
+        "\t\t\tcol\t\tcolumn number",
+        "\t\t\tcoladd\t\tcolumn offset for 'virtualedit'",
+        "\t\t\tfilename\tfilename if available",
+        "\t\t\tlnum\t\tline number",
         ""
       ],
       "getline": [
@@ -21547,6 +22207,7 @@
         "\t\t\theight\t\twindow height (excluding winbar)",
         "\t\t\tloclist\t\t1 if showing a location list",
         "\t\t\tquickfix\t1 if quickfix or location list window",
+        "\t\t\tterminal\t1 if a terminal window",
         "\t\t\ttabnr\t\ttab page number",
         "\t\t\ttopline\t\tfirst displayed buffer line ",
         "\t\t\tvariables\ta reference to the dictionary with",
@@ -22127,9 +22788,9 @@
         "\t\t\t\t\t\t\t*jobstart-options*",
         "\t\t{opts} is a dictionary with these keys:",
         "\t\t  |on_stdout|: stdout event handler (function name or |Funcref|)",
-        "\t\t  stdout_buffered : read stdout in |buffered| mode.",
+        "\t\t  stdout_buffered : read stdout in |channel-buffered| mode.",
         "\t\t  |on_stderr|: stderr event handler (function name or |Funcref|)",
-        "\t\t  stderr_buffered : read stderr in |buffered| mode.",
+        "\t\t  stderr_buffered : read stderr in |channel-buffered| mode.",
         "\t\t  |on_exit|  : exit event handler (function name or |Funcref|)",
         "\t\t  cwd      : Working directory of the job; defaults to",
         "\t\t             |current-directory|.",
@@ -22168,9 +22829,10 @@
         "",
         "\t\t{ids} is a list of |job-id|s to wait for.",
         "\t\t{timeout} is the maximum number of milliseconds to wait.",
-        "\t\t{timeout} of zero can be used to check if a job-id is valid,",
-        "\t\twithout waiting.",
         "",
+        "\t\tUse zero {timeout} to check the status of a job: >",
+        "\t\t\tlet exited = jobwait([{job-id}], 0)[0] >= 0",
+        "<",
         "\t\tDuring jobwait() callbacks for jobs not in the {ids} list may",
         "\t\tbe invoked. The screen will not redraw unless |:redraw| is",
         "\t\tinvoked by a callback.",
@@ -22371,7 +23033,7 @@
       ],
       "luaeval": [
         "\t\tEvaluate Lua expression {expr} and return its result converted",
-        "\t\tto Vim data structures. See |lua-luaeval| for more details."
+        "\t\tto Vim data structures. See |lua-eval| for more details."
       ],
       "map": [
         "\t\t{expr1} must be a |List| or a |Dictionary|.",
@@ -22967,7 +23629,7 @@
         "\t\tcharacters.  nr2char(0) is a real NUL and terminates the",
         "\t\tstring, thus results in an empty string.",
         "",
-        "nvim_...({...})\t\t\t\t\t\t*nvim_...()* *eval-api*",
+        "nvim_...({...})\t\t\t\t\t*E5555* *nvim_...()* *eval-api*",
         "\t\tCall nvim |api| functions. The type checking of arguments will",
         "\t\tbe stricter than for most other builtins. For instance,",
         "\t\tif Integer is expected, a |Number| must be passed in, a",
@@ -23290,6 +23952,15 @@
         "\t\tWhen the file can't be opened an error message is given and",
         "\t\tthe result is an empty list.",
         "\t\tAlso see |writefile()|."
+      ],
+      "reg_executing": [
+        "\t\tReturns the single letter name of the register being executed.",
+        "\t\tReturns an empty string when no register is being executed.",
+        "\t\tSee |@|."
+      ],
+      "reg_recording": [
+        "\t\tReturns the single letter name of the register being recorded.",
+        "\t\tReturns an empty string string when not recording.  See |q|."
       ],
       "reltime": [
         "\t\tReturn an item that represents a time value.  The format of",
@@ -23824,6 +24495,19 @@
         "\t\tIf |v:servername| is stopped it is set to the next available",
         "\t\taddress returned by |serverlist()|."
       ],
+      "setbufline": [
+        "\t\tSet line {lnum} to {text} in buffer {expr}.  To insert",
+        "\t\tlines use |append()|.",
+        "",
+        "\t\tFor the use of {expr}, see |bufname()| above.",
+        "",
+        "\t\t{lnum} is used like with |setline()|.",
+        "\t\tThis works like |setline()| for the specified buffer.",
+        "\t\tOn success 0 is returned, on failure 1 is returned.",
+        "",
+        "\t\tIf {expr} is not a valid buffer or {lnum} is not valid, an",
+        "\t\terror message is given."
+      ],
       "setbufvar": [
         "\t\tSet option or local variable {varname} in buffer {expr} to",
         "\t\t{val}.",
@@ -23891,13 +24575,19 @@
       ],
       "setline": [
         "\t\tSet line {lnum} of the current buffer to {text}.  To insert",
-        "\t\tlines use |append()|.",
+        "\t\tlines use |append()|. To set lines in another buffer use",
+        "\t\t|setbufline()|.",
+        "",
         "\t\t{lnum} is used like with |getline()|.",
         "\t\tWhen {lnum} is just below the last line the {text} will be",
         "\t\tadded as a new line.",
+        "",
         "\t\tIf this succeeds, 0 is returned.  If this fails (most likely",
-        "\t\tbecause {lnum} is invalid) 1 is returned.  Example: >",
+        "\t\tbecause {lnum} is invalid) 1 is returned.",
+        "",
+        "\t\tExample: >",
         "\t\t\t:call setline(5, strftime(\"%c\"))",
+        "",
         "<\t\tWhen {text} is a |List| then line {lnum} and following lines",
         "\t\twill be set to the items in the list.  Example: >",
         "\t\t\t:call setline(5, ['aaa', 'bbb', 'ccc'])",
@@ -24233,8 +24923,247 @@
         "\t\t\t    return &sw",
         "\t\t\t  endfunc",
         "\t\t\tendif",
-        "<\t\tAnd then use s:sw() instead of &sw.",
-        ""
+        "<\t\tAnd then use s:sw() instead of &sw."
+      ],
+      "sign_define": [
+        "\t\tDefine a new sign named {name} or modify the attributes of an",
+        "\t\texisting sign.  This is similar to the |:sign-define| command.",
+        "",
+        "\t\tPrefix {name} with a unique text to avoid name collisions.",
+        "\t\tThere is no {group} like with placing signs.",
+        "",
+        "\t\tThe {name} can be a String or a Number.  The optional {dict}",
+        "\t\targument specifies the sign attributes.  The following values",
+        "\t\tare supported:",
+        "\t\t    icon\tfull path to the bitmap file for the sign.",
+        "\t\t    linehl\thighlight group used for the whole line the",
+        "\t\t\t\tsign is placed in.",
+        "\t\t    text\ttext that is displayed when there is no icon",
+        "\t\t\t\tor the GUI is not being used.",
+        "\t\t    texthl\thighlight group used for the text item",
+        "\t\t    numhl\thighlight group used for 'number' column at the",
+        "\t\t\t\tassociated line. Overrides |hl-LineNr|,",
+        "\t\t\t\t|hl-CursorLineNr|.",
+        "",
+        "\t\tIf the sign named {name} already exists, then the attributes",
+        "\t\tof the sign are updated.",
+        "",
+        "\t\tReturns 0 on success and -1 on failure.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\tcall sign_define(\"mySign\", {\"text\" : \"=>\", \"texthl\" :",
+        "\t\t\t\t\t\\ \"Error\", \"linehl\" : \"Search\"})"
+      ],
+      "sign_getdefined": [
+        "\t\tGet a list of defined signs and their attributes.",
+        "\t\tThis is similar to the |:sign-list| command.",
+        "",
+        "\t\tIf the {name} is not supplied, then a list of all the defined",
+        "\t\tsigns is returned. Otherwise the attribute of the specified",
+        "\t\tsign is returned.",
+        "",
+        "\t\tEach list item in the returned value is a dictionary with the",
+        "\t\tfollowing entries:",
+        "\t\t\ticon\tfull path to the bitmap file of the sign",
+        "\t\t\tlinehl\thighlight group used for the whole line the",
+        "\t\t\t\tsign is placed in.",
+        "\t\t\tname\tname of the sign",
+        "\t\t\ttext\ttext that is displayed when there is no icon",
+        "\t\t\t\tor the GUI is not being used.",
+        "\t\t\ttexthl\thighlight group used for the text item",
+        "\t\t\tnumhl\thighlight group used for 'number' column at the",
+        "\t\t\t\tassociated line. Overrides |hl-LineNr|,",
+        "\t\t\t\t|hl-CursorLineNr|.",
+        "",
+        "\t\tReturns an empty List if there are no signs and when {name} is",
+        "\t\tnot found.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t\" Get a list of all the defined signs",
+        "\t\t\techo sign_getdefined()",
+        "",
+        "\t\t\t\" Get the attribute of the sign named mySign",
+        "\t\t\techo sign_getdefined(\"mySign\")"
+      ],
+      "sign_getplaced": [
+        "\t\tReturn a list of signs placed in a buffer or all the buffers.",
+        "\t\tThis is similar to the |:sign-place-list| command.",
+        "",
+        "\t\tIf the optional buffer name {expr} is specified, then only the",
+        "\t\tlist of signs placed in that buffer is returned.  For the use",
+        "\t\tof {expr}, see |bufname()|. The optional {dict} can contain",
+        "\t\tthe following entries:",
+        "\t\t\tgroup\tselect only signs in this group",
+        "\t\t\tid\tselect sign with this identifier",
+        "\t\t\tlnum\tselect signs placed in this line. For the use",
+        "\t\t\t\tof {lnum}, see |line()|.",
+        "\t\tIf {group} is '*', then signs in all the groups including the",
+        "\t\tglobal group are returned. If {group} is not supplied or is an",
+        "\t\tempty string, then only signs in the global group are",
+        "\t\treturned.  If no arguments are supplied, then signs in the",
+        "\t\tglobal group placed in all the buffers are returned.",
+        "\t\tSee |sign-group|.",
+        "",
+        "\t\tEach list item in the returned value is a dictionary with the",
+        "\t\tfollowing entries:",
+        "\t\t\tbufnr\tnumber of the buffer with the sign",
+        "\t\t\tsigns\tlist of signs placed in {bufnr}. Each list",
+        "\t\t\t\titem is a dictionary with the below listed",
+        "\t\t\t\tentries",
+        "",
+        "\t\tThe dictionary for each sign contains the following entries:",
+        "\t\t\tgroup\tsign group. Set to '' for the global group.",
+        "\t\t\tid\tidentifier of the sign",
+        "\t\t\tlnum\tline number where the sign is placed",
+        "\t\t\tname\tname of the defined sign",
+        "\t\t\tpriority\tsign priority",
+        "",
+        "\t\tThe returned signs in a buffer are ordered by their line",
+        "\t\tnumber.",
+        "",
+        "\t\tReturns an empty list on failure or if there are no placed",
+        "\t\tsigns.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t\" Get a List of signs placed in eval.c in the",
+        "\t\t\t\" global group",
+        "\t\t\techo sign_getplaced(\"eval.c\")",
+        "",
+        "\t\t\t\" Get a List of signs in group 'g1' placed in eval.c",
+        "\t\t\techo sign_getplaced(\"eval.c\", {'group' : 'g1'})",
+        "",
+        "\t\t\t\" Get a List of signs placed at line 10 in eval.c",
+        "\t\t\techo sign_getplaced(\"eval.c\", {'lnum' : 10})",
+        "",
+        "\t\t\t\" Get sign with identifier 10 placed in a.py",
+        "\t\t\techo sign_getplaced(\"a.py\", {'id' : 10'})",
+        "",
+        "\t\t\t\" Get sign with id 20 in group 'g1' placed in a.py",
+        "\t\t\techo sign_getplaced(\"a.py\", {'group' : 'g1',",
+        "\t\t\t\t\t\t\t\\  'id' : 20'})",
+        "",
+        "\t\t\t\" Get a List of all the placed signs",
+        "\t\t\techo sign_getplaced()",
+        "<"
+      ],
+      "sign_jump": [
+        "\t\tOpen the buffer {expr} or jump to the window that contains",
+        "\t\t{expr} and position the cursor at sign {id} in group {group}.",
+        "\t\tThis is similar to the |:sign-jump| command.",
+        "",
+        "\t\tFor the use of {expr}, see |bufname()|.",
+        "",
+        "\t\tReturns the line number of the sign. Returns -1 if the",
+        "\t\targuments are invalid.",
+        "",
+        "\t\tExample: >",
+        "\t\t\t\" Jump to sign 10 in the current buffer",
+        "\t\t\tcall sign_jump(10, '', '')",
+        "<"
+      ],
+      "sign_place": [
+        "\t\tPlace the sign defined as {name} at line {lnum} in file {expr}",
+        "\t\tand assign {id} and {group} to sign.  This is similar to the",
+        "\t\t|:sign-place| command.",
+        "",
+        "\t\tIf the sign identifier {id} is zero, then a new identifier is",
+        "\t\tallocated.  Otherwise the specified number is used. {group} is",
+        "\t\tthe sign group name. To use the global sign group, use an",
+        "\t\tempty string.  {group} functions as a namespace for {id}, thus",
+        "\t\ttwo groups can use the same IDs. Refer to |sign-identifier|",
+        "\t\tfor more information.",
+        "\t\t",
+        "\t\t{name} refers to a defined sign.",
+        "\t\t{expr} refers to a buffer name or number. For the accepted",
+        "\t\tvalues, see |bufname()|.",
+        "",
+        "\t\tThe optional {dict} argument supports the following entries:",
+        "\t\t\tlnum\t\tline number in the buffer {expr} where",
+        "\t\t\t\t\tthe sign is to be placed. For the",
+        "\t\t\t\t\taccepted values, see |line()|.",
+        "\t\t\tpriority\tpriority of the sign. See",
+        "\t\t\t\t\t|sign-priority| for more information.",
+        "",
+        "\t\tIf the optional {dict} is not specified, then it modifies the",
+        "\t\tplaced sign {id} in group {group} to use the defined sign",
+        "\t\t{name}.",
+        "",
+        "\t\tReturns the sign identifier on success and -1 on failure.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t\" Place a sign named sign1 with id 5 at line 20 in",
+        "\t\t\t\" buffer json.c",
+        "\t\t\tcall sign_place(5, '', 'sign1', 'json.c',",
+        "\t\t\t\t\t\t\t\\ {'lnum' : 20})",
+        "",
+        "\t\t\t\" Updates sign 5 in buffer json.c to use sign2",
+        "\t\t\tcall sign_place(5, '', 'sign2', 'json.c')",
+        "",
+        "\t\t\t\" Place a sign named sign3 at line 30 in",
+        "\t\t\t\" buffer json.c with a new identifier",
+        "\t\t\tlet id = sign_place(0, '', 'sign3', 'json.c',",
+        "\t\t\t\t\t\t\t\\ {'lnum' : 30})",
+        "",
+        "\t\t\t\" Place a sign named sign4 with id 10 in group 'g3'",
+        "\t\t\t\" at line 40 in buffer json.c with priority 90",
+        "\t\t\tcall sign_place(10, 'g3', 'sign4', 'json.c',",
+        "\t\t\t\t\t\\ {'lnum' : 40, 'priority' : 90})"
+      ],
+      "sign_undefine": [
+        "\t\tDeletes a previously defined sign {name}. This is similar to",
+        "\t\tthe |:sign-undefine| command. If {name} is not supplied, then",
+        "\t\tdeletes all the defined signs.",
+        "",
+        "\t\tReturns 0 on success and -1 on failure.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t\" Delete a sign named mySign",
+        "\t\t\tcall sign_undefine(\"mySign\")",
+        "",
+        "\t\t\t\" Delete all the signs",
+        "\t\t\tcall sign_undefine()"
+      ],
+      "sign_unplace": [
+        "\t\tRemove a previously placed sign in one or more buffers.  This",
+        "\t\tis similar to the |:sign-unplace()| command.",
+        "",
+        "\t\t{group} is the sign group name. To use the global sign group,",
+        "\t\tuse an empty string.  If {group} is set to '*', then all the",
+        "\t\tgroups including the global group are used.",
+        "\t\tThe signs in {group} are selected based on the entries in",
+        "\t\t{dict}.  The following optional entries in {dict} are",
+        "\t\tsupported:",
+        "\t\t\tbuffer\tbuffer name or number. See |bufname()|.",
+        "\t\t\tid\tsign identifier",
+        "\t\tIf {dict} is not supplied, then all the signs in {group} are",
+        "\t\tremoved.",
+        "",
+        "\t\tReturns 0 on success and -1 on failure.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t\" Remove sign 10 from buffer a.vim",
+        "\t\t\tcall sign_unplace('', {'buffer' : \"a.vim\", 'id' : 10})",
+        "",
+        "\t\t\t\" Remove sign 20 in group 'g1' from buffer 3",
+        "\t\t\tcall sign_unplace('g1', {'buffer' : 3, 'id' : 20})",
+        "",
+        "\t\t\t\" Remove all the signs in group 'g2' from buffer 10",
+        "\t\t\tcall sign_unplace('g2', {'buffer' : 10})",
+        "",
+        "\t\t\t\" Remove sign 30 in group 'g3' from all the buffers",
+        "\t\t\tcall sign_unplace('g3', {'id' : 30})",
+        "",
+        "\t\t\t\" Remove all the signs placed in buffer 5",
+        "\t\t\tcall sign_unplace('*', {'buffer' : 5})",
+        "",
+        "\t\t\t\" Remove the signs in group 'g4' from all the buffers",
+        "\t\t\tcall sign_unplace('g4')",
+        "",
+        "\t\t\t\" Remove sign 40 from all the buffers",
+        "\t\t\tcall sign_unplace('*', {'id' : 40})",
+        "",
+        "\t\t\t\" Remove all the placed signs from all the buffers",
+        "\t\t\tcall sign_unplace('*')"
       ],
       "simplify": [
         "\t\tSimplify the file name as much as possible without changing",
@@ -24286,7 +25215,7 @@
         "",
         "\t\t{opts} is a dictionary with these keys:",
         "\t\t  |on_data| : callback invoked when data was read from socket",
-        "\t\t  data_buffered : read data from socket in |buffered| mode.",
+        "\t\t  data_buffered : read socket data in |channel-buffered| mode.",
         "\t\t  rpc     : If set, |msgpack-rpc| will be used to communicate",
         "\t\t\t    over the socket.",
         "\t\tReturns:",
@@ -24455,7 +25384,7 @@
         "",
         "\t\t{opts} is a dictionary with these keys:",
         "\t\t  |on_stdin| : callback invoked when stdin is written to.",
-        "\t\t  stdin_buffered : read stdin in |buffered| mode.",
+        "\t\t  stdin_buffered : read stdin in |channel-buffered| mode.",
         "\t\t  rpc      : If set, |msgpack-rpc| will be used to communicate",
         "\t\t\t     over stdio",
         "\t\tReturns:",
@@ -25238,7 +26167,7 @@
         "\t\tIf {name} is empty undofile() returns an empty string, since a",
         "\t\tbuffer without a file name will not write an undo file.",
         "\t\tUseful in combination with |:wundo| and |:rundo|.",
-        "\t\tWhen compiled without the +persistent_undo option this always",
+        "\t\tWhen compiled without the |+persistent_undo| option this always",
         "\t\treturns an empty string."
       ],
       "undotree": [
@@ -25423,7 +26352,36 @@
         "\t\tAn existing window always has a height of zero or more.",
         "\t\tThis excludes any window toolbar line.",
         "\t\tExamples: >",
-        "  :echo \"The current window has \" . winheight(0) . \" lines.\"",
+        "  :echo \"The current window has \" . winheight(0) . \" lines.\""
+      ],
+      "winlayout": [
+        "\t\tThe result is a nested List containing the layout of windows",
+        "\t\tin a tabpage.",
+        "",
+        "\t\tWithout {tabnr} use the current tabpage, otherwise the tabpage",
+        "\t\twith number {tabnr}. If the tabpage {tabnr} is not found,",
+        "\t\treturns an empty list.",
+        "",
+        "\t\tFor a leaf window, it returns:",
+        "\t\t\t['leaf', {winid}]",
+        "\t\tFor horizontally split windows, which form a column, it",
+        "\t\treturns:",
+        "\t\t\t['col', [{nested list of windows}]]",
+        "\t\tFor vertically split windows, which form a row, it returns:",
+        "\t\t\t['row', [{nested list of windows}]]",
+        "",
+        "\t\tExample: >",
+        "\t\t\t\" Only one window in the tab page",
+        "\t\t\t:echo winlayout()",
+        "\t\t\t['leaf', 1000]",
+        "\t\t\t\" Two horizontally split windows",
+        "\t\t\t:echo winlayout()",
+        "\t\t\t['col', [['leaf', 1000], ['leaf', 1001]]]",
+        "\t\t\t\" Three horizontally split windows, with two",
+        "\t\t\t\" vertically split windows in the middle window",
+        "\t\t\t:echo winlayout(2)",
+        "\t\t\t['col', [['leaf', 1002], ['row', ['leaf', 1003],",
+        "\t\t\t\t\t     ['leaf', 1001]]], ['leaf', 1000]]",
         "<"
       ],
       "winline": [
@@ -25518,7 +26476,7 @@
         "\t\tExamples: >",
         "  :echo \"The current window has \" . winwidth(0) . \" columns.\"",
         "  :if winwidth(0) <= 50",
-        "  :  exe \"normal 50\\<C-W>|\"",
+        "  :  50 wincmd |",
         "  :endif",
         "<\t\tFor getting the terminal or screen size, see the 'columns'",
         "\t\toption.",
@@ -25986,38 +26944,39 @@
         "                              current window)",
         "                    {config}  Dictionary for the window configuration accepts",
         "                              these keys:",
-        "                              -  `relative` : If set, the window becomes a floating",
+        "                              •  `relative` : If set, the window becomes a floating",
         "                                window. The window will be placed with row,col",
         "                                coordinates relative to one of the following:",
-        "                                - \"editor\" the global editor grid",
-        "                                - \"win\" a window. Use `win` to specify a",
+        "                                • \"editor\" the global editor grid",
+        "                                • \"win\" a window. Use `win` to specify a",
         "                                  window id, or the current window will be",
-        "                                  used by default. \"cursor\" the cursor",
-        "                                  position in current window.",
+        "                                  used by default.",
+        "                                • \"cursor\" the cursor position in current",
+        "                                  window.",
         "",
-        "                              - `win` : When using relative='win', window id",
+        "                              • `win` : When using relative='win', window id",
         "                                of the window where the position is defined.",
-        "                              -  `anchor` : The corner of the float that the row,col",
+        "                              •  `anchor` : The corner of the float that the row,col",
         "                                position defines:",
-        "                                - \"NW\" north-west (default)",
-        "                                - \"NE\" north-east",
-        "                                - \"SW\" south-west",
-        "                                - \"SE\" south-east",
+        "                                • \"NW\" north-west (default)",
+        "                                • \"NE\" north-east",
+        "                                • \"SW\" south-west",
+        "                                • \"SE\" south-east",
         "",
-        "                              - `height` : window height (in character cells).",
+        "                              • `height` : window height (in character cells).",
         "                                Minimum of 1.",
-        "                              - `width` : window width (in character cells).",
+        "                              • `width` : window width (in character cells).",
         "                                Minimum of 1.",
-        "                              - `row` : row position. Screen cell height are",
+        "                              • `row` : row position. Screen cell height are",
         "                                used as unit. Can be floating point.",
-        "                              - `col` : column position. Screen cell width is",
+        "                              • `col` : column position. Screen cell width is",
         "                                used as unit. Can be floating point.",
-        "                              - `focusable` : Whether window can be focused by",
+        "                              • `focusable` : Whether window can be focused by",
         "                                wincmds and mouse events. Defaults to true.",
         "                                Even if set to false, the window can still be",
         "                                entered using |nvim_set_current_win()| API",
         "                                call.",
-        "                              - `external` : GUI should display the window as",
+        "                              • `external` : GUI should display the window as",
         "                                an external top-level window. Currently",
         "                                accepts no other positioning configuration",
         "                                together with this.",
@@ -26185,35 +27144,43 @@
         "                                                      *nvim_set_client_info()*",
         "nvim_set_client_info({name}, {version}, {type}, {methods},",
         "                     {attributes})",
-        "                Identifies the client. Can be called more than once;",
-        "                subsequent calls remove earlier info, which should be included",
-        "                by the caller if it is still valid. (E.g. if a library first",
-        "                identifies the channel, then a plugin using that library later",
-        "                overrides that info)",
+        "                Self-identifies the client.",
+        "",
+        "                The client/plugin/application should call this after",
+        "                connecting, to provide hints about its identity and purpose,",
+        "                for debugging and orchestration.",
+        "",
+        "                Can be called more than once; the caller should merge old info",
+        "                if appropriate. Example: library first identifies the channel,",
+        "                then a plugin using that library later identifies itself.",
+        "",
+        "                Note:",
+        "                    \"Something is better than nothing\". You don't need to",
+        "                    include all the fields.",
         "",
         "                Parameters: ~",
         "                    {name}        Short name for the connected client",
         "                    {version}     Dictionary describing the version, with",
         "                                  these (optional) keys:",
-        "                                  - \"major\" major version (defaults to 0 if",
+        "                                  • \"major\" major version (defaults to 0 if",
         "                                    not set, for no release yet)",
-        "                                  - \"minor\" minor version",
-        "                                  - \"patch\" patch number",
-        "                                  - \"prerelease\" string describing a",
+        "                                  • \"minor\" minor version",
+        "                                  • \"patch\" patch number",
+        "                                  • \"prerelease\" string describing a",
         "                                    prerelease, like \"dev\" or \"beta1\"",
-        "                                  - \"commit\" hash or similar identifier of",
+        "                                  • \"commit\" hash or similar identifier of",
         "                                    commit",
         "                    {type}        Must be one of the following values. Client",
         "                                  libraries should default to \"remote\" unless",
         "                                  overridden by the user.",
-        "                                  - \"remote\" remote client connected to Nvim.",
-        "                                  - \"ui\" gui frontend",
-        "                                  - \"embedder\" application using Nvim as a",
+        "                                  • \"remote\" remote client connected to Nvim.",
+        "                                  • \"ui\" gui frontend",
+        "                                  • \"embedder\" application using Nvim as a",
         "                                    component (for example, IDE/editor",
         "                                    implementing a vim mode).",
-        "                                  - \"host\" plugin host, typically started by",
+        "                                  • \"host\" plugin host, typically started by",
         "                                    nvim",
-        "                                  - \"plugin\" single plugin, started by nvim",
+        "                                  • \"plugin\" single plugin, started by nvim",
         "                    {methods}     Builtin methods in the client. For a host,",
         "                                  this does not include plugin methods which",
         "                                  will be discovered later. The key should be",
@@ -26223,19 +27190,19 @@
         "                                  unknown keys are ignored. Clients must only",
         "                                  use keys defined in this or later versions",
         "                                  of Nvim):",
-        "                                  - \"async\" if true, send as a notification.",
+        "                                  • \"async\" if true, send as a notification.",
         "                                    If false or unspecified, use a blocking",
         "                                    request",
-        "                                  - \"nargs\" Number of arguments. Could be a",
+        "                                  • \"nargs\" Number of arguments. Could be a",
         "                                    single integer or an array of two",
         "                                    integers, minimum and maximum inclusive.",
         "                    {attributes}  Arbitrary string:string map of informal",
         "                                  client properties. Suggested keys:",
-        "                                  - \"website\": Client homepage URL (e.g.",
+        "                                  • \"website\": Client homepage URL (e.g.",
         "                                    GitHub repository)",
-        "                                  - \"license\": License description (\"Apache",
+        "                                  • \"license\": License description (\"Apache",
         "                                    2\", \"GPLv3\", \"MIT\", …)",
-        "                                  - \"logo\": URI or path to image, preferably",
+        "                                  • \"logo\": URI or path to image, preferably",
         "                                    small logo or icon. .png or .svg format is",
         "                                    preferred."
       ],
@@ -26244,26 +27211,26 @@
         "",
         "                Return: ~",
         "                    Dictionary describing a channel, with these keys:",
-        "                    - \"stream\" the stream underlying the channel",
-        "                      - \"stdio\" stdin and stdout of this Nvim instance",
-        "                      - \"stderr\" stderr of this Nvim instance",
-        "                      - \"socket\" TCP/IP socket or named pipe",
-        "                      - \"job\" job with communication over its stdio",
+        "                    • \"stream\" the stream underlying the channel",
+        "                      • \"stdio\" stdin and stdout of this Nvim instance",
+        "                      • \"stderr\" stderr of this Nvim instance",
+        "                      • \"socket\" TCP/IP socket or named pipe",
+        "                      • \"job\" job with communication over its stdio",
         "",
-        "                    - \"mode\" how data received on the channel is interpreted",
-        "                      - \"bytes\" send and receive raw bytes",
-        "                      - \"terminal\" a |terminal| instance interprets ASCII",
+        "                    • \"mode\" how data received on the channel is interpreted",
+        "                      • \"bytes\" send and receive raw bytes",
+        "                      • \"terminal\" a |terminal| instance interprets ASCII",
         "                        sequences",
-        "                      - \"rpc\" |RPC| communication on the channel is active",
+        "                      • \"rpc\" |RPC| communication on the channel is active",
         "",
-        "                    - \"pty\" Name of pseudoterminal, if one is used (optional).",
+        "                    • \"pty\" Name of pseudoterminal, if one is used (optional).",
         "                      On a POSIX system, this will be a device path like",
         "                      /dev/pts/1. Even if the name is unknown, the key will",
         "                      still be present to indicate a pty is used. This is",
         "                      currently the case when using winpty on windows.",
-        "                    - \"buffer\" buffer with connected |terminal| instance",
+        "                    • \"buffer\" buffer with connected |terminal| instance",
         "                      (optional)",
-        "                    - \"client\" information about the client on the other end",
+        "                    • \"client\" information about the client on the other end",
         "                      of the RPC channel, if it has added it using",
         "                      |nvim_set_client_info()|. (optional)"
       ],
@@ -26311,21 +27278,21 @@
         "                    {expr}       Expression to parse. Always treated as a",
         "                                 single line.",
         "                    {flags}      Flags:",
-        "                                 - \"m\" if multiple expressions in a row are",
+        "                                 • \"m\" if multiple expressions in a row are",
         "                                   allowed (only the first one will be",
         "                                   parsed),",
-        "                                 - \"E\" if EOC tokens are not allowed",
+        "                                 • \"E\" if EOC tokens are not allowed",
         "                                   (determines whether they will stop parsing",
         "                                   process or be recognized as an",
         "                                   operator/space, though also yielding an",
         "                                   error).",
-        "                                 - \"l\" when needing to start parsing with",
+        "                                 • \"l\" when needing to start parsing with",
         "                                   lvalues for \":let\" or \":for\". Common flag",
         "                                   sets:",
-        "                                 - \"m\" to parse like for \":echo\".",
-        "                                 - \"E\" to parse like for \"<C-r>=\".",
-        "                                 - empty string for \":call\".",
-        "                                 - \"lm\" to parse for \":let\".",
+        "                                 • \"m\" to parse like for \":echo\".",
+        "                                 • \"E\" to parse like for \"<C-r>=\".",
+        "                                 • empty string for \":call\".",
+        "                                 • \"lm\" to parse for \":let\".",
         "                    {highlight}  If true, return value will also include",
         "                                 \"highlight\" key containing array of 4-tuples",
         "                                 (arrays) (Integer, Integer, Integer, String),",
@@ -26337,64 +27304,64 @@
         "",
         "                Return: ~",
         "",
-        "                    - AST: top-level dictionary with these keys:",
-        "                      - \"error\": Dictionary with error, present only if parser",
+        "                    • AST: top-level dictionary with these keys:",
+        "                      • \"error\": Dictionary with error, present only if parser",
         "                        saw some error. Contains the following keys:",
-        "                        - \"message\": String, error message in printf format,",
+        "                        • \"message\": String, error message in printf format,",
         "                          translated. Must contain exactly one \"%.*s\".",
-        "                        - \"arg\": String, error message argument.",
+        "                        • \"arg\": String, error message argument.",
         "",
-        "                      - \"len\": Amount of bytes successfully parsed. With flags",
+        "                      • \"len\": Amount of bytes successfully parsed. With flags",
         "                        equal to \"\" that should be equal to the length of expr",
         "                        string. (“Sucessfully parsed” here means “participated",
         "                        in AST creation”, not “till the first error”.)",
-        "                      - \"ast\": AST, either nil or a dictionary with these",
+        "                      • \"ast\": AST, either nil or a dictionary with these",
         "                        keys:",
-        "                        - \"type\": node type, one of the value names from",
+        "                        • \"type\": node type, one of the value names from",
         "                          ExprASTNodeType stringified without \"kExprNode\"",
         "                          prefix.",
-        "                        - \"start\": a pair [line, column] describing where node",
+        "                        • \"start\": a pair [line, column] describing where node",
         "                          is \"started\" where \"line\" is always 0 (will not be 0",
         "                          if you will be using nvim_parse_viml() on e.g.",
         "                          \":let\", but that is not present yet). Both elements",
         "                          are Integers.",
-        "                        - \"len\": “length” of the node. This and \"start\" are",
+        "                        • \"len\": “length” of the node. This and \"start\" are",
         "                          there for debugging purposes primary (debugging",
         "                          parser and providing debug information).",
-        "                        - \"children\": a list of nodes described in top/\"ast\".",
+        "                        • \"children\": a list of nodes described in top/\"ast\".",
         "                          There always is zero, one or two children, key will",
         "                          not be present if node has no children. Maximum",
         "                          number of children may be found in node_maxchildren",
         "                          array.",
         "",
-        "                    - Local values (present only for certain nodes):",
-        "                      - \"scope\": a single Integer, specifies scope for",
+        "                    • Local values (present only for certain nodes):",
+        "                      • \"scope\": a single Integer, specifies scope for",
         "                        \"Option\" and \"PlainIdentifier\" nodes. For \"Option\" it",
         "                        is one of ExprOptScope values, for \"PlainIdentifier\"",
         "                        it is one of ExprVarScope values.",
-        "                      - \"ident\": identifier (without scope, if any), present",
+        "                      • \"ident\": identifier (without scope, if any), present",
         "                        for \"Option\", \"PlainIdentifier\", \"PlainKey\" and",
         "                        \"Environment\" nodes.",
-        "                      - \"name\": Integer, register name (one character) or -1.",
+        "                      • \"name\": Integer, register name (one character) or -1.",
         "                        Only present for \"Register\" nodes.",
-        "                      - \"cmp_type\": String, comparison type, one of the value",
+        "                      • \"cmp_type\": String, comparison type, one of the value",
         "                        names from ExprComparisonType, stringified without",
         "                        \"kExprCmp\" prefix. Only present for \"Comparison\"",
         "                        nodes.",
-        "                      - \"ccs_strategy\": String, case comparison strategy, one",
+        "                      • \"ccs_strategy\": String, case comparison strategy, one",
         "                        of the value names from ExprCaseCompareStrategy,",
         "                        stringified without \"kCCStrategy\" prefix. Only present",
         "                        for \"Comparison\" nodes.",
-        "                      - \"augmentation\": String, augmentation type for",
+        "                      • \"augmentation\": String, augmentation type for",
         "                        \"Assignment\" nodes. Is either an empty string, \"Add\",",
         "                        \"Subtract\" or \"Concat\" for \"=\", \"+=\", \"-=\" or \".=\"",
         "                        respectively.",
-        "                      - \"invert\": Boolean, true if result of comparison needs",
+        "                      • \"invert\": Boolean, true if result of comparison needs",
         "                        to be inverted. Only present for \"Comparison\" nodes.",
-        "                      - \"ivalue\": Integer, integer value for \"Integer\" nodes.",
-        "                      - \"fvalue\": Float, floating-point value for \"Float\"",
+        "                      • \"ivalue\": Integer, integer value for \"Integer\" nodes.",
+        "                      • \"fvalue\": Float, floating-point value for \"Float\"",
         "                        nodes.",
-        "                      - \"svalue\": String, value for \"SingleQuotedString\" and",
+        "                      • \"svalue\": String, value for \"SingleQuotedString\" and",
         "                        \"DoubleQuotedString\" nodes."
       ],
       "nvim__id": [
@@ -26456,12 +27423,12 @@
         "",
         "                Return: ~",
         "                    Array of UI dictionaries, each with these keys:",
-        "                    - \"height\" Requested height of the UI",
-        "                    - \"width\" Requested width of the UI",
-        "                    - \"rgb\" true if the UI uses RGB colors (false implies",
+        "                    • \"height\" Requested height of the UI",
+        "                    • \"width\" Requested width of the UI",
+        "                    • \"rgb\" true if the UI uses RGB colors (false implies",
         "                      |cterm-colors|)",
-        "                    - \"ext_...\" Requested UI extensions, see |ui-option|",
-        "                    - \"chan\" Channel id of remote UI (not present for TUI)"
+        "                    • \"ext_...\" Requested UI extensions, see |ui-option|",
+        "                    • \"chan\" Channel id of remote UI (not present for TUI)"
       ],
       "nvim_get_proc_children": [
         "                Gets the immediate children of process `pid` .",
@@ -26584,7 +27551,7 @@
         "                    {replacement}      Array of lines to use as replacement"
       ],
       "nvim_buf_get_offset": [
-        "                Returns the byte offset for a line.",
+        "                Returns the byte offset of a line (0-indexed). |api-indexing|",
         "",
         "                Line 1 (index=0) has offset 0. UTF-8 bytes are counted. EOL is",
         "                one byte. 'fileformat' and 'fileencoding' are ignored. The",
@@ -26736,7 +27703,9 @@
       ],
       "nvim_buf_get_mark": [
         "                Return a tuple (row,col) representing the position of the",
-        "                named mark",
+        "                named mark.",
+        "",
+        "                Marks are (1,0)-indexed. |api-indexing|",
         "",
         "                Parameters: ~",
         "                    {buffer}  Buffer handle, or 0 for current buffer",
@@ -26791,8 +27760,8 @@
         "                Clears namespaced objects, highlights and virtual text, from a",
         "                line range",
         "",
-        "                To clear the namespace in the entire buffer, pass in 0 and -1",
-        "                to line_start and line_end respectively.",
+        "                Lines are 0-indexed. |api-indexing| To clear the namespace in",
+        "                the entire buffer, specify line_start=0 and line_end=-1.",
         "",
         "                Parameters: ~",
         "                    {buffer}      Buffer handle, or 0 for current buffer",
@@ -26858,7 +27827,8 @@
         "                    {buffer}  Buffer handle"
       ],
       "nvim_win_get_cursor": [
-        "                Gets the cursor position in the window",
+        "                Gets the (1,0)-indexed cursor position in the window.",
+        "                |api-indexing|",
         "",
         "                Parameters: ~",
         "                    {window}  Window handle",
@@ -26867,7 +27837,8 @@
         "                    (row, col) tuple"
       ],
       "nvim_win_set_cursor": [
-        "                Sets the cursor position in the window",
+        "                Sets the (1,0)-indexed cursor position in the window.",
+        "                |api-indexing|",
         "",
         "                Parameters: ~",
         "                    {window}  Window handle",
@@ -27161,15 +28132,20 @@
         "\t\tmention that.",
         "\t\tMainly useful with |terminal-diff|."
       ],
+      "balloon_gettext": [
+        "\t\tReturn the current text in the balloon.  Only for the string,",
+        "\t\tnot used for the List."
+      ],
       "balloon_show": [
         "\t\tShow {expr} inside the balloon.  For the GUI {expr} is used as",
         "\t\ta string.  For a terminal {expr} can be a list, which contains",
         "\t\tthe lines of the balloon.  If {expr} is not a list it will be",
         "\t\tsplit with |balloon_split()|.",
+        "\t\tIf {expr} is an empty string any existing balloon is removed.",
         "",
         "\t\tExample: >",
         "\t\t\tfunc GetBalloonContent()",
-        "\t\t\t   \" initiate getting the content",
+        "\t\t\t   \" ... initiate getting the content",
         "\t\t\t   return ''",
         "\t\t\tendfunc",
         "\t\t\tset balloonexpr=GetBalloonContent()",
@@ -27345,7 +28321,7 @@
         "\t\t{only available when compiled with the |+channel| feature}"
       ],
       "ch_readblob": [
-        "\t\tLike ch_read() but reads binary data and returns a Blob.",
+        "\t\tLike ch_read() but reads binary data and returns a |Blob|.",
         "\t\tSee |channel-more|.",
         "\t\t{only available when compiled with the |+channel| feature}"
       ],
@@ -27366,7 +28342,7 @@
         "\t\t{only available when compiled with the |+channel| feature}"
       ],
       "ch_sendraw": [
-        "\t\tSend string or Blob {expr} over {handle}.",
+        "\t\tSend |String| or |Blob| {expr} over {handle}.",
         "\t\tWorks like |ch_sendexpr()|, but does not encode the request or",
         "\t\tdecode the response.  The caller is responsible for the",
         "\t\tcorrect contents.  Also does not add a newline for a channel",
@@ -27405,59 +28381,54 @@
         "\t\t\"err\".  For example, to get the error status: >",
         "\t\t\tch_status(job, {\"part\": \"err\"})"
       ],
+      "chdir": [
+        "\t\tChange the current working directory to {dir}.  The scope of",
+        "\t\tthe directory change depends on the directory of the current",
+        "\t\twindow:",
+        "\t\t\t- If the current window has a window-local directory",
+        "\t\t\t  (|:lcd|), then changes the window local directory.",
+        "\t\t\t- Otherwise, if the current tabpage has a local",
+        "\t\t\t  directory (|:tcd|) then changes the tabpage local",
+        "\t\t\t  directory.",
+        "\t\t\t- Otherwise, changes the global directory.",
+        "\t\tIf successful, returns the previous working directory.  Pass",
+        "\t\tthis to another chdir() to restore the directory.",
+        "\t\tOn failure, returns an empty string.",
+        "",
+        "\t\tExample: >",
+        "\t\t\tlet save_dir = chdir(newdir)",
+        "\t\t\tif save_dir != \"\"",
+        "\t\t\t   \" ... do some work",
+        "\t\t\t   call chdir(save_dir)",
+        "\t\t\tendif"
+      ],
       "debugbreak": [
         "\t\tSpecifically used to interrupt a program being debugged.  It",
         "\t\twill cause process {pid} to get a SIGTRAP.  Behavior for other",
         "\t\tprocesses is undefined. See |terminal-debugger|.",
         "\t\t{only available on MS-Windows}"
       ],
-      "deletebufline": [
-        "\t\tDelete lines {first} to {last} (inclusive) from buffer {expr}.",
-        "\t\tIf {last} is omitted then delete line {first} only.",
-        "\t\tOn success 0 is returned, on failure 1 is returned.",
-        "",
-        "\t\tFor the use of {expr}, see |bufname()| above.",
-        "",
-        "\t\t{first} and {last} are used like with |getline()|. Note that",
-        "\t\twhen using |line()| this refers to the current buffer. Use \"$\"",
-        "\t\tto refer to the last line in buffer {expr}.",
-        ""
+      "environ": [
+        "\t\tReturn all of environment variables as dictionary. You can",
+        "\t\tcheck if an environment variable exists like this: >",
+        "\t\t\t:echo has_key(environ(), 'HOME')",
+        "<\t\tNote that the variable name may be CamelCase; to ignore case",
+        "\t\tuse this: >",
+        "\t\t\t:echo index(keys(environ()), 'HOME', 0, 1) != -1"
       ],
-      "getchangelist": [
-        "\t\tReturns the |changelist| for the buffer {expr}. For the use",
-        "\t\tof {expr}, see |bufname()| above. If buffer {expr} doesn't",
-        "\t\texist, an empty list is returned.",
-        "",
-        "\t\tThe returned list contains two entries: a list with the change",
-        "\t\tlocations and the current position in the list.  Each",
-        "\t\tentry in the change list is a dictionary with the following",
-        "\t\tentries:",
-        "\t\t\tcol\t\tcolumn number",
-        "\t\t\tcoladd\t\tcolumn offset for 'virtualedit'",
-        "\t\t\tlnum\t\tline number",
-        "\t\tIf buffer {expr} is the current buffer, then the current",
-        "\t\tposition refers to the position in the list. For other",
-        "\t\tbuffers, it is set to the length of the list."
+      "expandcmd": [
+        "\t\tExpand special items in {expr} like what is done for an Ex",
+        "\t\tcommand such as `:edit`.  This expands special keywords, like",
+        "\t\twith |expand()|, and environment variables, anywhere in",
+        "\t\t{expr}.  Returns the expanded string.",
+        "\t\tExample: >",
+        "\t\t\t:echo expandcmd('make %<.o')"
       ],
-      "getjumplist": [
-        "\t\tReturns the |jumplist| for the specified window.",
-        "",
-        "\t\tWithout arguments use the current window.",
-        "\t\tWith {winnr} only use this window in the current tab page.",
-        "\t\t{winnr} can also be a |window-ID|.",
-        "\t\tWith {winnr} and {tabnr} use the window in the specified tab",
-        "\t\tpage.",
-        "",
-        "\t\tThe returned list contains two entries: a list with the jump",
-        "\t\tlocations and the last used jump position number in the list.",
-        "\t\tEach entry in the jump location list is a dictionary with",
-        "\t\tthe following entries:",
-        "\t\t\tbufnr\t\tbuffer number",
-        "\t\t\tcol\t\tcolumn number",
-        "\t\t\tcoladd\t\tcolumn offset for 'virtualedit'",
-        "\t\t\tfilename\tfilename if available",
-        "\t\t\tlnum\t\tline number",
-        ""
+      "getenv": [
+        "\t\tReturn the value of environment variable {name}.",
+        "\t\tWhen the variable does not exist |v:null| is returned.  That",
+        "\t\tis different from a variable set to an empty string.",
+        "\t\tSee also |expr-env|."
       ],
       "inputdialog": [
         "\t\tLike |input()|, but when the GUI is running and text dialogs",
@@ -27473,10 +28444,20 @@
         "\t\t<Esc> works like pressing the Cancel button.",
         "\t\tNOTE: Command-line completion is not supported."
       ],
+      "isinf": [
+        "\t\tReturn 1 if {expr} is a positive infinity, or -1 a negative",
+        "\t\tinfinity, otherwise 0. >",
+        "\t\t\t:echo isinf(1.0 / 0.0)",
+        "<\t\t\t1 >",
+        "\t\t\t:echo isinf(-1.0 / 0.0)",
+        "<\t\t\t-1",
+        "",
+        "\t\t{only available when compiled with the |+float| feature}"
+      ],
       "isnan": [
         "\t\tReturn |TRUE| if {expr} is a float with value NaN. >",
         "\t\t\techo isnan(0.0 / 0.0)",
-        "<\t\t\t1 ~",
+        "<\t\t\t1",
         "",
         "\t\t{only available when compiled with the |+float| feature}"
       ],
@@ -27499,6 +28480,16 @@
         "\t\t   \"exit_cb\"\tfunction to be called on exit",
         "\t\t   \"stoponexit\"\t|job-stoponexit|",
         "",
+        "\t\t   Only in Unix:",
+        "\t\t   \"termsig\"\tthe signal which terminated the process",
+        "\t\t\t\t(See |job_stop()| for the values)",
+        "\t\t\t\tonly valid when \"status\" is \"dead\"",
+        "",
+        "\t\t   Only in MS-Windows:",
+        "\t\t   \"tty_type\"\tType of virtual console in use.",
+        "\t\t\t\tValues are \"winpty\" or \"conpty\".",
+        "\t\t\t\tSee 'termwintype'.",
+        "",
         "\t\tWithout any arguments, returns a List with all Job objects."
       ],
       "job_setoptions": [
@@ -27510,6 +28501,10 @@
         "\t\tStart a job and return a Job object.  Unlike |system()| and",
         "\t\t|:!cmd| this does not wait for the job to finish.",
         "\t\tTo start a job in a terminal window see |term_start()|.",
+        "",
+        "\t\tIf the job fails to start then |job_status()| on the returned",
+        "\t\tJob object results in \"fail\" and none of the callbacks will be",
+        "\t\tinvoked.",
         "",
         "\t\t{command} can be a String.  This works best on MS-Windows.  On",
         "\t\tUnix it is split up in white-separated parts to be passed to",
@@ -27643,6 +28638,100 @@
         "\t\tThis encoding is valid for JavaScript. It is more efficient",
         "\t\tthan JSON, especially when using an array with optional items.",
         ""
+      ],
+      "list2str": [
+        "\t\tConvert each number in {list} to a character string can",
+        "\t\tconcatenate them all.  Examples: >",
+        "\t\t\tlist2str([32])\t\treturns \" \"",
+        "\t\t\tlist2str([65, 66, 67])\treturns \"ABC\"",
+        "<\t\tThe same can be done (slowly) with: >",
+        "\t\t\tjoin(map(list, {nr, val -> nr2char(val)}), '')",
+        "<\t\t|str2list()| does the opposite.",
+        "",
+        "\t\tWhen {utf8} is omitted or zero, the current 'encoding' is used.",
+        "\t\tWith {utf8} is 1, always return utf-8 characters.",
+        "\t\tWith utf-8 composing characters work as expected: >",
+        "\t\t\tlist2str([97, 769])\treturns \"á\""
+      ],
+      "listener_add": [
+        "\t\tAdd a callback function that will be invoked when changes have",
+        "\t\tbeen made to buffer {buf}.",
+        "\t\t{buf} refers to a buffer name or number. For the accepted",
+        "\t\tvalues, see |bufname()|.  When {buf} is omitted the current",
+        "\t\tbuffer is used.",
+        "\t\tReturns a unique ID that can be passed to |listener_remove()|.",
+        "",
+        "\t\tThe {callback} is invoked with four arguments:",
+        "\t\t    a:bufnr\tthe buffer that was changed",
+        "\t\t    a:start\tfirst changed line number",
+        "\t\t    a:end\tfirst line number below the change",
+        "\t\t    a:added\ttotal number of lines added, negative if lines",
+        "\t\t\t\twere deleted",
+        "\t\t    a:changes\ta List of items with details about the changes",
+        "",
+        "\t\tExample: >",
+        "\t    func Listener(bufnr, start, end, added, changes)",
+        "\t      echo 'lines ' .. a:start .. ' until ' .. a:end .. ' changed'",
+        "\t    endfunc",
+        "\t    call listener_add('Listener', bufnr)",
+        "",
+        "<\t\tThe List cannot be changed.  Each item in a:changes is a",
+        "\t\tdictionary with these entries:",
+        "\t\t    lnum\tthe first line number of the change",
+        "\t\t    end\t\tthe first line below the change",
+        "\t\t    added\tnumber of lines added; negative if lines were",
+        "\t\t\t\tdeleted",
+        "\t\t    col\t\tfirst column in \"lnum\" that was affected by",
+        "\t\t\t\tthe change; one if unknown or the whole line",
+        "\t\t\t\twas affected; this is a byte index, first",
+        "\t\t\t\tcharacter has a value of one.",
+        "\t\tWhen lines are inserted the values are:",
+        "\t\t    lnum\tline above which the new line is added",
+        "\t\t    end\t\tequal to \"lnum\"",
+        "\t\t    added\tnumber of lines inserted",
+        "\t\t    col\t\t1",
+        "\t\tWhen lines are deleted the values are:",
+        "\t\t    lnum\tthe first deleted line",
+        "\t\t    end\t\tthe line below the first deleted line, before",
+        "\t\t\t\tthe deletion was done",
+        "\t\t    added\tnegative, number of lines deleted",
+        "\t\t    col\t\t1",
+        "\t\tWhen lines are changed:",
+        "\t\t    lnum\tthe first changed line",
+        "\t\t    end\t\tthe line below the last changed line",
+        "\t\t    added\t0",
+        "\t\t    col\t\tfirst column with a change or 1",
+        "",
+        "\t\tThe entries are in the order the changes were made, thus the",
+        "\t\tmost recent change is at the end.  The line numbers are valid",
+        "\t\twhen the callback is invoked, but later changes may make them",
+        "\t\tinvalid, thus keeping a copy for later might not work.",
+        "",
+        "\t\tThe {callback} is invoked just before the screen is updated,",
+        "\t\twhen |listener_flush()| is called or when a change is being",
+        "\t\tmade that changes the line count in a way it causes a line",
+        "\t\tnumber in the list of changes to become invalid.",
+        "",
+        "\t\tThe {callback} is invoked with the text locked, see",
+        "\t\t|textlock|.  If you do need to make changes to the buffer, use",
+        "\t\ta timer to do this later |timer_start()|.",
+        "",
+        "\t\tThe {callback} is not invoked when the buffer is first loaded.",
+        "\t\tUse the |BufReadPost| autocmd event to handle the initial text",
+        "\t\tof a buffer.",
+        "\t\tThe {callback} is also not invoked when the buffer is",
+        "\t\tunloaded, use the |BufUnload| autocmd event for that."
+      ],
+      "listener_flush": [
+        "\t\tInvoke listener callbacks for buffer {buf}.  If there are no",
+        "\t\tpending changes then no callbacks are invoked.",
+        "",
+        "\t\t{buf} refers to a buffer name or number. For the accepted",
+        "\t\tvalues, see |bufname()|.  When {buf} is omitted the current",
+        "\t\tbuffer is used."
+      ],
+      "listener_remove": [
+        "\t\tRemove a listener previously added with listener_add()."
       ],
       "mzeval": [
         "\t\tEvaluate MzScheme expression {expr} and return its result",
@@ -27837,6 +28926,8 @@
         "\t\t   all\t\twhen TRUE remove all matching text properties,",
         "\t\t\t\tnot just the first one",
         "\t\tA property matches when either \"id\" or \"type\" matches.",
+        "\t\tIf buffer \"bufnr\" does not exist you get an error message.",
+        "\t\tIf buffer \"bufnr\" is not loaded then nothing happens.",
         "",
         "\t\tReturns the number of properties that were removed.",
         "",
@@ -27856,6 +28947,9 @@
         "\t\t\t\tproperties the one with the highest priority",
         "\t\t\t\twill be used; negative values can be used, the",
         "\t\t\t\tdefault priority is zero",
+        "\t\t   combine\twhen TRUE combine the highlight with any",
+        "\t\t\t\tsyntax highlight; when omitted or FALSE syntax",
+        "\t\t\t\thighlight will not be used",
         "\t\t   start_incl\twhen TRUE inserts at the start position will",
         "\t\t\t\tbe included in the text property",
         "\t\t   end_incl\twhen TRUE inserts at the end position will be",
@@ -27908,262 +29002,130 @@
         "\t\tSee |text-properties| for information about text properties.",
         ""
       ],
-      "reg_executing": [
-        "\t\tReturns the single letter name of the register being executed.",
-        "\t\tReturns an empty string when no register is being executed.",
-        "\t\tSee |@|."
-      ],
-      "reg_recording": [
-        "\t\tReturns the single letter name of the register being recorded.",
-        "\t\tReturns an empty string string when not recording.  See |q|."
-      ],
-      "setbufline": [
-        "\t\tSet line {lnum} to {text} in buffer {expr}.  To insert",
-        "\t\tlines use |append()|.  Any text properties in {lnum} are",
-        "\t\tcleared.",
+      "readdir": [
+        "\t\tReturn a list with file and directory names in {directory}.",
+        "\t\tYou can also use |glob()| if you don't need to do complicated",
+        "\t\tthings, such as limiting the number of matches.",
         "",
-        "\t\tFor the use of {expr}, see |bufname()| above.",
+        "\t\tWhen {expr} is omitted all entries are included.",
+        "\t\tWhen {expr} is given, it is evaluated to check what to do:",
+        "\t\t\tIf {expr} results in -1 then no further entries will",
+        "\t\t\tbe handled.",
+        "\t\t\tIf {expr} results in 0 then this entry will not be",
+        "\t\t\tadded to the list.",
+        "\t\t\tIf {expr} results in 1 then this entry will be added",
+        "\t\t\tto the list.",
+        "\t\tEach time {expr} is evaluated |v:val| is set to the entry name.",
+        "\t\tWhen {expr} is a function the name is passed as the argument.",
+        "\t\tFor example, to get a list of files ending in \".txt\": >",
+        "\t\t  readdir(dirname, {n -> n =~ '.txt$'})",
+        "<\t\tTo skip hidden and backup files: >",
+        "\t\t  readdir(dirname, {n -> n !~ '^\\.\\|\\~$'})",
         "",
-        "\t\t{lnum} is used like with |setline()|.",
-        "\t\tThis works like |setline()| for the specified buffer.",
-        "\t\tOn success 0 is returned, on failure 1 is returned.",
-        "",
-        "\t\tIf {expr} is not a valid buffer or {lnum} is not valid, an",
-        "\t\terror message is given."
-      ],
-      "sign_define": [
-        "\t\tDefine a new sign named {name} or modify the attributes of an",
-        "\t\texisting sign.  This is similar to the |:sign-define| command.",
-        "",
-        "\t\tPrefix {name} with a unique text to avoid name collisions.",
-        "\t\tThere is no {group} like with placing signs.",
-        "",
-        "\t\tThe {name} can be a String or a Number.  The optional {dict}",
-        "\t\targument specifies the sign attributes.  The following values",
-        "\t\tare supported:",
-        "\t\t   icon\t\tfull path to the bitmap file for the sign.",
-        "\t\t   linehl\thighlight group used for the whole line the",
-        "\t\t\t\tsign is placed in.",
-        "\t\t   text\t\ttext that is displayed when there is no icon",
-        "\t\t\t\tor the GUI is not being used.",
-        "\t\t   texthl\thighlight group used for the text item",
-        "",
-        "\t\tIf the sign named {name} already exists, then the attributes",
-        "\t\tof the sign are updated.",
-        "",
-        "\t\tReturns 0 on success and -1 on failure.",
-        "",
-        "\t\tExamples: >",
-        "\t\t\tcall sign_define(\"mySign\", {\"text\" : \"=>\", \"texthl\" :",
-        "\t\t\t\t\t\\ \"Error\", \"linehl\" : \"Search\"})"
-      ],
-      "sign_getdefined": [
-        "\t\tGet a list of defined signs and their attributes.",
-        "\t\tThis is similar to the |:sign-list| command.",
-        "",
-        "\t\tIf the {name} is not supplied, then a list of all the defined",
-        "\t\tsigns is returned. Otherwise the attribute of the specified",
-        "\t\tsign is returned.",
-        "",
-        "\t\tEach list item in the returned value is a dictionary with the",
-        "\t\tfollowing entries:",
-        "\t\t   icon\t\tfull path to the bitmap file of the sign",
-        "\t\t   linehl\thighlight group used for the whole line the",
-        "\t\t\t\tsign is placed in.",
-        "\t\t   name\t\tname of the sign",
-        "\t\t   text\t\ttext that is displayed when there is no icon",
-        "\t\t\t\tor the GUI is not being used.",
-        "\t\t   texthl\thighlight group used for the text item",
-        "",
-        "\t\tReturns an empty List if there are no signs and when {name} is",
-        "\t\tnot found.",
-        "",
-        "\t\tExamples: >",
-        "\t\t\t\" Get a list of all the defined signs",
-        "\t\t\techo sign_getdefined()",
-        "",
-        "\t\t\t\" Get the attribute of the sign named mySign",
-        "\t\t\techo sign_getdefined(\"mySign\")"
-      ],
-      "sign_getplaced": [
-        "\t\tReturn a list of signs placed in a buffer or all the buffers.",
-        "\t\tThis is similar to the |:sign-place-list| command.",
-        "",
-        "\t\tIf the optional buffer name {expr} is specified, then only the",
-        "\t\tlist of signs placed in that buffer is returned.  For the use",
-        "\t\tof {expr}, see |bufname()|. The optional {dict} can contain",
-        "\t\tthe following entries:",
-        "\t\t   group\tselect only signs in this group",
-        "\t\t   id\t\tselect sign with this identifier",
-        "\t\t   lnum\t\tselect signs placed in this line. For the use",
-        "\t\t\t\tof {lnum}, see |line()|.",
-        "\t\tIf {group} is '*', then signs in all the groups including the",
-        "\t\tglobal group are returned. If {group} is not supplied or is an",
-        "\t\tempty string, then only signs in the global group are",
-        "\t\treturned.  If no arguments are supplied, then signs in the",
-        "\t\tglobal group placed in all the buffers are returned.",
-        "\t\tSee |sign-group|.",
-        "",
-        "\t\tEach list item in the returned value is a dictionary with the",
-        "\t\tfollowing entries:",
-        "\t\t\tbufnr\tnumber of the buffer with the sign",
-        "\t\t\tsigns\tlist of signs placed in {bufnr}. Each list",
-        "\t\t\t\titem is a dictionary with the below listed",
-        "\t\t\t\tentries",
-        "",
-        "\t\tThe dictionary for each sign contains the following entries:",
-        "\t\t\tgroup\tsign group. Set to '' for the global group.",
-        "\t\t\tid\tidentifier of the sign",
-        "\t\t\tlnum\tline number where the sign is placed",
-        "\t\t\tname\tname of the defined sign",
-        "\t\t\tpriority\tsign priority",
-        "",
-        "\t\tThe returned signs in a buffer are ordered by their line",
-        "\t\tnumber.",
-        "",
-        "\t\tReturns an empty list on failure or if there are no placed",
-        "\t\tsigns.",
-        "",
-        "\t\tExamples: >",
-        "\t\t\t\" Get a List of signs placed in eval.c in the",
-        "\t\t\t\" global group",
-        "\t\t\techo sign_getplaced(\"eval.c\")",
-        "",
-        "\t\t\t\" Get a List of signs in group 'g1' placed in eval.c",
-        "\t\t\techo sign_getplaced(\"eval.c\", {'group' : 'g1'})",
-        "",
-        "\t\t\t\" Get a List of signs placed at line 10 in eval.c",
-        "\t\t\techo sign_getplaced(\"eval.c\", {'lnum' : 10})",
-        "",
-        "\t\t\t\" Get sign with identifier 10 placed in a.py",
-        "\t\t\techo sign_getplaced(\"a.py\", {'id' : 10})",
-        "",
-        "\t\t\t\" Get sign with id 20 in group 'g1' placed in a.py",
-        "\t\t\techo sign_getplaced(\"a.py\", {'group' : 'g1',",
-        "\t\t\t\t\t\t\t\\  'id' : 20})",
-        "",
-        "\t\t\t\" Get a List of all the placed signs",
-        "\t\t\techo sign_getplaced()",
+        "<\t\tIf you want to get a directory tree: >",
+        "                  function! s:tree(dir)",
+        "                      return {a:dir : map(readdir(a:dir),",
+        "\t\t      \\ {_, x -> isdirectory(x) ?",
+        "\t\t      \\          {x : s:tree(a:dir . '/' . x)} : x})}",
+        "                  endfunction",
+        "                  echo s:tree(\".\")",
         "<"
       ],
-      "sign_jump": [
-        "\t\tOpen the buffer {expr} or jump to the window that contains",
-        "\t\t{expr} and position the cursor at sign {id} in group {group}.",
-        "\t\tThis is similar to the |:sign-jump| command.",
+      "rubyeval": [
+        "\t\tEvaluate Ruby expression {expr} and return its result",
+        "\t\tconverted to Vim data structures.",
+        "\t\tNumbers, floats and strings are returned as they are (strings",
+        "\t\tare copied though).",
+        "\t\tArrays are represented as Vim |List| type.",
+        "\t\tHashes are represented as Vim |Dictionary| type.",
+        "\t\tOther objects are represented as strings resulted from their",
+        "\t\t\"Object#to_s\" method.",
+        "\t\t{only available when compiled with the |+ruby| feature}"
+      ],
+      "screenchars": [
+        "\t\tThe result is a List of Numbers.  The first number is the same",
+        "\t\tas what |screenchar()| returns.  Further numbers are",
+        "\t\tcomposing characters on top of the base character.",
+        "\t\tThis is mainly to be used for testing.",
+        "\t\tReturns an empty List when row or col is out of range."
+      ],
+      "screenstring": [
+        "\t\tThe result is a String that contains the base character and",
+        "\t\tany composing characters at position [row, col] on the screen.",
+        "\t\tThis is like |screenchars()| but returning a String with the",
+        "\t\tcharacters.",
+        "\t\tThis is mainly to be used for testing.",
+        "\t\tReturns an empty String when row or col is out of range."
+      ],
+      "setenv": [
+        "\t\tSet environment variable {name} to {val}.",
+        "\t\tWhen {val} is |v:null| the environment variable is deleted.",
+        "\t\tSee also |expr-env|."
+      ],
+      "sound_clear": [
+        "\t\tStop playing all sounds.",
+        "\t\t{only available when compiled with the |+sound| feature}",
+        ""
+      ],
+      "sound_playevent": [
+        "\t\tPlay a sound identified by {name}.  Which event names are",
+        "\t\tsupported depends on the system.  Often the XDG sound names",
+        "\t\tare used.  On Ubuntu they may be found in",
+        "\t\t/usr/share/sounds/freedesktop/stereo.  Example: >",
+        "\t\t\tcall sound_playevent('bell')",
+        "<\t\tOn MS-Windows, {name} can be SystemAsterisk, SystemDefault,",
+        "\t\tSystemExclamation, SystemExit, SystemHand, SystemQuestion,",
+        "\t\tSystemStart, SystemWelcome, etc.",
         "",
-        "\t\tFor the use of {expr}, see |bufname()|.",
-        "",
-        "\t\tReturns the line number of the sign. Returns -1 if the",
-        "\t\targuments are invalid.",
-        "",
+        "\t\tWhen {callback} is specified it is invoked when the sound is",
+        "\t\tfinished.  The first argument is the sound ID, the second",
+        "\t\targument is the status:",
+        "\t\t\t0\tsound was played to the end",
+        "\t\t\t1\tsound was interrupted",
+        "\t\t\t2\terror occurred after sound started",
         "\t\tExample: >",
-        "\t\t\t\" Jump to sign 10 in the current buffer",
-        "\t\t\tcall sign_jump(10, '', '')",
-        "<"
+        "\t\t   func Callback(id, status)",
+        "\t\t     echomsg \"sound \" .. a:id .. \" finished with \" .. a:status",
+        "\t\t   endfunc",
+        "\t\t   call sound_playevent('bell', 'Callback')",
+        "",
+        "<\t\tMS-Windows: {callback} doesn't work for this function.",
+        "",
+        "\t\tReturns the sound ID, which can be passed to `sound_stop()`.",
+        "\t\tReturns zero if the sound could not be played.",
+        "\t\t{only available when compiled with the |+sound| feature}",
+        ""
       ],
-      "sign_place": [
-        "\t\tPlace the sign defined as {name} at line {lnum} in file {expr}",
-        "\t\tand assign {id} and {group} to sign.  This is similar to the",
-        "\t\t|:sign-place| command.",
-        "",
-        "\t\tIf the sign identifier {id} is zero, then a new identifier is",
-        "\t\tallocated.  Otherwise the specified number is used. {group} is",
-        "\t\tthe sign group name. To use the global sign group, use an",
-        "\t\tempty string.  {group} functions as a namespace for {id}, thus",
-        "\t\ttwo groups can use the same IDs. Refer to |sign-identifier|",
-        "\t\tand |sign-group| for more information.",
-        "",
-        "\t\t{name} refers to a defined sign.",
-        "\t\t{expr} refers to a buffer name or number. For the accepted",
-        "\t\tvalues, see |bufname()|.",
-        "",
-        "\t\tThe optional {dict} argument supports the following entries:",
-        "\t\t\tlnum\t\tline number in the buffer {expr} where",
-        "\t\t\t\t\tthe sign is to be placed. For the",
-        "\t\t\t\t\taccepted values, see |line()|.",
-        "\t\t\tpriority\tpriority of the sign. See",
-        "\t\t\t\t\t|sign-priority| for more information.",
-        "",
-        "\t\tIf the optional {dict} is not specified, then it modifies the",
-        "\t\tplaced sign {id} in group {group} to use the defined sign",
-        "\t\t{name}.",
-        "",
-        "\t\tReturns the sign identifier on success and -1 on failure.",
-        "",
-        "\t\tExamples: >",
-        "\t\t\t\" Place a sign named sign1 with id 5 at line 20 in",
-        "\t\t\t\" buffer json.c",
-        "\t\t\tcall sign_place(5, '', 'sign1', 'json.c',",
-        "\t\t\t\t\t\t\t\\ {'lnum' : 20})",
-        "",
-        "\t\t\t\" Updates sign 5 in buffer json.c to use sign2",
-        "\t\t\tcall sign_place(5, '', 'sign2', 'json.c')",
-        "",
-        "\t\t\t\" Place a sign named sign3 at line 30 in",
-        "\t\t\t\" buffer json.c with a new identifier",
-        "\t\t\tlet id = sign_place(0, '', 'sign3', 'json.c',",
-        "\t\t\t\t\t\t\t\\ {'lnum' : 30})",
-        "",
-        "\t\t\t\" Place a sign named sign4 with id 10 in group 'g3'",
-        "\t\t\t\" at line 40 in buffer json.c with priority 90",
-        "\t\t\tcall sign_place(10, 'g3', 'sign4', 'json.c',",
-        "\t\t\t\t\t\\ {'lnum' : 40, 'priority' : 90})"
+      "sound_playfile": [
+        "\t\tLike `sound_playevent()` but play sound file {path}.  {path}",
+        "\t\tmust be a full path.  On Ubuntu you may find files to play",
+        "\t\twith this command: >",
+        "\t\t    :!find /usr/share/sounds -type f | grep -v index.theme",
+        "<\t\t{only available when compiled with the |+sound| feature}",
+        ""
       ],
-      "sign_undefine": [
-        "\t\tDeletes a previously defined sign {name}. This is similar to",
-        "\t\tthe |:sign-undefine| command. If {name} is not supplied, then",
-        "\t\tdeletes all the defined signs.",
+      "sound_stop": [
+        "\t\tStop playing sound {id}.  {id} must be previously returned by",
+        "\t\t`sound_playevent()` or `sound_playfile()`.",
         "",
-        "\t\tReturns 0 on success and -1 on failure.",
+        "\t\tOn MS-Windows, this does not work for event sound started by",
+        "\t\t`sound_playevent()`. To stop event sounds, use `sound_clear()`.",
         "",
-        "\t\tExamples: >",
-        "\t\t\t\" Delete a sign named mySign",
-        "\t\t\tcall sign_undefine(\"mySign\")",
-        "",
-        "\t\t\t\" Delete all the signs",
-        "\t\t\tcall sign_undefine()"
+        "\t\t{only available when compiled with the |+sound| feature}",
+        ""
       ],
-      "sign_unplace": [
-        "\t\tRemove a previously placed sign in one or more buffers.  This",
-        "\t\tis similar to the |:sign-unplace| command.",
+      "str2list": [
+        "\t\tReturn a list containing the number values which represent",
+        "\t\teach character in String {expr}.  Examples: >",
+        "\t\t\tstr2list(\" \")\t\treturns [32]",
+        "\t\t\tstr2list(\"ABC\")\t\treturns [65, 66, 67]",
+        "<\t\t|list2str()| does the opposite.",
         "",
-        "\t\t{group} is the sign group name. To use the global sign group,",
-        "\t\tuse an empty string.  If {group} is set to '*', then all the",
-        "\t\tgroups including the global group are used.",
-        "\t\tThe signs in {group} are selected based on the entries in",
-        "\t\t{dict}.  The following optional entries in {dict} are",
-        "\t\tsupported:",
-        "\t\t\tbuffer\tbuffer name or number. See |bufname()|.",
-        "\t\t\tid\tsign identifier",
-        "\t\tIf {dict} is not supplied, then all the signs in {group} are",
-        "\t\tremoved.",
-        "",
-        "\t\tReturns 0 on success and -1 on failure.",
-        "",
-        "\t\tExamples: >",
-        "\t\t\t\" Remove sign 10 from buffer a.vim",
-        "\t\t\tcall sign_unplace('', {'buffer' : \"a.vim\", 'id' : 10})",
-        "",
-        "\t\t\t\" Remove sign 20 in group 'g1' from buffer 3",
-        "\t\t\tcall sign_unplace('g1', {'buffer' : 3, 'id' : 20})",
-        "",
-        "\t\t\t\" Remove all the signs in group 'g2' from buffer 10",
-        "\t\t\tcall sign_unplace('g2', {'buffer' : 10})",
-        "",
-        "\t\t\t\" Remove sign 30 in group 'g3' from all the buffers",
-        "\t\t\tcall sign_unplace('g3', {'id' : 30})",
-        "",
-        "\t\t\t\" Remove all the signs placed in buffer 5",
-        "\t\t\tcall sign_unplace('*', {'buffer' : 5})",
-        "",
-        "\t\t\t\" Remove the signs in group 'g4' from all the buffers",
-        "\t\t\tcall sign_unplace('g4')",
-        "",
-        "\t\t\t\" Remove sign 40 from all the buffers",
-        "\t\t\tcall sign_unplace('*', {'id' : 40})",
-        "",
-        "\t\t\t\" Remove all the placed signs from all the buffers",
-        "\t\t\tcall sign_unplace('*')"
+        "\t\tWhen {utf8} is omitted or zero, the current 'encoding' is used.",
+        "\t\tWith {utf8} set to 1, always treat the String as utf-8",
+        "\t\tcharacters.  With utf-8 composing characters are handled",
+        "\t\tproperly: >",
+        "\t\t\tstr2list(\"á\")\t\treturns [97, 769]"
       ],
       "term_dumpdiff": [
         "\t\tOpen a new window displaying the difference between the two",
@@ -28190,6 +29152,11 @@
         "\t\t   \"curwin\"\t     use the current window, do not split the",
         "\t\t\t\t     window; fails if the current buffer",
         "\t\t\t\t     cannot be |abandon|ed",
+        "\t\t   \"bufnr\"\t     do not create a new buffer, use the",
+        "\t\t\t\t     existing buffer \"bufnr\".  This buffer",
+        "\t\t\t\t     must have been previously created with",
+        "\t\t\t\t     term_dumpdiff() or term_dumpload() and",
+        "\t\t\t\t     visible in a window.",
         "\t\t   \"norestore\"\t     do not add the terminal window to a",
         "\t\t\t\t     session file",
         "",
@@ -28273,6 +29240,7 @@
         "\t\t\t\tis not blinking.",
         "\t\t   \"shape\"\t1 for a block cursor, 2 for underline and 3",
         "\t\t\t\tfor a vertical bar.",
+        "\t\t   \"color\"\tcolor of the cursor, e.g. \"green\"",
         "",
         "\t\t{buf} must be the buffer number of a terminal window. If the",
         "\t\tbuffer does not exist or is not a terminal window, an empty",
@@ -28505,6 +29473,8 @@
         "\t\t   \"ansi_colors\"     A list of 16 color names or hex codes",
         "\t\t\t\t     defining the ANSI palette used in GUI",
         "\t\t\t\t     color modes.  See |g:terminal_ansi_colors|.",
+        "\t\t   \"tty_type\"\t     (MS-Windows only): Specify which pty to",
+        "\t\t\t\t     use.  See 'termwintype' for the values.",
         "",
         "\t\t{only available when compiled with the |+terminal| feature}"
       ],
@@ -28529,6 +29499,15 @@
         "\t\tCharacters in {string} are queued for processing as if they",
         "\t\twere typed by the user. This uses a low level input buffer.",
         "\t\tThis function works only when with |+unix| or GUI is running."
+      ],
+      "test_garbagecollect_soon": [
+        "\t\tSet the flag to call the garbagecollector as if in the main",
+        "\t\tloop.  Only to be used in tests."
+      ],
+      "test_getvalue": [
+        "\t\tGet the value of an internal variable.  These values for",
+        "\t\t{name} are supported:",
+        "\t\t\tneed_fileinfo"
       ],
       "test_ignore_error": [
         "\t\tIgnore any error containing {expr}.  A normal message is given",
@@ -28586,6 +29565,10 @@
         "\t\tstarting     reset the \"starting\" variable, see below",
         "\t\tnfa_fail     makes the NFA regexp engine fail to force a",
         "\t\t\t     fallback to the old engine",
+        "\t\tno_query_mouse  do not query the mouse position for \"dec\"",
+        "\t\t\t\tterminals",
+        "\t\tno_wait_return\tset the \"no_wait_return\" flag.  Not restored",
+        "\t\t\t\twith \"ALL\".",
         "\t\tALL\t     clear all overrides ({val} is not used)",
         "",
         "\t\t\"starting\" is to be used when a test should behave like",
@@ -28597,6 +29580,11 @@
         "\t\t\tcall test_override('starting', 1)",
         "<\t\tThe value of \"starting\" is saved.  It is restored by: >",
         "\t\t\tcall test_override('starting', 0)"
+      ],
+      "test_refcount": [
+        "\t\tReturn the reference count of {expr}.  When {expr} is of a",
+        "\t\ttype that does not have a reference count, returns -1.  Only",
+        "\t\tto be used for testing."
       ],
       "test_scrollbar": [
         "\t\tPretend using scrollbar {which} to move it to position",
@@ -28615,6 +29603,13 @@
         "\t\tOnly works when the {which} scrollbar actually exists,",
         "\t\tobviously only when using the GUI."
       ],
+      "test_setmouse": [
+        "\t\tSet the mouse position to be used for the next mouse action.",
+        "\t\t{row} and {col} are one based.",
+        "\t\tFor example: >",
+        "\t\t\tcall test_setmouse(4, 20)",
+        "\t\t\tcall feedkeys(\"\\<LeftMouse>\", \"xt\")"
+      ],
       "test_settime": [
         "\t\tSet the time Vim uses internally.  Currently only used for",
         "\t\ttimestamps in the history, as they are used in viminfo, and",
@@ -28625,35 +29620,18 @@
         "\t\tnormal behavior is restored.",
         ""
       ],
-      "winlayout": [
-        "\t\tThe result is a nested List containing the layout of windows",
-        "\t\tin a tabpage.",
-        "",
-        "\t\tWithout {tabnr} use the current tabpage, otherwise the tabpage",
-        "\t\twith number {tabnr}. If the tabpage {tabnr} is not found,",
-        "\t\treturns an empty list.",
-        "",
-        "\t\tFor a leaf window, it returns:",
-        "\t\t\t['leaf', {winid}]",
-        "\t\tFor horizontally split windows, which form a column, it",
-        "\t\treturns:",
-        "\t\t\t['col', [{nested list of windows}]]",
-        "\t\tFor vertically split windows, which form a row, it returns:",
-        "\t\t\t['row', [{nested list of windows}]]",
-        "",
+      "win_execute": [
+        "\t\tLike `execute()` but in the context of window {id}.",
+        "\t\tThe window will temporarily be made the current window,",
+        "\t\twithout triggering autocommands.  When executing {command}",
+        "\t\tautocommands will be triggered, this may have unexpected side",
+        "\t\teffects.  Use |:noautocmd| if needed.",
         "\t\tExample: >",
-        "\t\t\t\" Only one window in the tab page",
-        "\t\t\t:echo winlayout()",
-        "\t\t\t['leaf', 1000]",
-        "\t\t\t\" Two horizontally split windows",
-        "\t\t\t:echo winlayout()",
-        "\t\t\t['col', [['leaf', 1000], ['leaf', 1001]]]",
-        "\t\t\t\" Three horizontally split windows, with two",
-        "\t\t\t\" vertically split windows in the middle window",
-        "\t\t\t:echo winlayout(2)",
-        "\t\t\t['col', [['leaf', 1002], ['row', ['leaf', 1003],",
-        "\t\t\t\t\t     ['leaf', 1001]]], ['leaf', 1000]]",
-        "<"
+        "\t\t\tcall win_execute(winid, 'set syntax=python')",
+        "<\t\tDoing the same with `setwinvar()` would not trigger",
+        "\t\tautocommands and not actually show syntax highlighting.",
+        "\t\t\t\t\t\t\t*E994*",
+        "\t\tNot all commands are allowed in popup windows."
       ]
     },
     "variables": {
@@ -29216,16 +30194,16 @@
         "\t\tvalue.  Read-only."
       ],
       "v:t_channel": [
-        "Value of Channel type.  Read-only.  See: |type()|"
+        "Value of |Channel| type.  Read-only.  See: |type()|"
       ],
       "v:t_job": [
-        "Value of Job type.  Read-only.  See: |type()|"
+        "Value of |Job| type.  Read-only.  See: |type()|"
       ],
       "v:t_none": [
-        "Value of None type.  Read-only.  See: |type()|"
+        "Value of |None| type.  Read-only.  See: |type()|"
       ],
       "v:t_blob": [
-        "Value of Blob type.  Read-only.  See: |type()|"
+        "Value of |Blob| type.  Read-only.  See: |type()|"
       ],
       "v:termblinkresp": [
         "The escape sequence returned by the terminal for the |t_RC|",
@@ -29251,6 +30229,17 @@
         "The escape sequence returned by the terminal for the |t_u7|",
         "\t\ttermcap entry.  This is used to find out what the terminal",
         "\t\tdoes with ambiguous width characters, see 'ambiwidth'."
+      ],
+      "v:versionlong": [
+        "Like v:version, but also including the patchlevel in the last",
+        "\t\tfour digits.  Version 8.1 with patch 123 has value 8010123.",
+        "\t\tThis can be used like this: >",
+        "\t\t\tif v:versionlong >= 8010123",
+        "<\t\tHowever, if there are gaps in the list of patches included",
+        "\t\tthis will not work well.  This can happen if a recent patch",
+        "\t\twas included into an older version, e.g. for a security fix.",
+        "\t\tUse the has() function to make sure the patch is actually",
+        "\t\tincluded."
       ]
     },
     "options": {
@@ -29456,7 +30445,9 @@
         "\tOnly normal file name characters can be used, \"/\\*?[|<>\" are illegal."
       ],
       "backupskip": [
-        "string\t(default: \"/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*\")",
+        "string\t(default: \"$TMPDIR/*,$TMP/*,$TEMP/*\"",
+        "\t\t\t\t Unix: \"/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*\"",
+        "\t\t\t\t Mac: \"/private/tmp/*,$TMPDIR/*,$TMP/*,$TEMP/*\")",
         "\t\t\tglobal",
         "\tA list of file patterns.  When one of the patterns matches with the",
         "\tname of the file which is written, no backup file is created.  Both",
@@ -30009,21 +31000,7 @@
         "\tfor keyword completion commands |i_CTRL-X_CTRL-K|.  Each file should",
         "\tcontain a list of words.  This can be one word per line, or several",
         "\twords per line, separated by non-keyword characters (white space is",
-        "\tpreferred).  Maximum line length is 510 bytes.",
-        "\tWhen this option is empty, or an entry \"spell\" is present, spell",
-        "\tchecking is enabled the currently active spelling is used. |spell|",
-        "\tTo include a comma in a file name precede it with a backslash.  Spaces",
-        "\tafter a comma are ignored, otherwise spaces are included in the file",
-        "\tname.  See |option-backslash| about using backslashes.",
-        "\tThis has nothing to do with the |Dictionary| variable type.",
-        "\tWhere to find a list of words?",
-        "\t- BSD/macOS include the \"/usr/share/dict/words\" file.",
-        "\t- Try \"apt install spell\" to get the \"/usr/share/dict/words\" file on",
-        "\t  apt-managed systems (Debian/Ubuntu).",
-        "\tThe use of |:set+=| and |:set-=| is preferred when adding or removing",
-        "\tdirectories from the list.  This avoids problems when a future version",
-        "\tuses another default.",
-        "\tBackticks cannot be used in this option for security reasons."
+        "\tpreferred).  Maximum line length is 510 bytes."
       ],
       "diff": [
         "boolean\t(default off)",
@@ -30220,16 +31197,6 @@
         "\ton, use CTRL-V<Tab>.  See also |:retab| and |ins-expandtab|.",
         "\tThis option is reset when the 'paste' option is set and restored when",
         "\tthe 'paste' option is reset."
-      ],
-      "exrc": [
-        "boolean (default off)",
-        "\t\t\tglobal",
-        "\tEnables the reading of .vimrc and .exrc in the current directory.",
-        "\tSetting this option is a potential security leak.  E.g., consider",
-        "\tunpacking a package or fetching files from github, a .vimrc in there",
-        "\tmight be a trojan horse.  BETTER NOT SET THIS OPTION!",
-        "\tInstead, define an autocommand in your .vimrc to set options for a",
-        "\tmatching directory."
       ],
       "fileencoding": [
         "string (default: \"\")",
@@ -30518,16 +31485,6 @@
         "\toperator or automatic formatting (see 'formatoptions').  When this",
         "\toption is empty 'formatprg' is used."
       ],
-      "formatoptions": [
-        "string (default: \"tcqj\", Vi default: \"vt\")",
-        "\t\t\tlocal to buffer",
-        "\tThis is a sequence of letters which describes how automatic",
-        "\tformatting is to be done.  See |fo-table|.  When the 'paste' option is",
-        "\ton, no formatting is done (like 'formatoptions' is empty).  Commas can",
-        "\tbe inserted for readability.",
-        "\tTo avoid problems with flags that are added in the future, use the",
-        "\t\"+=\" and \"-=\" feature of \":set\" |add-option-flags|."
-      ],
       "formatlistpat": [
         "string (default: \"^\\s*\\d\\+[\\]:.)}\\t ]\\s*\")",
         "\t\t\tlocal to buffer",
@@ -30540,6 +31497,16 @@
         "\tlike there is no match.",
         "\tThe default recognizes a number, followed by an optional punctuation",
         "\tcharacter and white space."
+      ],
+      "formatoptions": [
+        "string (default: \"tcqj\", Vi default: \"vt\")",
+        "\t\t\tlocal to buffer",
+        "\tThis is a sequence of letters which describes how automatic",
+        "\tformatting is to be done.  See |fo-table|.  When the 'paste' option is",
+        "\ton, no formatting is done (like 'formatoptions' is empty).  Commas can",
+        "\tbe inserted for readability.",
+        "\tTo avoid problems with flags that are added in the future, use the",
+        "\t\"+=\" and \"-=\" feature of \":set\" |add-option-flags|."
       ],
       "formatprg": [
         "string (default \"\")",
@@ -30784,7 +31751,8 @@
         "\tOnly works if the terminal supports setting window icon text",
         "\tWhen this option contains printf-style '%' items, they will be",
         "\texpanded according to the rules used for 'statusline'.  See",
-        "\t'titlestring' for example settings."
+        "\t'titlestring' for example settings.",
+        "\tThis option cannot be set in a modeline when 'modelineexpr' is off."
       ],
       "ignorecase": [
         "boolean\t(default off)",
@@ -31352,7 +32320,16 @@
         "boolean\t(Vim default: on (off for root),",
         "\t\t\t\t Vi default: off)",
         "\t\t\tlocal to buffer",
-        "\t\t\t\t\t\t*'modelines'* *'mls'*"
+        "\tIf 'modeline' is on 'modelines' gives the number of lines that is",
+        "\tchecked for set commands.  If 'modeline' is off or 'modelines' is zero",
+        "\tno lines are checked.  See |modeline|."
+      ],
+      "modelineexpr": [
+        "boolean (default: off)",
+        "\t\t\tglobal",
+        "\tWhen on allow some options that are an expression to be set in the",
+        "\tmodeline.  Check the option for whether it is affected by",
+        "\t'modelineexpr'.  Also see |modeline|."
       ],
       "modelines": [
         "number\t(default 5)",
@@ -31920,12 +32897,7 @@
         "\tWhen this option is not empty, it determines the content of the ruler",
         "\tstring, as displayed for the 'ruler' option.",
         "\tThe format of this option is like that of 'statusline'.",
-        "\tThe default ruler width is 17 characters.  To make the ruler 15",
-        "\tcharacters wide, put \"%15(\" at the start and \"%)\" at the end.",
-        "\tExample: >",
-        "\t\t:set rulerformat=%15(%c%V\\ %p%%%)",
-        "<",
-        "\t\t\t\t*'runtimepath'* *'rtp'* *vimfiles*"
+        "\tThis option cannot be set in a modeline when 'modelineexpr' is off."
       ],
       "runtimepath": [
         "string\t(default:     \"$XDG_CONFIG_HOME/nvim,",
@@ -32240,7 +33212,9 @@
         "\tWhen non-empty, overrides the file name used for |shada| (viminfo).",
         "\tWhen equal to \"NONE\" no shada file will be read or written.",
         "\tThis option can be set with the |-i| command line flag.  The |--clean|",
-        "\tcommand line flag sets it to \"NONE\"."
+        "\tcommand line flag sets it to \"NONE\".",
+        "\tThis option cannot be set from a |modeline| or in the |sandbox|, for",
+        "\tsecurity reasons."
       ],
       "shell": [
         "string\t(default $SHELL or \"sh\",",
@@ -32440,7 +33414,7 @@
         "\tfunction to get the effective shiftwidth value."
       ],
       "shortmess": [
-        "string\t(Vim default \"filnxtToOF\", Vi default: \"\")",
+        "string\t(Vim default \"filnxtToOF\", Vi default: \"S\")",
         "\t\t\tglobal",
         "\tThis option helps to avoid all the |hit-enter| prompts caused by file",
         "\tmessages, for example  with CTRL-G, and to avoid some other messages.",
@@ -33053,21 +34027,7 @@
         "string\t(default \"\")",
         "\t\t\tglobal",
         "\tWhen this option is not empty, it will be used for the title of the",
-        "\twindow.  This happens only when the 'title' option is on.",
-        "\tWhen this option contains printf-style '%' items, they will be",
-        "\texpanded according to the rules used for 'statusline'.",
-        "\tExample: >",
-        "\t    :auto BufEnter * let &titlestring = hostname() . \"/\" . expand(\"%:p\")",
-        "\t    :set title titlestring=%<%F%=%l/%L-%P titlelen=70",
-        "<\tThe value of 'titlelen' is used to align items in the middle or right",
-        "\tof the available space.",
-        "\tSome people prefer to have the file name first: >",
-        "\t    :set titlestring=%t%(\\ %M%)%(\\ (%{expand(\\\"%:~:.:h\\\")})%)%(\\ %a%)",
-        "<\tNote the use of \"%{ }\" and an expression to get the path of the file,",
-        "\twithout the file name.  The \"%( %)\" constructs are used to add a",
-        "\tseparating space only when needed.",
-        "\tNOTE: Use of special characters in 'titlestring' may cause the display",
-        "\tto be garbled (e.g., when it contains a CR or NL character)."
+        "\twindow.  This happens only when the 'title' option is on."
       ],
       "ttyfast": [
         "Removed. |vim-differences|"
@@ -33088,7 +34048,9 @@
         "\tWhen reading all entries are tried to find an undo file.  The first",
         "\tundo file that exists is used.  When it cannot be read an error is",
         "\tgiven, no further entry is used.",
-        "\tSee |undo-persistence|."
+        "\tSee |undo-persistence|.",
+        "\tThis option cannot be set from a |modeline| or in the |sandbox|, for",
+        "\tsecurity reasons."
       ],
       "undofile": [
         "boolean\t(default off)",
@@ -33376,6 +34338,13 @@
         "\tkey is never used for the menu.",
         "\tThis option is not used for <F10>; on Win32."
       ],
+      "winblend": [
+        "number\t(default 0)",
+        "\t\t\tlocal to window",
+        "\tEnables pseudo-transparency for a floating window. Valid values are in",
+        "\tthe range of 0 for fully opaque window (disabled) to 100 for fully",
+        "\ttransparent background. Values between 0-30 are typically most useful."
+      ],
       "window": [
         "number  (default screen height - 1)",
         "\t\t\tglobal",
@@ -33549,16 +34518,14 @@
       "altkeymap": [
         "boolean (default off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+farsi|",
         "\t\t\tfeature}",
-        "\tWhen on, the second language is Farsi.  In editing mode CTRL-_ toggles",
-        "\tthe keyboard map between Farsi and English, when 'allowrevins' set."
+        "\tThis option was for using Farsi, which has been removed.  See",
+        "\t|farsi.txt|."
       ],
       "antialias": [
         "boolean (default: off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with GUI enabled",
         "\t\t\ton Mac OS X}",
         "\tThis option only has an effect in the GUI version of Vim on Mac OS X",
@@ -33571,7 +34538,6 @@
       "balloonevalterm": [
         "boolean\t(default off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the",
         "\t\t\t|+balloon_eval_term| feature}",
         "\tSwitch on the |balloon-eval| functionality for the terminal."
@@ -33579,27 +34545,24 @@
       "bioskey": [
         "boolean\t(default on)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}  {only for MS-DOS}",
+        "\t\t\t{only for MS-DOS}",
         "\tThis was for MS-DOS and is no longer supported."
       ],
       "compatible": [
         "boolean\t(default on, off when a |vimrc| or |gvimrc|",
         "\t\t\t\t\tfile is found, reset in |defaults.vim|)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tThis option has the effect of making Vim either more Vi-compatible, or",
         "\tmake Vim behave in a more useful way."
       ],
       "conskey": [
         "boolean\t(default off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}  {only for MS-DOS}",
         "\tThis was for MS-DOS and is no longer supported."
       ],
       "cryptmethod": [
         "string\t(default \"blowfish2\")",
         "\t\t\tglobal or local to buffer |global-local|",
-        "\t\t\t{not in Vi}",
         "\tMethod used for encryption when the buffer is written to a file:",
         "\t\t\t\t\t\t\t*pkzip*",
         "\t   zip\t\tPkZip compatible method.  A weak kind of encryption.",
@@ -33623,7 +34586,6 @@
         "\t\t\tglobal",
         "\t\t\t{not available when compiled without the |+cscope|",
         "\t\t\tfeature}",
-        "\t\t\t{not in Vi}",
         "\tGive messages when adding a cscope database.  See |cscopeverbose|.",
         "\tNOTE: This option is reset when 'compatible' is set."
       ],
@@ -33638,9 +34600,6 @@
       "encoding": [
         "string (default: \"latin1\" or value from $LANG)",
         "\t\t\tglobal",
-        "\t\t\t{only available when compiled with the |+multi_byte|",
-        "\t\t\tfeature}",
-        "\t\t\t{not in Vi}",
         "\tSets the character encoding used inside Vim.  It applies to text in",
         "\tthe buffers, registers, Strings in expressions, text stored in the",
         "\tviminfo file, etc.  It sets the kind of characters which Vim can work",
@@ -33649,7 +34608,6 @@
       "esckeys": [
         "boolean\t(Vim default: on, Vi default: off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tFunction keys that start with an <Esc> are recognized in Insert",
         "\tmode.  When this option is off, the cursor and function keys cannot be",
         "\tused in Insert mode if they start with an <Esc>.  The advantage of",
@@ -33661,20 +34619,24 @@
         "\tNOTE: This option is set to the Vi default value when 'compatible' is",
         "\tset and to the Vim default value when 'compatible' is reset."
       ],
+      "exrc": [
+        "boolean (default off)",
+        "\t\t\tglobal",
+        "\tEnables the reading of .vimrc, .exrc and .gvimrc in the current",
+        "\tdirectory."
+      ],
       "fkmap": [
         "boolean (default off)\t\t\t*E198*",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+rightleft|",
         "\t\t\tfeature}",
-        "\tWhen on, the keyboard is mapped for the Farsi character set.",
-        "\tNormally you would set 'allowrevins' and use CTRL-_ in insert mode to",
-        "\ttoggle this option |i_CTRL-_|.  See |farsi.txt|."
+        "\tThis option was for using Farsi, which has been removed.  See",
+        "\t|farsi.txt|."
       ],
       "guiheadroom": [
         "number\t(default 50)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi} {only for GTK and X11 GUI}",
+        "\t\t\t{only for GTK and X11 GUI}",
         "\tThe number of pixels subtracted from the screen height when fitting",
         "\tthe GUI window on the screen.  Set this before the GUI is started,",
         "\te.g., in your |gvimrc| file.  When zero, the whole screen height will",
@@ -33686,7 +34648,6 @@
       "guipty": [
         "boolean\t(default on)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with GUI enabled}",
         "\tOnly in the GUI: If on, an attempt is made to open a pseudo-tty for",
         "\tI/O to/from shell commands.  See |gui-pty|."
@@ -33709,7 +34670,6 @@
         "\t\t\t\t     .:CursorLine,o:ColorColumn,q:QuickFixLine,",
         "\t\t\t\t     z:StatusLineTerm,Z:StatusLineTermNC\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tThis option can be used to set highlighting mode for various",
         "\toccasions.  It is a comma separated list of character pairs.  The",
         "\tfirst character in a pair gives the occasion, the second the mode to",
@@ -33762,17 +34722,15 @@
       "imactivatefunc": [
         "string (default \"\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
-        "\t\t\t{only available when compiled with the |+multi_byte|",
-        "\t\t\tfeature}",
         "\tThis option specifies a function that will be called to",
         "\tactivate or deactivate the Input Method.",
-        "\tIt is not used in the GUI."
+        "\tIt is not used in the GUI.",
+        "\tThe expression will be evaluated in the |sandbox| when set from a",
+        "\tmodeline, see |sandbox-option|."
       ],
       "imactivatekey": [
         "string (default \"\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with |+xim| and",
         "\t\t\t|+GUI_GTK|}\t\t\t\t*E599*",
         "\tSpecifies the key that your Input Method in X-Windows uses for",
@@ -33786,9 +34744,6 @@
       "imstatusfunc": [
         "string (default \"\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
-        "\t\t\t{only available when compiled with the |+multi_byte|",
-        "\t\t\tfeature}",
         "\tThis option specifies a function that is called to obtain the status",
         "\tof Input Method.  It must return a positive number when IME is active.",
         "\tIt is not used in the GUI."
@@ -33796,7 +34751,6 @@
       "imstyle": [
         "number (default 1)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with |+xim| and",
         "\t\t\t|+GUI_GTK|}",
         "\tThis option specifies the input style of Input Method:",
@@ -33807,7 +34761,6 @@
       "key": [
         "string\t(default \"\")",
         "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+cryptv|",
         "\t\t\tfeature}",
         "\tThe key that is used for encrypting and decrypting the current buffer.",
@@ -33825,7 +34778,6 @@
       "langnoremap": [
         "boolean (default off, set in |defaults.vim|)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+langmap|",
         "\t\t\tfeature}",
         "\tThis is just like 'langremap' but with the value inverted.  It only",
@@ -33835,7 +34787,6 @@
       "luadll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+lua/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Lua shared library. The default is",
@@ -33865,7 +34816,6 @@
         "\t\t\t\t dependent) or half the amount of memory",
         "\t\t\t\t available)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tMaximum amount of memory (in Kbyte) to use for one buffer.  When this",
         "\tlimit is reached allocating extra memory for a buffer will cause",
         "\tother memory to be freed.",
@@ -33879,7 +34829,6 @@
         "\t\t\t\t dependent) or half the amount of memory",
         "\t\t\t\t available)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tMaximum amount of memory in Kbyte to use for all buffers together.",
         "\tThe maximum usable value is about 2000000 (2 Gbyte).  Use this to work",
         "\twithout a limit.",
@@ -33894,7 +34843,6 @@
       "mzschemedll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+mzscheme/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the MzScheme shared library. The default is",
@@ -33908,7 +34856,6 @@
       "mzschemegcdll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+mzscheme/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the MzScheme GC shared library. The default is",
@@ -33921,7 +34868,6 @@
       "mzquantum": [
         "number\t(default 100)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{not available when compiled without the |+mzscheme|",
         "\t\t\tfeature}",
         "\tThe number of milliseconds between polls for MzScheme threads.",
@@ -33932,13 +34878,11 @@
       "osfiletype": [
         "string (default: \"\")",
         "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi}",
         "\tThis option was supported on RISC OS, which has been removed."
       ],
       "perldll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+perl/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Perl shared library. The default is",
@@ -33952,14 +34896,12 @@
         "\t\t\tglobal",
         "\t\t\t{not available when compiled without the",
         "\t\t\t|+insert_expand| feature}",
-        "\t\t\t{not in Vi}",
         "\tDetermines the minimum width to use for the popup menu for Insert mode",
         "\tcompletion.  |ins-completion-menu|."
       ],
       "pythondll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+python/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Python 2.x shared library. The default is",
@@ -33971,7 +34913,6 @@
       "pythonhome": [
         "string\t(default \"\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+python/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Python 2.x home directory. When 'pythonhome'",
@@ -33985,7 +34926,6 @@
       "renderoptions": [
         "string  (default: empty)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with GUI and DIRECTX on",
         "\t\t\tMS-Windows}",
         "\tSelect a text renderer and set its options.  The options depend on the",
@@ -33994,14 +34934,13 @@
       "restorescreen": [
         "boolean\t(default on)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}  {only in Windows 95/NT console version}",
+        "\t\t\t{only in Windows 95/NT console version}",
         "\tWhen set, the screen contents is restored when exiting Vim.  This also",
         "\thappens when executing external commands."
       ],
       "rubydll": [
         "string\t(default: depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+ruby/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Ruby shared library. The default is",
@@ -34013,7 +34952,7 @@
       "shelltype": [
         "number\t(default 0)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi} {only for the Amiga}",
+        "\t\t\t{only for the Amiga}",
         "\tOn the Amiga this option influences the way how the commands work",
         "\twhich use a shell.",
         "\t0 and 1: always use the shell",
@@ -34024,7 +34963,6 @@
       "shortname": [
         "boolean\t(default off)",
         "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi, not in MS-DOS versions}",
         "\tFilenames are assumed to be 8 characters plus one extension of 3",
         "\tcharacters.  Multiple dots in file names are not allowed.  When this",
         "\toption is on, dots in file names are replaced with underscores when",
@@ -34037,7 +34975,6 @@
       "swapsync": [
         "string\t(default \"fsync\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tWhen this option is not empty a swap file is synced to disk after",
         "\twriting to it.  This takes some time, especially on busy unix systems.",
         "\tWhen this option is empty parts of the swap file may be in memory and",
@@ -34049,10 +34986,19 @@
         "\tfsync(), which may work better on some systems.",
         "\tThe 'fsync' option is used for the actual file."
       ],
+      "tagfunc": [
+        "string\t(default: empty)",
+        "\t\t\tlocal to buffer",
+        "\t\t\t{not available when compiled without the |+eval|",
+        "\t\t\tfeature}",
+        "\tThis option specifies a function to be used to perform tag searches.",
+        "\tThe function gets the tag pattern and should return a List of matching",
+        "\ttags.  See |tag-function| for an explanation of how to write the",
+        "\tfunction and an example."
+      ],
       "tcldll": [
         "string\t(default depends on the build)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |+tcl/dyn|",
         "\t\t\tfeature}",
         "\tSpecifies the name of the Tcl shared library. The default is",
@@ -34084,9 +35030,6 @@
         "string\t(default \"\"; with GTK+ GUI: \"utf-8\"; with",
         "\t\t\t\t\t\t    Macintosh GUI: \"macroman\")",
         "\t\t\tglobal",
-        "\t\t\t{only available when compiled with the |+multi_byte|",
-        "\t\t\tfeature}",
-        "\t\t\t{not in Vi}",
         "\tEncoding used for the terminal.  This specifies what character",
         "\tencoding the keyboard produces and the display will understand.  For",
         "\tthe GUI it only applies to the keyboard ('encoding' is used for the",
@@ -34112,20 +35055,9 @@
         "\t\t:set encoding=utf-8",
         "<\tYou need to do this when your system has no locale support for UTF-8."
       ],
-      "termwinscroll": [
-        "number\t(default 10000)",
-        "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi}",
-        "\t\t\t{not available when compiled without the",
-        "\t\t\t|+terminal| feature}",
-        "\tNumber of scrollback lines to keep.  When going over this limit the",
-        "\tfirst 10% of the scrollback lines are deleted.  This is just to reduce",
-        "\tthe memory usage.  See |Terminal-Normal|."
-      ],
       "termwinkey": [
         "string\t(default \"\")",
         "\t\t\tlocal to window",
-        "\t\t\t{not in Vi}",
         "\tThe key that starts a CTRL-W command in a terminal window.  Other keys",
         "\tare sent to the job running in the window.",
         "\tThe <> notation can be used, e.g.: >",
@@ -34135,10 +35067,18 @@
         "\tline.  If 'termwinkey' is set to CTRL-L then CTRL-L : gets you to the",
         "\tcommand line."
       ],
+      "termwinscroll": [
+        "number\t(default 10000)",
+        "\t\t\tlocal to buffer",
+        "\t\t\t{not available when compiled without the",
+        "\t\t\t|+terminal| feature}",
+        "\tNumber of scrollback lines to keep.  When going over this limit the",
+        "\tfirst 10% of the scrollback lines are deleted.  This is just to reduce",
+        "\tthe memory usage.  See |Terminal-Normal|."
+      ],
       "termwinsize": [
         "string\t(default \"\")",
         "\t\t\tlocal to window",
-        "\t\t\t{not in Vi}",
         "\tSize of the |terminal| window.  Format: {rows}x{columns} or",
         "\t{rows}*{columns}.",
         "\t- When empty the terminal gets the size from the window.",
@@ -34152,10 +35092,17 @@
         "\t- When columns is zero then use the width of the window.",
         "\t- Using \"0x0\" or \"0*0\" is the same as empty."
       ],
+      "termwintype": [
+        "string  (default \"\")",
+        "\t\t\tglobal",
+        "\t\t\t{only available when compiled with the |terminal|",
+        "\t\t\tfeature on MS-Windows}",
+        "\tSpecify the virtual console (pty) used when opening the terminal",
+        "\twindow."
+      ],
       "textauto": [
         "boolean\t(Vim default: on, Vi default: off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tThis option is obsolete.  Use 'fileformats'.",
         "\tFor backwards compatibility, when 'textauto' is set, 'fileformats' is",
         "\tset to the default value for the current system.  When 'textauto' is",
@@ -34167,7 +35114,6 @@
         "boolean\t(MS-DOS, Win32 and OS/2: default on,",
         "\t\t\t\t others: default off)",
         "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi}",
         "\tThis option is obsolete.  Use 'fileformat'.",
         "\tFor backwards compatibility, when 'textmode' is set, 'fileformat' is",
         "\tset to \"dos\".  When 'textmode' is reset, 'fileformat' is set to",
@@ -34191,7 +35137,6 @@
       "toolbariconsize": [
         "string\t(default \"small\")",
         "\t\t\t\tglobal",
-        "\t\t\t\t{not in Vi}",
         "\t\t\t\t{only in the GTK+ GUI}",
         "\tControls the size of toolbar icons.  The possible values are:",
         "\t\ttiny\t\tUse tiny icons.",
@@ -34207,7 +35152,6 @@
       "ttybuiltin": [
         "boolean\t(default on)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tWhen on, the builtin termcaps are searched before the external ones.",
         "\tWhen off the builtin termcaps are searched after the external ones.",
         "\tWhen this option is changed, you should set the 'term' option next for",
@@ -34221,7 +35165,6 @@
       "ttymouse": [
         "string\t(default depends on 'term')",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only in Unix and VMS, doesn't work in the GUI; not",
         "\t\t\tavailable when compiled without |+mouse|}",
         "\tName of the terminal type for which mouse codes are to be recognized.",
@@ -34241,9 +35184,10 @@
         "\t\t\twork.  See below for how Vim detects this",
         "\t\t\tautomatically.",
         "\t\t\t\t\t\t\t*netterm-mouse*",
-        "\t   netterm\tNetTerm mouse handling.  The mouse generates",
+        "\t   netterm\tNetTerm mouse handling.  A left mouse click generates",
         "\t\t\t\"<Esc>}r,c<CR>\", where \"r,c\" are two decimal numbers",
-        "\t\t\tfor the row and column.",
+        "\t\t\tfor the row and column.  No other mouse events are",
+        "\t\t\tsupported.",
         "\t\t\t\t\t\t\t*dec-mouse*",
         "\t   dec\t\tDEC terminal mouse handling.  The mouse generates a",
         "\t\t\trather complex sequence, starting with \"<Esc>[\".",
@@ -34283,7 +35227,6 @@
         "\t\t\tlocal to buffer",
         "\t\t\t{only available when compiled with the |+vartabs|",
         "\t\t\tfeature}",
-        "\t\t\t{not in Vi}",
         "\tA list of the number of spaces that a <Tab> counts for while editing,",
         "\tsuch as inserting a <Tab> or using <BS>.  It \"feels\" like variable-",
         "\twidth <Tab>s are being inserted, while in fact a mixture of spaces",
@@ -34295,7 +35238,6 @@
         "\t\t\tlocal to buffer",
         "\t\t\t{only available when compiled with the |+vartabs|",
         "\t\t\tfeature}",
-        "\t\t\t{not in Vi}",
         "\tA list of the number of spaces that a <Tab> in the file counts for,",
         "\tseparated by commas.  Each value corresponds to one tab, with the",
         "\tfinal value applying to all subsequent tabs. For example: >",
@@ -34309,7 +35251,6 @@
         "\t\t\t\t   for Amiga: '100,<50,s10,h,rdf0:,rdf1:,rdf2:",
         "\t\t\t\t   for others: '100,<50,s10,h)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{not available when compiled without the |+viminfo|",
         "\t\t\tfeature}",
         "\tWhen non-empty, the viminfo file is read upon startup and written",
@@ -34402,27 +35343,32 @@
       "viminfofile": [
         "string\t(default: \"\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{not available when compiled without the |+viminfo|",
         "\t\t\tfeature}",
         "\tWhen non-empty, overrides the file name used for viminfo.",
         "\tWhen equal to \"NONE\" no viminfo file will be read or written.",
         "\tThis option can be set with the |-i| command line flag.  The |--clean|",
-        "\tcommand line flag sets it to \"NONE\"."
+        "\tcommand line flag sets it to \"NONE\".",
+        "\tThis option cannot be set from a |modeline| or in the |sandbox|, for",
+        "\tsecurity reasons."
       ],
       "weirdinvert": [
         "boolean\t(default off)",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\tThis option has the same effect as the 't_xs' terminal option.",
         "\tIt is provided for backwards compatibility with version 4.x.",
         "\tSetting 'weirdinvert' has the effect of making 't_xs' non-empty, and",
         "\tvice versa.  Has no effect when the GUI is running."
       ],
+      "wincolor": [
+        "string (default empty)",
+        "\t\t\tlocal to window",
+        "\tHighlight group name to use for this window instead of the Normal",
+        "\tcolor |hl-Normal|."
+      ],
       "winptydll": [
         "string\t(default \"winpty32.dll\" or \"winpty64.dll\")",
         "\t\t\tglobal",
-        "\t\t\t{not in Vi}",
         "\t\t\t{only available when compiled with the |terminal|",
         "\t\t\tfeature on MS-Windows}",
         "\tSpecifies the name of the winpty shared library, used for the",
@@ -34493,7 +35439,7 @@
         "Compiled with ARP support (Amiga)."
       ],
       "autocmd": [
-        "Compiled with autocommand support. |autocommand|"
+        "Compiled with autocommand support. (always true)"
       ],
       "autochdir": [
         "Compiled with support for 'autochdir'"
@@ -34516,6 +35462,9 @@
       ],
       "browsefilter": [
         "Compiled with support for |browsefilter|."
+      ],
+      "bsd": [
+        "Compiled on an OS in the BSD family (excluding macOS)."
       ],
       "builtin_terms": [
         "Compiled with some builtin terminals."
@@ -34544,11 +35493,17 @@
       "compatible": [
         "Compiled to be very Vi compatible."
       ],
+      "conpty": [
+        "Platform where |ConPTY| can be used."
+      ],
       "cryptv": [
         "Compiled with encryption support |encryption|."
       ],
       "cscope": [
         "Compiled with |cscope| support."
+      ],
+      "cursorbind": [
+        "Compiled with |'cursorbind'| (always true)"
       ],
       "debug": [
         "Compiled with \"DEBUG\" defined."
@@ -34584,7 +35539,7 @@
         "of course!"
       ],
       "ex_extra": [
-        "|+ex_extra|, always true now"
+        "|+ex_extra| (always true)"
       ],
       "extra_search": [
         "Compiled with support for |'incsearch'| and",
@@ -34666,6 +35621,9 @@
       "hangul_input": [
         "Compiled with Hangul input support. |hangul|"
       ],
+      "hpux": [
+        "HP-UX version of Vim."
+      ],
       "insert_expand": [
         "Compiled with support for CTRL-X expansion commands in"
       ],
@@ -34692,6 +35650,9 @@
       ],
       "'breakindent'": [
         "support."
+      ],
+      "linux": [
+        "Linux version of Vim."
       ],
       "lispindent": [
         "Compiled with support for lisp indenting."
@@ -34733,6 +35694,9 @@
       "mouse_gpm": [
         "Compiled with support for gpm (Linux console mouse)"
       ],
+      "mouse_gpm_enabled": [
+        "GPM mouse is working"
+      ],
       "mouse_netterm": [
         "Compiled with support for netterm mouse."
       ],
@@ -34755,7 +35719,7 @@
         "Compiled with support for 'mouseshape'."
       ],
       "multi_byte": [
-        "Compiled with support for 'encoding'"
+        "Compiled with support for 'encoding' (always true)"
       ],
       "multi_byte_encoding": [
         "'encoding' is set to a multi-byte encoding."
@@ -34839,7 +35803,7 @@
         "Compiled with Ruby interface |ruby|."
       ],
       "scrollbind": [
-        "Compiled with 'scrollbind' support."
+        "Compiled with 'scrollbind' support. (always true)"
       ],
       "showcmd": [
         "Compiled with 'showcmd' support."
@@ -34850,6 +35814,9 @@
       "smartindent": [
         "Compiled with 'smartindent' support."
       ],
+      "sound": [
+        "Compiled with sound support, e.g. `sound_playevent()`"
+      ],
       "spell": [
         "Compiled with spell checking support |spell|."
       ],
@@ -34859,8 +35826,11 @@
       "statusline": [
         "Compiled with support for 'statusline', 'rulerformat'"
       ],
+      "sun": [
+        "SunOS version of Vim."
+      ],
       "sun_workshop": [
-        "Compiled with support for Sun |workshop|."
+        "Support for Sun |workshop| has been removed."
       ],
       "syntax": [
         "Compiled with syntax highlighting support |syntax|."
@@ -34879,14 +35849,8 @@
         "\t\t\t|tag-binary-search|."
       ],
       "tag_old_static": [
-        "Compiled with support for old static tags",
+        "Support for old static tags was removed, see",
         "\t\t\t|tag-old-static|."
-      ],
-      "tag_any_white": [
-        "Compiled with support for any white characters in tags"
-      ],
-      "files": [
-        "|tag-any-white|."
       ],
       "tcl": [
         "Compiled with Tcl interface."
@@ -34928,7 +35892,7 @@
         "Compiled with support for \"unnamedplus\" in 'clipboard'"
       ],
       "user_commands": [
-        "User-defined commands."
+        "User-defined commands. (always true)"
       ],
       "vcon": [
         "Win32: Virtual console support is working, can use"
@@ -34939,11 +35903,24 @@
       "vertsplit": [
         "Compiled with vertically split windows |:vsplit|."
       ],
+      "(always": [
+        "true)",
+        "true)"
+      ],
       "viminfo": [
         "Compiled with viminfo support."
       ],
+      "vimscript-1": [
+        "Compiled Vim script version 1 support"
+      ],
+      "vimscript-2": [
+        "Compiled Vim script version 2 support"
+      ],
+      "vimscript-3": [
+        "Compiled Vim script version 3 support"
+      ],
       "virtualedit": [
-        "Compiled with 'virtualedit' option."
+        "Compiled with 'virtualedit' option. (always true)"
       ],
       "visual": [
         "Compiled with Visual mode. (always true)"
@@ -34958,7 +35935,7 @@
         "VMS version of Vim."
       ],
       "vreplace": [
-        "Compiled with |gR| and |gr| commands."
+        "Compiled with |gR| and |gr| commands. (always true)"
       ],
       "vtp": [
         "Compiled for vcon support |+vtp| (check vcon to find"
@@ -34973,7 +35950,7 @@
         "Compiled with 'wildmenu' option."
       ],
       "win16": [
-        "old version for MS-Windows 3.1 (always False)"
+        "old version for MS-Windows 3.1 (always false)"
       ],
       "win32unix": [
         "Win32 version of Vim, using Unix files (Cygwin)"
@@ -34982,7 +35959,7 @@
         "Win64 version of Vim (MS-Windows 64 bit)."
       ],
       "win95": [
-        "Win32 version for MS-Windows 95/98/ME (always False)"
+        "Win32 version for MS-Windows 95/98/ME (always false)"
       ],
       "winaltkeys": [
         "Compiled with 'winaltkeys' option."
