@@ -7,15 +7,15 @@ export default {
     conf = config
   },
 
-  get iskeyword() {
+  get iskeyword(): string {
     return conf && conf.iskeyword || ''
   },
 
-  get vimruntime() {
+  get vimruntime(): string {
     return conf && conf.vimruntime || ''
   },
 
-  get runtimepath() {
-    return conf && conf.runtimepath || ''
+  get runtimepath(): string[] {
+    return conf && conf.runtimepath || []
   }
 }

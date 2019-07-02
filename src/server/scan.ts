@@ -33,7 +33,17 @@ source$.pipe(
     return false
   }),
   concatMap(({ workDir }) => {
-    return from(fg<string>([join(workDir, '**/*.vim'), '!**/node_modules/**'])).pipe(
+    const indexPath = join(workDir, '**/*.vim')
+    return from(fg<string>([indexPath, '!**/node_modules/**'])).pipe(
+      catchError(error => {
+        process.send({
+          log: [
+            `Index Workspace Error: ${indexPath}`,
+            `Error => ${error.stack || error.message || error}`
+          ].join('\n')
+        })
+        return of(undefined)
+      }),
       filter(list => list && list.length > 0),
       switchMap(list => {
         return of(...list)
