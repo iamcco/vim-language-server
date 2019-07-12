@@ -300,7 +300,7 @@ class Builtin {
     if (config.vimruntime) {
       list.push(config.vimruntime)
     }
-    const glob = runtimepath.map(p => path.join(p, 'colors/*.vim'))
+    const glob = runtimepath.map(p => path.join(p.trim(), 'colors/*.vim'))
     let colorschemes: string[] = []
     try {
       colorschemes = await fg(glob, { onlyFiles: false, deep: 0 })
