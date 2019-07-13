@@ -3,7 +3,6 @@ import URIParser from 'vscode-uri';
 import { Buffer, IFunction, IIdentifier } from './buffer';
 import { Node } from '../../lib/vimparser';
 import { findWorkDirectory } from '../common/util';
-import { dirname } from 'path';
 import { CompletionItem, Location, Range, Position } from 'vscode-languageserver';
 // import logger from '../common/logger';
 
@@ -140,6 +139,9 @@ export class Workspace {
     locationType: 'definition' | 'references'
   ): Location[] {
     let res: Location[] = []
+    if (!this.buffers[uri]) {
+      return res
+    }
     const functions = locationType === 'definition'
       ? this.buffers[uri].getScriptFunctions()
       : this.buffers[uri].getScriptFunctionRefs()
@@ -172,6 +174,9 @@ export class Workspace {
     locationType: 'definition' | 'references'
   ): Location[] {
     const list: Location[] = []
+    if (!this.buffers[uri]) {
+      return list
+    }
     const vimLineNum = position.line + 1
     let startLine = -1
     let endLine = -1
@@ -233,6 +238,9 @@ export class Workspace {
     locationType: 'definition' | 'references'
   ): Location[] {
     let res: Location[] = []
+    if (!this.buffers[uri]) {
+      return res
+    }
     if (locationType === 'definition') {
       const flist: IFunction[] = []
       const globalFunctions = this.buffers[uri].getGlobalFunctions()
@@ -324,6 +332,9 @@ export class Workspace {
     locationType: 'definition' | 'references'
   ): Location[] {
     let res: Location[] = []
+    if (!this.buffers[uri]) {
+      return res
+    }
     if (locationType === 'references') {
       const globalFunctions = this.buffers[uri].getGlobalFunctions()
       const scriptFunctions = this.buffers[uri].getScriptFunctions()

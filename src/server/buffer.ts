@@ -493,7 +493,8 @@ export class Buffer {
       !left ||
       ['function', 'funcref'].indexOf(left.value) === -1 ||
       !funcNode ||
-      !funcNode.pos
+      !funcNode.pos ||
+      typeof funcNode.value !== 'string'
     ) {
       return
     }
