@@ -287,9 +287,16 @@ class Server {
   private resolveBuiltinNvimFunctions() {
     const evalText = this.text[API_PATH] || []
     let completionItem: CompletionItem
+    const pattern = /^((nvim_\w+)\(([^)]*)\))[ \t]*/m
     for (let idx = 0; idx < evalText.length; idx++) {
       const line = evalText[idx];
-      const m = line.match(/^((nvim_\w+)\(([^)]*)\))[ \t]*/)
+      let m = line.match(pattern)
+      if (!m && evalText[idx + 1]) {
+        m = [line, evalText[idx + 1].trim()].join(' ').match(pattern)
+        if (m) {
+          idx++
+        }
+      }
       if (m) {
         if (completionItem) {
           this.vimBuiltinFunctionItems.push(
@@ -326,7 +333,7 @@ class Server {
           }
           completionItem = undefined
         }
-      } else if (completionItem) {
+      } else if (completionItem && !/^[ \t]\*nvim(_\w+)+\(\)\*\s*$/.test(line)) {
         this.vimBuiltFunctionDocuments[completionItem.label].push(line)
       }
     }

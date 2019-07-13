@@ -8414,6 +8414,15 @@
         "insertTextFormat": 2
       },
       {
+        "label": "nvim_set_client_info",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_set_client_info(${1:name}, ${2:version}, ${3:type}, ${4:methods}, ${5:attributes})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "nvim_get_chan_info",
         "kind": 3,
         "detail": "",
@@ -8576,6 +8585,15 @@
         "insertTextFormat": 2
       },
       {
+        "label": "nvim_buf_set_lines",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_set_lines(${1:buffer}, ${2:start}, ${3:end}, ${4:strict_indexing}, ${5:replacement})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "nvim_buf_get_offset",
         "kind": 3,
         "detail": "",
@@ -8717,6 +8735,15 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "nvim_buf_get_mark(${1:buffer}, ${2:name})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "nvim_buf_add_highlight",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_add_highlight(${1:buffer}, ${2:ns_id}, ${3:hl_group}, ${4:line}, ${5:col_start}, ${6:col_end})${0}",
         "insertTextFormat": 2
       },
       {
@@ -17920,6 +17947,10 @@
       "",
       ""
     ],
+    "nvim_set_client_info": [
+      "{name}, {version}, {type}, {methods}, {attributes}",
+      ""
+    ],
     "nvim_get_chan_info": [
       "{chan}",
       ""
@@ -17992,6 +18023,10 @@
       "{buffer}, {start}, {end}, {strict_indexing}",
       ""
     ],
+    "nvim_buf_set_lines": [
+      "{buffer}, {start}, {end}, {strict_indexing}, {replacement}",
+      ""
+    ],
     "nvim_buf_get_offset": [
       "{buffer}, {index}",
       ""
@@ -18054,6 +18089,10 @@
     ],
     "nvim_buf_get_mark": [
       "{buffer}, {name}",
+      ""
+    ],
+    "nvim_buf_add_highlight": [
+      "{buffer}, {ns_id}, {hl_group}, {line}, {col_start}, {col_end}",
       ""
     ],
     "nvim_buf_clear_namespace": [
@@ -27140,10 +27179,9 @@
         "",
         "                Attributes: ~",
         "                    {async}",
-        "",
-        "                                                      *nvim_set_client_info()*",
-        "nvim_set_client_info({name}, {version}, {type}, {methods},",
-        "                     {attributes})",
+        ""
+      ],
+      "nvim_set_client_info": [
         "                Self-identifies the client.",
         "",
         "                The client/plugin/application should call this after",
@@ -27524,10 +27562,9 @@
         "",
         "                Return: ~",
         "                    Array of lines, or empty array for unloaded buffer.",
-        "",
-        "                                                        *nvim_buf_set_lines()*",
-        "nvim_buf_set_lines({buffer}, {start}, {end}, {strict_indexing},",
-        "                   {replacement})",
+        ""
+      ],
+      "nvim_buf_set_lines": [
         "                Sets (replaces) a line-range in the buffer.",
         "",
         "                Indexing is zero-based, end-exclusive. Negative indices are",
@@ -27713,10 +27750,9 @@
         "",
         "                Return: ~",
         "                    (row, col) tuple",
-        "",
-        "                                                    *nvim_buf_add_highlight()*",
-        "nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line},",
-        "                       {col_start}, {col_end})",
+        ""
+      ],
+      "nvim_buf_add_highlight": [
         "                Adds a highlight to buffer.",
         "",
         "                Useful for plugins that dynamically generate highlights to a",
@@ -32498,7 +32534,7 @@
         "\trows in the window, depending on whether 'number' or 'relativenumber'",
         "\tis set. Thus with the Vim default of 4 there is room for a line number",
         "\tup to 999. When the buffer has 1000 lines five columns will be used.",
-        "\tThe minimum value is 1, the maximum value is 10."
+        "\tThe minimum value is 1, the maximum value is 20."
       ],
       "omnifunc": [
         "string\t(default: empty)",
@@ -34307,17 +34343,16 @@
         "\tWhen there is only a single match, it is fully completed in all cases."
       ],
       "wildoptions": [
-        "string\t(default \"\")",
+        "string\t(default \"pum,tagfile\")",
         "\t\t\tglobal",
-        "\tA list of words that change how command line completion is done.",
+        "\tList of words that change how |cmdline-completion| is done.",
+        "\t  pum\t\tDisplay the completion matches using the popupmenu",
+        "\t\t\tin the same style as the |ins-completion-menu|.",
         "\t  tagfile\tWhen using CTRL-D to list matching tags, the kind of",
         "\t\t\ttag and the file of the tag is listed.\tOnly one match",
         "\t\t\tis displayed per line.  Often used tag kinds are:",
         "\t\t\t\td\t#define",
-        "\t\t\t\tf\tfunction",
-        "\t  pum\t\tDisplay the completion matches using the popupmenu",
-        "\t\t\tin the same style as the |ins-completion-menu|.",
-        "\tAlso see |cmdline-completion|."
+        "\t\t\t\tf\tfunction"
       ],
       "winaltkeys": [
         "string\t(default \"menu\")",
