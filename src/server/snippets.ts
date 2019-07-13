@@ -3,7 +3,7 @@ import { markupSnippets } from '../common/util';
 
 export const commandSnippets: CompletionItem[] = [
   {
-    label: 'function',
+    label: 'func',
     kind: CompletionItemKind.Snippet,
     insertText: [
       'function ${1:Name}(${2}) ${3:abort}',
@@ -13,7 +13,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'trycatch',
+    label: 'tryc',
     kind: CompletionItemKind.Snippet,
     insertText: [
       'try',
@@ -25,7 +25,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'tryfinally',
+    label: 'tryf',
     kind: CompletionItemKind.Snippet,
     insertText: [
       'try',
@@ -37,7 +37,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'trycatchfinally',
+    label: 'trycf',
     kind: CompletionItemKind.Snippet,
     insertText: [
       'try',
@@ -51,7 +51,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'augroup',
+    label: 'aug',
     kind: CompletionItemKind.Snippet,
     insertText: [
       'augroup ${1:Start}',
@@ -62,7 +62,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'autocmd',
+    label: 'aut',
     kind: CompletionItemKind.Snippet,
     insertText: [
       "autocmd ${1:group} ${2:event} ${3:pat} ${4:once} ${5:nested} ${6:cmd}"
@@ -80,7 +80,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'command',
+    label: 'cmd',
     kind: CompletionItemKind.Snippet,
     insertText: [
       "command! ${1:attr} ${2:cmd} ${3:rep} ${0}",
@@ -88,7 +88,7 @@ export const commandSnippets: CompletionItem[] = [
     insertTextFormat: InsertTextFormat.Snippet
   },
   {
-    label: 'highlight',
+    label: 'hi',
     kind: CompletionItemKind.Snippet,
     insertText: [
       "highlight ${1:default} ${2:group-name} ${3:key}=${4:arg} ${0}",
