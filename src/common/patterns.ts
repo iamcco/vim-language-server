@@ -17,7 +17,7 @@ export const colorschemePattern = /\bcolorscheme[ \t]+\w*$/
 export const mapCommandPattern = /^([ \t]*(\[ \t]*)?)\w*map[ \t]+/
 
 export const builtinVariablePattern = [
-  /(^|[ \t]+)v:\w*$/
+  /\bv:\w*$/
 ]
 
 export const optionPattern = [
@@ -26,6 +26,7 @@ export const optionPattern = [
 ]
 
 export const notFunctionPattern = [
+  /^[ \t]*\\$/,
   /^[ \t]*\w+$/,
   /^[ \t]*"/,
   /(let|set|colorscheme)[ \t][^ \t]*$/,
@@ -49,6 +50,8 @@ export const expandPattern = [
 
 export const notIdentifierPattern = [
   commentPattern,
-  /^[ \t]*call[ \t]+[^ \t]*$/,
+  /("|'):\w*$/,
+  /^[ \t]*\\$/,
+  /^[ \t]*call[ \t]+[^ \t()]*$/,
   /('|"|#|&|\$|<)\w*$/
 ]
