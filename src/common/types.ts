@@ -21,6 +21,7 @@ export interface BuiltinDoc {
     variables: CompletionItem[]
     features: CompletionItem[]
     expandKeywords: CompletionItem[]
+    autocmds: CompletionItem[]
   }
   signatureHelp: Record<string, string[]>
   documents: {

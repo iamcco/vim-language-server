@@ -13,7 +13,10 @@ import './hasEnum'
 import './mapEnum'
 import './expandEnum'
 import './colorscheme'
+import './highlightArgKeys'
+import './highlightArgValues'
 import './identifier'
+import './autocmds'
 import { getProvider } from './provider';
 import { documents } from '../../server/documents';
 

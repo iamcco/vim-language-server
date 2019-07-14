@@ -10,7 +10,7 @@
  * 7. map args
  */
 import { readFile } from 'fs';
-import path, { join, dirname } from 'path';
+import path, { join } from 'path';
 import fg from 'fast-glob';
 import {
   CompletionItem,
@@ -31,7 +31,7 @@ import {
   commandPattern,
   featurePattern,
   builtinFunctionPattern,
-  expandPattern
+  expandPattern,
 } from '../common/patterns';
 import config from './config';
 
@@ -48,8 +48,11 @@ class Builtin {
   private vimCommandItems: CompletionItem[] = []
   private vimMapArgsItems: CompletionItem[] = []
   private vimFeatureItems: CompletionItem[] = []
+  private vimAutocmdItems: CompletionItem[] = []
   private expandKeywordItems: CompletionItem[] = []
   private colorschemeItems: CompletionItem[] = []
+  private highlightArgKeys: CompletionItem[] = []
+  private highlightArgValues: Record<string, CompletionItem[]> = {}
 
   // signature help
   private vimBuiltFunctionSignatureHelp: Record<string, string[]> = {}
@@ -98,8 +101,20 @@ class Builtin {
     return this.vimFeatureItems
   }
 
+  public getVimAutocmds() {
+    return this.vimAutocmdItems
+  }
+
   public getColorschemes() {
     return this.colorschemeItems
+  }
+
+  public getHighlightArgKeys() {
+    return this.highlightArgKeys
+  }
+
+  public getHighlightArgValues() {
+    return this.highlightArgValues
   }
 
   public getSignatureHelpByName(name: string, idx: number): SignatureHelp | undefined {
@@ -227,6 +242,12 @@ class Builtin {
     // get map args
     this.resolveMapArgs()
 
+    // get highlight arg keys
+    this.resolveHighlightArgKeys()
+
+    // get highlight arg values
+    this.resolveHighlightArgValues()
+
     // builtin docs
     const [err, docs] = await pcb(readFile)(join(__dirname, '../../docs/builtin-docs.json'), 'utf-8')
 
@@ -251,6 +272,7 @@ class Builtin {
       this.vimOptionItems = data.completionItems.options
       this.vimOptionDocuments = data.documents.options
       this.vimFeatureItems = data.completionItems.features
+      this.vimAutocmdItems = data.completionItems.autocmds
       this.vimFeatureDocuments = data.documents.features
       this.expandKeywordItems = data.completionItems.expandKeywords
       this.expandKeywordDocuments = data.documents.expandKeywords
@@ -322,6 +344,86 @@ class Builtin {
       }
       return item
     })
+  }
+
+  private resolveHighlightArgKeys () {
+    this.highlightArgKeys = [
+      'cterm',
+      'start',
+      'stop',
+      'ctermfg',
+      'ctermbg',
+      'gui',
+      'font',
+      'guifg',
+      'guibg',
+      'guisp',
+      'blend'
+    ]
+    .map(item => {
+      return {
+        label: item,
+        kind: CompletionItemKind.EnumMember,
+        documentation: '',
+        insertText: `${item}=$\{0\}`,
+        insertTextFormat: InsertTextFormat.Snippet
+      }
+    })
+  }
+
+  private resolveHighlightArgValues () {
+    const values = {
+      'cterm': ['bold', 'underline', 'undercurl', 'reverse', 'inverse', 'italic', 'standout', 'NONE'],
+      'ctermfg ctermbg': [
+        'Black',
+        'DarkBlue',
+        'DarkGreen',
+        'DarkCyan',
+        'DarkRed',
+        'DarkMagenta',
+        'Brown', 'DarkYellow',
+        'LightGray', 'LightGrey', 'Gray', 'Grey',
+        'DarkGray', 'DarkGrey',
+        'Blue', 'LightBlue',
+        'Green', 'LightGreen',
+        'Cyan', 'LightCyan',
+        'Red', 'LightRed',
+        'Magenta', 'LightMagenta',
+        'Yellow', 'LightYellow',
+        'White',
+      ],
+      'guifg guibg guisp': [
+        'NONE',
+        'bg',
+        'background',
+        'fg',
+        'foreground',
+        'Red', 'LightRed', 'DarkRed',
+        'Green', 'LightGreen', 'DarkGreen', 'SeaGreen',
+        'Blue', 'LightBlue', 'DarkBlue', 'SlateBlue',
+        'Cyan', 'LightCyan', 'DarkCyan',
+        'Magenta', 'LightMagenta', 'DarkMagenta',
+        'Yellow', 'LightYellow', 'Brown', 'DarkYellow',
+        'Gray', 'LightGray', 'DarkGray',
+        'Black', 'White',
+        'Orange', 'Purple', 'Violet',
+      ]
+    }
+
+    const argValues: Record<string, CompletionItem[]> = {}
+    Object.keys(values).forEach(key => {
+      const items: CompletionItem[] = values[key].map((val: string) => ({
+        label: val,
+        kind: CompletionItemKind.EnumMember,
+        documentation: '',
+        insertText: val,
+        insertTextFormat: InsertTextFormat.PlainText
+      }))
+      key.split(' ').forEach(name => {
+        argValues[name] = items
+      })
+    })
+    this.highlightArgValues = argValues
   }
 }
 

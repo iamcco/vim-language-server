@@ -65,7 +65,7 @@ export const commandSnippets: CompletionItem[] = [
     label: 'aut',
     kind: CompletionItemKind.Snippet,
     insertText: [
-      "autocmd ${1:group} ${2:event} ${3:pat} ${4:once} ${5:nested} ${6:cmd}"
+      "autocmd ${1:group-event} ${2:pat} ${3:once} ${4:nested} ${5:cmd}"
     ].join('\n'),
     insertTextFormat: InsertTextFormat.Snippet
   },
@@ -91,7 +91,7 @@ export const commandSnippets: CompletionItem[] = [
     label: 'hi',
     kind: CompletionItemKind.Snippet,
     insertText: [
-      "highlight ${1:default} ${2:group-name} ${3:key}=${4:arg} ${0}",
+      "highlight ${1:default} ${2:group-name} ${3:args} ${0}",
     ].join('\n'),
     insertTextFormat: InsertTextFormat.Snippet
   }

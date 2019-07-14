@@ -5331,6 +5331,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "bufadd",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "bufadd(${1:name})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "bufexists",
         "kind": 3,
         "detail": "Number",
@@ -5344,6 +5352,14 @@
         "detail": "Number",
         "sortText": "00004",
         "insertText": "buflisted(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "bufload",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "bufload(${1:expr})${0}",
         "insertTextFormat": 2
       },
       {
@@ -12503,6 +12519,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "redrawdebug",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "redrawdebug",
+        "insertTextFormat": 1
+      },
+      {
         "label": "redrawtime",
         "kind": 10,
         "detail": "number",
@@ -15892,6 +15917,888 @@
         "insertText": "<client>",
         "insertTextFormat": 1
       }
+    ],
+    "autocmds": [
+      {
+        "label": "BufNewFile",
+        "kind": 20,
+        "documentation": "starting to edit a file that doesn't exist",
+        "sortText": "00004",
+        "insertText": "BufNewFile",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufReadPre",
+        "kind": 20,
+        "documentation": "starting to edit a new buffer, before reading the file",
+        "sortText": "00004",
+        "insertText": "BufReadPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufRead",
+        "kind": 20,
+        "documentation": "starting to edit a new buffer, after reading the file",
+        "sortText": "00004",
+        "insertText": "BufRead",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufReadPost",
+        "kind": 20,
+        "documentation": "starting to edit a new buffer, after reading the file",
+        "sortText": "00004",
+        "insertText": "BufReadPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufReadCmd",
+        "kind": 20,
+        "documentation": "before starting to edit a new buffer |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "BufReadCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileReadPre",
+        "kind": 20,
+        "documentation": "before reading a file with a \":read\" command",
+        "sortText": "00004",
+        "insertText": "FileReadPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileReadPost",
+        "kind": 20,
+        "documentation": "after reading a file with a \":read\" command",
+        "sortText": "00004",
+        "insertText": "FileReadPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileReadCmd",
+        "kind": 20,
+        "documentation": "before reading a file with a \":read\" command |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "FileReadCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FilterReadPre",
+        "kind": 20,
+        "documentation": "before reading a file from a filter command",
+        "sortText": "00004",
+        "insertText": "FilterReadPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FilterReadPost",
+        "kind": 20,
+        "documentation": "after reading a file from a filter command",
+        "sortText": "00004",
+        "insertText": "FilterReadPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "StdinReadPre",
+        "kind": 20,
+        "documentation": "before reading from stdin into the buffer",
+        "sortText": "00004",
+        "insertText": "StdinReadPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "StdinReadPost",
+        "kind": 20,
+        "documentation": "After reading from the stdin into the buffer",
+        "sortText": "00004",
+        "insertText": "StdinReadPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWrite",
+        "kind": 20,
+        "documentation": "starting to write the whole buffer to a file",
+        "sortText": "00004",
+        "insertText": "BufWrite",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWritePre",
+        "kind": 20,
+        "documentation": "starting to write the whole buffer to a file",
+        "sortText": "00004",
+        "insertText": "BufWritePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWritePost",
+        "kind": 20,
+        "documentation": "after writing the whole buffer to a file",
+        "sortText": "00004",
+        "insertText": "BufWritePost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWriteCmd",
+        "kind": 20,
+        "documentation": "before writing the whole buffer to a file |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "BufWriteCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileWritePre",
+        "kind": 20,
+        "documentation": "starting to write part of a buffer to a file",
+        "sortText": "00004",
+        "insertText": "FileWritePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileWritePost",
+        "kind": 20,
+        "documentation": "after writing part of a buffer to a file",
+        "sortText": "00004",
+        "insertText": "FileWritePost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileWriteCmd",
+        "kind": 20,
+        "documentation": "before writing part of a buffer to a file |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "FileWriteCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileAppendPre",
+        "kind": 20,
+        "documentation": "starting to append to a file",
+        "sortText": "00004",
+        "insertText": "FileAppendPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileAppendPost",
+        "kind": 20,
+        "documentation": "after appending to a file",
+        "sortText": "00004",
+        "insertText": "FileAppendPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileAppendCmd",
+        "kind": 20,
+        "documentation": "before appending to a file |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "FileAppendCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FilterWritePre",
+        "kind": 20,
+        "documentation": "starting to write a file for a filter command or diff",
+        "sortText": "00004",
+        "insertText": "FilterWritePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FilterWritePost",
+        "kind": 20,
+        "documentation": "after writing a file for a filter command or diff",
+        "sortText": "00004",
+        "insertText": "FilterWritePost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufAdd",
+        "kind": 20,
+        "documentation": "just after adding a buffer to the buffer list",
+        "sortText": "00004",
+        "insertText": "BufAdd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufCreate",
+        "kind": 20,
+        "documentation": "just after adding a buffer to the buffer list",
+        "sortText": "00004",
+        "insertText": "BufCreate",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufDelete",
+        "kind": 20,
+        "documentation": "before deleting a buffer from the buffer list",
+        "sortText": "00004",
+        "insertText": "BufDelete",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWipeout",
+        "kind": 20,
+        "documentation": "before completely deleting a buffer",
+        "sortText": "00004",
+        "insertText": "BufWipeout",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufFilePre",
+        "kind": 20,
+        "documentation": "before changing the name of the current buffer",
+        "sortText": "00004",
+        "insertText": "BufFilePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufFilePost",
+        "kind": 20,
+        "documentation": "after changing the name of the current buffer",
+        "sortText": "00004",
+        "insertText": "BufFilePost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufEnter",
+        "kind": 20,
+        "documentation": "after entering a buffer",
+        "sortText": "00004",
+        "insertText": "BufEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufLeave",
+        "kind": 20,
+        "documentation": "before leaving to another buffer",
+        "sortText": "00004",
+        "insertText": "BufLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWinEnter",
+        "kind": 20,
+        "documentation": "after a buffer is displayed in a window",
+        "sortText": "00004",
+        "insertText": "BufWinEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufWinLeave",
+        "kind": 20,
+        "documentation": "before a buffer is removed from a window",
+        "sortText": "00004",
+        "insertText": "BufWinLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufUnload",
+        "kind": 20,
+        "documentation": "before unloading a buffer",
+        "sortText": "00004",
+        "insertText": "BufUnload",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufHidden",
+        "kind": 20,
+        "documentation": "just after a buffer has become hidden",
+        "sortText": "00004",
+        "insertText": "BufHidden",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "BufNew",
+        "kind": 20,
+        "documentation": "just after creating a new buffer",
+        "sortText": "00004",
+        "insertText": "BufNew",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SwapExists",
+        "kind": 20,
+        "documentation": "detected an existing swap file",
+        "sortText": "00004",
+        "insertText": "SwapExists",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TermOpen",
+        "kind": 20,
+        "documentation": "when a terminal job starts",
+        "sortText": "00004",
+        "insertText": "TermOpen",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TermClose",
+        "kind": 20,
+        "documentation": "when a terminal job ends",
+        "sortText": "00004",
+        "insertText": "TermClose",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ChanOpen",
+        "kind": 20,
+        "documentation": "after a channel opened",
+        "sortText": "00004",
+        "insertText": "ChanOpen",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ChanInfo",
+        "kind": 20,
+        "documentation": "after a channel has its state changed",
+        "sortText": "00004",
+        "insertText": "ChanInfo",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileType",
+        "kind": 20,
+        "documentation": "when the 'filetype' option has been set",
+        "sortText": "00004",
+        "insertText": "FileType",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "Syntax",
+        "kind": 20,
+        "documentation": "when the 'syntax' option has been set",
+        "sortText": "00004",
+        "insertText": "Syntax",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "OptionSet",
+        "kind": 20,
+        "documentation": "after setting any option",
+        "sortText": "00004",
+        "insertText": "OptionSet",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimEnter",
+        "kind": 20,
+        "documentation": "after doing all the startup stuff",
+        "sortText": "00004",
+        "insertText": "VimEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "GUIEnter",
+        "kind": 20,
+        "documentation": "after starting the GUI successfully",
+        "sortText": "00004",
+        "insertText": "GUIEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "GUIFailed",
+        "kind": 20,
+        "documentation": "after starting the GUI failed",
+        "sortText": "00004",
+        "insertText": "GUIFailed",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TermResponse",
+        "kind": 20,
+        "documentation": "after the terminal response to t_RV is received",
+        "sortText": "00004",
+        "insertText": "TermResponse",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "QuitPre",
+        "kind": 20,
+        "documentation": "when using `:quit`, before deciding whether to exit",
+        "sortText": "00004",
+        "insertText": "QuitPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ExitPre",
+        "kind": 20,
+        "documentation": "when using a command that may make Vim exit",
+        "sortText": "00004",
+        "insertText": "ExitPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimLeavePre",
+        "kind": 20,
+        "documentation": "before exiting Nvim, before writing the shada file",
+        "sortText": "00004",
+        "insertText": "VimLeavePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimLeave",
+        "kind": 20,
+        "documentation": "before exiting Nvim, after writing the shada file",
+        "sortText": "00004",
+        "insertText": "VimLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimResume",
+        "kind": 20,
+        "documentation": "after Nvim is resumed",
+        "sortText": "00004",
+        "insertText": "VimResume",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimSuspend",
+        "kind": 20,
+        "documentation": "before Nvim is suspended",
+        "sortText": "00004",
+        "insertText": "VimSuspend",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "DiffUpdated",
+        "kind": 20,
+        "documentation": "after diffs have been updated",
+        "sortText": "00004",
+        "insertText": "DiffUpdated",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "DirChanged",
+        "kind": 20,
+        "documentation": "after the |current-directory| was changed",
+        "sortText": "00004",
+        "insertText": "DirChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileChangedShell",
+        "kind": 20,
+        "documentation": "Vim notices that a file changed since editing started",
+        "sortText": "00004",
+        "insertText": "FileChangedShell",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileChangedShellPost",
+        "kind": 20,
+        "documentation": "after handling a file changed since editing started",
+        "sortText": "00004",
+        "insertText": "FileChangedShellPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FileChangedRO",
+        "kind": 20,
+        "documentation": "before making the first change to a read-only file",
+        "sortText": "00004",
+        "insertText": "FileChangedRO",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ShellCmdPost",
+        "kind": 20,
+        "documentation": "after executing a shell command",
+        "sortText": "00004",
+        "insertText": "ShellCmdPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ShellFilterPost",
+        "kind": 20,
+        "documentation": "after filtering with a shell command",
+        "sortText": "00004",
+        "insertText": "ShellFilterPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdUndefined",
+        "kind": 20,
+        "documentation": "a user command is used but it isn't defined",
+        "sortText": "00004",
+        "insertText": "CmdUndefined",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FuncUndefined",
+        "kind": 20,
+        "documentation": "a user function is used but it isn't defined",
+        "sortText": "00004",
+        "insertText": "FuncUndefined",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SpellFileMissing",
+        "kind": 20,
+        "documentation": "a spell file is used but it can't be found",
+        "sortText": "00004",
+        "insertText": "SpellFileMissing",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SourcePre",
+        "kind": 20,
+        "documentation": "before sourcing a Vim script",
+        "sortText": "00004",
+        "insertText": "SourcePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SourceCmd",
+        "kind": 20,
+        "documentation": "before sourcing a Vim script |Cmd-event|",
+        "sortText": "00004",
+        "insertText": "SourceCmd",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "VimResized",
+        "kind": 20,
+        "documentation": "after the Vim window size changed",
+        "sortText": "00004",
+        "insertText": "VimResized",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FocusGained",
+        "kind": 20,
+        "documentation": "Nvim got focus",
+        "sortText": "00004",
+        "insertText": "FocusGained",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "FocusLost",
+        "kind": 20,
+        "documentation": "Nvim lost focus",
+        "sortText": "00004",
+        "insertText": "FocusLost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CursorHold",
+        "kind": 20,
+        "documentation": "the user doesn't press a key for a while",
+        "sortText": "00004",
+        "insertText": "CursorHold",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CursorHoldI",
+        "kind": 20,
+        "documentation": "the user doesn't press a key for a while in Insert mode",
+        "sortText": "00004",
+        "insertText": "CursorHoldI",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CursorMoved",
+        "kind": 20,
+        "documentation": "the cursor was moved in Normal mode",
+        "sortText": "00004",
+        "insertText": "CursorMoved",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CursorMovedI",
+        "kind": 20,
+        "documentation": "the cursor was moved in Insert mode",
+        "sortText": "00004",
+        "insertText": "CursorMovedI",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "WinNew",
+        "kind": 20,
+        "documentation": "after creating a new window",
+        "sortText": "00004",
+        "insertText": "WinNew",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "WinEnter",
+        "kind": 20,
+        "documentation": "after entering another window",
+        "sortText": "00004",
+        "insertText": "WinEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "WinLeave",
+        "kind": 20,
+        "documentation": "before leaving a window",
+        "sortText": "00004",
+        "insertText": "WinLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TabEnter",
+        "kind": 20,
+        "documentation": "after entering another tab page",
+        "sortText": "00004",
+        "insertText": "TabEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TabLeave",
+        "kind": 20,
+        "documentation": "before leaving a tab page",
+        "sortText": "00004",
+        "insertText": "TabLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TabNew",
+        "kind": 20,
+        "documentation": "when creating a new tab page",
+        "sortText": "00004",
+        "insertText": "TabNew",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TabNewEntered",
+        "kind": 20,
+        "documentation": "after entering a new tab page",
+        "sortText": "00004",
+        "insertText": "TabNewEntered",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TabClosed",
+        "kind": 20,
+        "documentation": "after closing a tab page",
+        "sortText": "00004",
+        "insertText": "TabClosed",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdlineChanged",
+        "kind": 20,
+        "documentation": "after a change was made to the command-line text",
+        "sortText": "00004",
+        "insertText": "CmdlineChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdlineEnter",
+        "kind": 20,
+        "documentation": "after entering cmdline mode",
+        "sortText": "00004",
+        "insertText": "CmdlineEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdlineLeave",
+        "kind": 20,
+        "documentation": "before leaving cmdline mode",
+        "sortText": "00004",
+        "insertText": "CmdlineLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdwinEnter",
+        "kind": 20,
+        "documentation": "after entering the command-line window",
+        "sortText": "00004",
+        "insertText": "CmdwinEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CmdwinLeave",
+        "kind": 20,
+        "documentation": "before leaving the command-line window",
+        "sortText": "00004",
+        "insertText": "CmdwinLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "InsertEnter",
+        "kind": 20,
+        "documentation": "starting Insert mode",
+        "sortText": "00004",
+        "insertText": "InsertEnter",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "InsertChange",
+        "kind": 20,
+        "documentation": "when typing <Insert> while in Insert or Replace mode",
+        "sortText": "00004",
+        "insertText": "InsertChange",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "InsertLeave",
+        "kind": 20,
+        "documentation": "when leaving Insert mode",
+        "sortText": "00004",
+        "insertText": "InsertLeave",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "InsertCharPre",
+        "kind": 20,
+        "documentation": "when a character was typed in Insert mode, before",
+        "sortText": "00004",
+        "insertText": "InsertCharPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TextYankPost",
+        "kind": 20,
+        "documentation": "when some text is yanked or deleted",
+        "sortText": "00004",
+        "insertText": "TextYankPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TextChanged",
+        "kind": 20,
+        "documentation": "after a change was made to the text in Normal mode",
+        "sortText": "00004",
+        "insertText": "TextChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TextChangedI",
+        "kind": 20,
+        "documentation": "after a change was made to the text in Insert mode",
+        "sortText": "00004",
+        "insertText": "TextChangedI",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TextChangedP",
+        "kind": 20,
+        "documentation": "after a change was made to the text in Insert mode",
+        "sortText": "00004",
+        "insertText": "TextChangedP",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ColorSchemePre",
+        "kind": 20,
+        "documentation": "before loading a color scheme",
+        "sortText": "00004",
+        "insertText": "ColorSchemePre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "ColorScheme",
+        "kind": 20,
+        "documentation": "after loading a color scheme",
+        "sortText": "00004",
+        "insertText": "ColorScheme",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "RemoteReply",
+        "kind": 20,
+        "documentation": "a reply from a server Vim was received",
+        "sortText": "00004",
+        "insertText": "RemoteReply",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "QuickFixCmdPre",
+        "kind": 20,
+        "documentation": "before a quickfix command is run",
+        "sortText": "00004",
+        "insertText": "QuickFixCmdPre",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "QuickFixCmdPost",
+        "kind": 20,
+        "documentation": "after a quickfix command is run",
+        "sortText": "00004",
+        "insertText": "QuickFixCmdPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SessionLoadPost",
+        "kind": 20,
+        "documentation": "after loading a session file",
+        "sortText": "00004",
+        "insertText": "SessionLoadPost",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "MenuPopup",
+        "kind": 20,
+        "documentation": "just before showing the popup menu",
+        "sortText": "00004",
+        "insertText": "MenuPopup",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CompleteChanged",
+        "kind": 20,
+        "documentation": "after popup menu changed, not fired on popup menu hide",
+        "sortText": "00004",
+        "insertText": "CompleteChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "CompleteDone",
+        "kind": 20,
+        "documentation": "after Insert mode completion is done",
+        "sortText": "00004",
+        "insertText": "CompleteDone",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "User",
+        "kind": 20,
+        "documentation": "to be used in combination with \":doautocmd\"",
+        "sortText": "00004",
+        "insertText": "User",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "Signal",
+        "kind": 20,
+        "documentation": "after Nvim receives a signal",
+        "sortText": "00004",
+        "insertText": "Signal",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TerminalOpen",
+        "kind": 20,
+        "documentation": "after a terminal buffer was created",
+        "sortText": "00004",
+        "insertText": "TerminalOpen",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "EncodingChanged",
+        "kind": 20,
+        "documentation": "after the 'encoding' option has been changed",
+        "sortText": "00004",
+        "insertText": "EncodingChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TermChanged",
+        "kind": 20,
+        "documentation": "after the value of 'term' has changed",
+        "sortText": "00004",
+        "insertText": "TermChanged",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "SourcePost",
+        "kind": 20,
+        "documentation": "after sourcing a Vim script",
+        "sortText": "00004",
+        "insertText": "SourcePost",
+        "insertTextFormat": 1
+      }
     ]
   },
   "signatureHelp": {
@@ -17666,6 +18573,14 @@
     "api_info": [
       "",
       "Dict"
+    ],
+    "bufadd": [
+      "{name}",
+      "Number"
+    ],
+    "bufload": [
+      "{expr}",
+      "Number"
     ],
     "chanclose": [
       "{id}[, {stream}]",
@@ -20221,6 +21136,14 @@
         "\t\tWhen the \"Cancel\" button is hit, something went wrong, or",
         "\t\tbrowsing is not possible, an empty string is returned."
       ],
+      "bufadd": [
+        "\t\tAdd a buffer to the buffer list with {name}.",
+        "\t\tIf a buffer for file {name} already exists, return that buffer",
+        "\t\tnumber.  Otherwise return the buffer number of the newly",
+        "\t\tcreated buffer.  When {name} is an empty string then a new",
+        "\t\tbuffer is always created.",
+        "\t\tThe buffer will not have' 'buflisted' set."
+      ],
       "bufexists": [
         "\t\tThe result is a Number, which is |TRUE| if a buffer called",
         "\t\t{expr} exists.",
@@ -20246,6 +21169,15 @@
       "buflisted": [
         "\t\tThe result is a Number, which is |TRUE| if a buffer called",
         "\t\t{expr} exists and is listed (has the 'buflisted' option set).",
+        "\t\tThe {expr} argument is used like with |bufexists()|."
+      ],
+      "bufload": [
+        "\t\tEnsure the buffer {expr} is loaded.  When the buffer name",
+        "\t\trefers to an existing file then the file is read.  Otherwise",
+        "\t\tthe buffer will be empty.  If the buffer was already loaded",
+        "\t\tthen there is no change.",
+        "\t\tIf there is an existing swap file for the file of the buffer,",
+        "\t\tthere will be no dialog, the buffer will be loaded anyway.",
         "\t\tThe {expr} argument is used like with |bufexists()|."
       ],
       "bufloaded": [
@@ -32808,6 +33740,25 @@
         "\tWhen using the \":view\" command the 'readonly' option is",
         "\tset for the newly edited buffer.",
         "\tSee 'modifiable' for disallowing changes to the buffer."
+      ],
+      "redrawdebug": [
+        "string\t(default '')",
+        "\t\t\tglobal",
+        "\tFlags to change the way redrawing works, for debugging purposes.",
+        "\tMost useful with 'writedelay' set to some reasonable value.",
+        "\tSupports the following flags:",
+        "\t    compositor\tIndicate what redraws come from the compositor",
+        "\t\t\tby briefly flashing the redrawn regions in colors",
+        "\t\t\tindicating the redraw type. These are the highlight",
+        "\t\t\tgroups used (and their default colors):",
+        "\t\tRedrawDebugNormal   gui=reverse   normal redraw passed through",
+        "\t\tRedrawDebugClear    guibg=Yellow  clear event passed through",
+        "\t\tRedrawDebugComposed guibg=Green   redraw event modified by the",
+        "\t\t\t\t\t\t  compositor (due to",
+        "\t\t\t\t\t\t  overlapping grids, etc)",
+        "\t\tRedrawDebugRecompose guibg=Red    redraw generated by the",
+        "\t\t\t\t\t\t  compositor itself, due to a",
+        "\t\t\t\t\t\t  grid being moved or deleted."
       ],
       "redrawtime": [
         "number\t(default 2000)",

@@ -74,17 +74,6 @@ lsp client config example with coc.nvim
 }
 ```
 
-## TODO
-
-- [x] filter function ref from function declare to fix double function complete item
-- [x] function / funcref
-- [x] start with call only return function list
-- [x] autocmd/command/map function
-- [ ] highlight type autocomplete
-- [ ] autocmd group event autocomplete
-- [ ] incremental
-- [ ] function signature help parameters
-
 ## References
 
 - [vim-vimlparser](https://github.com/vim-jp/vim-vimlparser)

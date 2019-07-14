@@ -16,6 +16,14 @@ export const colorschemePattern = /\bcolorscheme[ \t]+\w*$/
 
 export const mapCommandPattern = /^([ \t]*(\[ \t]*)?)\w*map[ \t]+/
 
+export const highlightLinkPattern = /^[ \t]*(hi|highlight)[ \t]+link([ \t]+[^ \t]+)*[ \t]*$/
+
+export const highlightPattern = /^[ \t]*(hi|highlight)([ \t]+[^ \t]+)*[ \t]*$/
+
+export const highlightValuePattern = /^[ \t]*(hi|highlight)([ \t]+[^ \t]+)*[ \t]+([^ \t=]+)=[^ \t=]*$/
+
+export const autocmdPattern = /^[ \t]*(au|autocmd)!?[ \t]+([^ \t,]+,)*[^ \t,]*$/
+
 export const builtinVariablePattern = [
   /\bv:\w*$/
 ]
@@ -30,7 +38,9 @@ export const notFunctionPattern = [
   /^[ \t]*\w+$/,
   /^[ \t]*"/,
   /(let|set|colorscheme)[ \t][^ \t]*$/,
-  /[^([,\\ \t\w#]\w*$/
+  /[^([,\\ \t\w#]\w*$/,
+  /^[ \t]*(hi|highlight)([ \t]+link)?([ \t]+[^ \t]+)*[ \t]*$/,
+  autocmdPattern
 ]
 
 export const commandPattern = [

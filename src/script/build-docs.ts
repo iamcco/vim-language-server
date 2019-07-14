@@ -27,6 +27,7 @@ const EVAL_PATH = '/doc/eval.txt'
 const OPTIONS_PATH = '/doc/options.txt'
 const INDEX_PATH = '/doc/index.txt'
 const API_PATH = '/doc/api.txt'
+const AUTOCMD_PATH = '/doc/autocmd.txt'
 
 class Server {
   constructor(private config: IConfig) {}
@@ -41,6 +42,7 @@ class Server {
   public vimCommandItems: CompletionItem[] = []
   public vimFeatureItems: CompletionItem[] = []
   public vimExpandKeywordItems: CompletionItem[] = []
+  public vimAutocmdItems: CompletionItem[] = []
 
   // documents
   public vimBuiltFunctionDocuments: Record<string, string[]> = {}
@@ -56,7 +58,7 @@ class Server {
   public async build() {
     const { vimruntime } = this.config
     if (vimruntime) {
-      const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH]
+      const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH, AUTOCMD_PATH]
       for (let index = 0; index < paths.length; index++) {
         const p = join(vimruntime, paths[index])
         const [err, data]: [Error, Buffer] = await pcb(readFile)(p, 'utf-8')
@@ -73,6 +75,7 @@ class Server {
       this.resolveExpandKeywords()
       this.resolveVimCommands()
       this.resolveVimFeatures()
+      this.resolveVimAutocmds()
     }
   }
 
@@ -85,6 +88,7 @@ class Server {
         options: this.vimOptionItems,
         features: this.vimFeatureItems,
         expandKeywords: this.vimExpandKeywordItems,
+        autocmds: this.vimAutocmdItems
       },
       signatureHelp: this.vimBuiltFunctionSignatureHelp,
       documents: {
@@ -435,6 +439,36 @@ class Server {
     this.vimFeatureItems = features
   }
 
+  private resolveVimAutocmds() {
+    const text = this.text[AUTOCMD_PATH] || []
+    let isMatchLine = false
+    for (let idx = 0; idx < text.length; idx++) {
+      const line = text[idx];
+      if (!isMatchLine) {
+        if (/^\|BufNewFile\|/.test(line)) {
+          isMatchLine = true
+          idx -= 1
+        }
+        continue
+      } else {
+        const m = line.match(/^\|([^ \t]+)\|[ \t]+([^ \t].*)$/)
+        if (m) {
+          this.vimAutocmdItems.push({
+            label: m[1],
+            kind: CompletionItemKind.EnumMember,
+            documentation: m[2],
+            sortText: '00004',
+            insertText: m[1],
+            insertTextFormat: InsertTextFormat.PlainText
+          })
+          if (m[1] === 'Signal') {
+            break
+          }
+        }
+      }
+    }
+  }
+
   private resolveExpandKeywords() {
       this.vimExpandKeywordItems = [
         '<cfile>,file name under the cursor',
@@ -521,6 +555,13 @@ async function main() {
       if (!pre.expandKeywordDocuments[label]) {
         pre.vimExpandKeywordItems.push(item)
         pre.expandKeywordDocuments[label] = next.expandKeywordDocuments[label]
+      }
+    })
+    // merge autocmd
+    next.vimAutocmdItems.forEach(item => {
+      const { label } = item
+      if (!pre.vimAutocmdItems.some(item => item.label === label)) {
+        pre.vimAutocmdItems.push(item)
       }
     })
     // merge signature help
