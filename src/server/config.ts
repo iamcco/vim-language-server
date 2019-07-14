@@ -1,4 +1,4 @@
-import { IConfig } from '../common/types';
+import { IConfig, IDiagnostic } from '../common/types';
 
 let conf: IConfig;
 
@@ -17,5 +17,11 @@ export default {
 
   get runtimepath(): string[] {
     return conf && conf.runtimepath || []
+  },
+
+  get diagnostic(): IDiagnostic {
+    return conf && conf.diagnostic || {
+      enable: true
+    }
   }
 }

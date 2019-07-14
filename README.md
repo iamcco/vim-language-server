@@ -50,7 +50,10 @@ lsp client config example with coc.nvim
     "initializationOptions": {
       "iskeyword": "vim iskeyword option",
       "vimruntime": "path/to/$VIMRUNTIME",
-      "runtimepath": "vim/runtime/path"
+      "runtimepath": "vim/runtime/path",
+      "diagnostic": {
+        "enable": true
+      }
     },
     "filetypes": [ "vim" ],
   }
@@ -67,7 +70,10 @@ lsp client config example with coc.nvim
     "initializationOptions": {
       "iskeyword": "vim iskeyword option",
       "vimruntime": "path/to/$VIMRUNTIME",
-      "runtimepath": "vim/runtime/path"
+      "runtimepath": "vim/runtime/path",
+      "diagnostic": {
+        "enable": true
+      }
     },
     "filetypes": [ "vim" ]
   }

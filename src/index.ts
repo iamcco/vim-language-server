@@ -6,7 +6,7 @@ import { completionResolveProvider } from './handles/completionResolve';
 import { signatureHelpProvider } from './handles/signatureHelp';
 import { documents } from './server/documents';
 import { connection } from './server/connection';
-import { IConfig } from './common/types';
+import { IConfig, IDiagnostic } from './common/types';
 import { next, unsubscribe } from './server/parser';
 import { builtinDocs } from './server/builtin';
 import config from './server/config';
@@ -17,17 +17,21 @@ import { renameProvider, prepareProvider } from './handles/rename';
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
   const { initializationOptions = {} } = param
-  const { iskeyword, runtimepath, vimruntime }: {
+  const { iskeyword, runtimepath, vimruntime, diagnostic }: {
     iskeyword: string
     runtimepath: string
     vimruntime: string
+    diagnostic: IDiagnostic
   } = initializationOptions
 
   // config by user's initializationOptions
   const conf:IConfig = {
     iskeyword: iskeyword || '',
     runtimepath: runtimepath ? runtimepath.split(',') : [],
-    vimruntime: vimruntime || ''
+    vimruntime: vimruntime || '',
+    diagnostic: diagnostic || {
+      enable: true
+    }
   }
 
   // init config

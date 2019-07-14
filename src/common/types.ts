@@ -5,11 +5,16 @@ export interface IParserHandles {
   [uri: string]: Subscription | undefined
 }
 
+export interface IDiagnostic {
+  enable: boolean
+}
+
 // initialization options
 export interface IConfig {
   iskeyword: string
   vimruntime: string
   runtimepath: string[]
+  diagnostic: IDiagnostic
 }
 
 // builtin-doc

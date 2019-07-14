@@ -10,6 +10,7 @@ import { workspace } from './workspaces';
 import { handleParse } from '../common/util';
 import { IParserHandles} from '../common/types';
 import logger from '../common/logger';
+import config from './config';
 
 const log = logger('parser')
 
@@ -57,8 +58,10 @@ export function next(
       }, true)
     ).subscribe(
       (res) => {
-        // handle diagnostic
-        handleDiagnostic(textDoc, res[1])
+        if (config.diagnostic.enable) {
+          // handle diagnostic
+          handleDiagnostic(textDoc, res[1])
+        }
         // handle node
         workspace.updateBuffer(uri, res[0])
         // scan project
