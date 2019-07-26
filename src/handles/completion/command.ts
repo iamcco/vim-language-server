@@ -9,10 +9,15 @@ import { commandPattern } from '../../common/patterns';
 import { builtinDocs } from '../../server/builtin';
 import { commandSnippets } from '../../server/snippets';
 import { useProvider } from './provider';
+import config from '../../server/config';
 
 function provider(line: string): CompletionItem[] {
   if (isSomeMatchPattern(commandPattern, line)) {
-    return builtinDocs.getVimCommands().concat(commandSnippets)
+    // only return snippets when snippetSupport is true
+    if (config.snippetSupport) {
+      return builtinDocs.getVimCommands().concat(commandSnippets)
+    }
+    return builtinDocs.getVimCommands()
   }
   return []
 }

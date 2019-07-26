@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import findup from 'findup';
 import { SpawnOptions, spawn } from 'child_process';
 import { kindPattern, keywordPattern, commentPattern, wordPrePattern, wordNextPattern } from './patterns';
-import { TextDocument, Position, Range } from 'vscode-languageserver';
+import { TextDocument, Position, Range, CompletionItem, InsertTextFormat } from 'vscode-languageserver';
 import { Node, StringReader, VimLParser } from '../../lib/vimparser';
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
@@ -163,4 +163,18 @@ export async function handleParse(textDoc: TextDocument | string): Promise<[Node
   } catch (error) {
     return [null, error]
   }
+}
+
+// remove snippets of completionItem
+export function removeSnippets(completionItems: CompletionItem[] = []): CompletionItem[] {
+  return completionItems.map(item => {
+    if (item.insertTextFormat === InsertTextFormat.Snippet) {
+      return {
+        ...item,
+        insertText: item.label,
+        insertTextFormat: InsertTextFormat.PlainText
+      }
+    }
+    return item
+  })
 }

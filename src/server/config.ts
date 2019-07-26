@@ -23,5 +23,9 @@ export default {
     return conf && conf.diagnostic || {
       enable: true
     }
+  },
+
+  get snippetSupport() : boolean {
+    return conf && conf.snippetSupport || false
   }
 }

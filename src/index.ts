@@ -1,4 +1,5 @@
 import { InitializeParams } from 'vscode-languageserver';
+import * as shvl from 'shvl';
 
 import { completionProvider } from './handles/completion';
 import { hoverProvider } from './handles/hover';
@@ -31,7 +32,8 @@ connection.onInitialize((param: InitializeParams) => {
     vimruntime: vimruntime || '',
     diagnostic: diagnostic || {
       enable: true
-    }
+    },
+    snippetSupport: shvl.get(param, 'capabilities.textDocument.completion.completionItem.snippetSupport')
   }
 
   // init config

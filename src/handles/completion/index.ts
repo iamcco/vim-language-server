@@ -19,6 +19,8 @@ import './identifier'
 import './autocmds'
 import { getProvider } from './provider';
 import { documents } from '../../server/documents';
+import config from '../../server/config';
+import { removeSnippets } from '../../common/util';
 
 const provider = getProvider()
 
@@ -31,7 +33,11 @@ export const completionProvider = (params: CompletionParams): CompletionItem[] =
       Position.create(position.line, 0),
       position
     ))
-    return provider(line, textDoc.uri, position, [])
+    const completionItems = provider(line, textDoc.uri, position, [])
+    if (!config.snippetSupport) {
+      return removeSnippets(completionItems)
+    }
+    return completionItems
   }
   return []
 }

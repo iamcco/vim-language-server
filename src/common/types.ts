@@ -15,6 +15,7 @@ export interface IConfig {
   vimruntime: string
   runtimepath: string[]
   diagnostic: IDiagnostic
+  snippetSupport: boolean
 }
 
 // builtin-doc
