@@ -408,6 +408,14 @@ export class Buffer {
     if (!right || right.type !== NODE_CALL) {
       return
     }
+    // is not function()/funcref()
+    if (
+      !right.left ||
+      !right.left.value ||
+      ['function', 'funcref'].indexOf(right.left.value) === -1
+    ) {
+      return
+    }
     const name = this.getDotName(left)
     if (!name) {
       return
