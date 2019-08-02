@@ -86,6 +86,7 @@ const NODE_REG = 89;                    // TODO
 const NODE_CURLYNAMEPART = 90;          // TODO
 const NODE_CURLYNAMEEXPR = 91;          // TODO
 const NODE_LAMBDA = 92;
+const NODE_CONST = 94;
 
 /*
  * buffer's completion items
@@ -346,6 +347,7 @@ export class Buffer {
           this.takeFuncRef(node)
           break
         case NODE_LET:
+        case NODE_CONST:
           nodeList = nodeList.concat(node.right || [])
           if (node.left && node.left.type === NODE_DOT) {
             nodeList = nodeList.concat(node.left.left)
