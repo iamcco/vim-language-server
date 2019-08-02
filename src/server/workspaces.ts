@@ -111,7 +111,7 @@ export class Workspace {
         }
       })
       // filter function local variables
-      if (/^([a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*)$/.test(name)) {
+      if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
         const gloalFunctions = this.buffers[uri].getGlobalFunctions()
         const scriptFunctions = this.buffers[uri].getScriptFunctions()
         const funList = Object.values(gloalFunctions).concat(
@@ -479,7 +479,7 @@ export class Workspace {
     let res: Location[] = []
     if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name)) {
       res = this.getGlobalLocaltion(name, uri, position, locationType)
-    } else if(/^([a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*)$/.test(name)) {
+    } else if(/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
       // get function args references first
       res = this.getFunArgLocation(name, uri, position, locationType)
       if (res.length) {

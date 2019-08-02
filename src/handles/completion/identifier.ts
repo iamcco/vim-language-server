@@ -24,6 +24,9 @@ function provider(line: string, uri: string, position: Position): CompletionItem
     if (/\bg:\w*$/.test(line)) {
       list = workspace.getIdentifierItems(uri, position.line)
         .filter(item => /^g:/.test(item.label))
+    } else if (/\bb:\w*$/.test(line)) {
+      list = workspace.getIdentifierItems(uri, position.line)
+        .filter(item => /^b:/.test(item.label))
     } else if (/\bs:\w*$/.test(line)) {
       list = workspace.getIdentifierItems(uri, position.line)
         .filter(item => /^s:/.test(item.label))

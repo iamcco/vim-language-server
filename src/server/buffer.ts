@@ -123,7 +123,7 @@ export interface IIdentifier {
   startCol: number
 }
 
-const globalFuncPattern = /^(g:\w+(\.\w+)*|[a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*|\w+(#\w+)+)$/
+const globalFuncPattern = /^(g:\w+(\.\w+)*|[a-zA-Z_]\w*(\.\w+)*|\w+(#\w+)+)$/
 const scriptFuncPattern = /^(s:\w+(\.\w+)*|<SID>\w+(\.\w+)*)$/i
 const globalVariablePattern = /^(g:\w+(\.\w+)*|b:\w+(\.\w+)*|\w{1,}(\.\w+)*|\w+(#\w+)+)$/
 const localVariablePattern = /^(s:\w+(\.\w+)*|l:\w+(\.\w+)*|a:\w+(\.\w+)*)$/
@@ -812,7 +812,7 @@ export class Buffer {
         this.getIdentifierItems(refs, sortTexts.three)
       )
       .forEach(item => {
-        if (/^([a-zA-Z](\.\w+)*|[a-zA-Z]\w+(\.\w+)*)$/.test(item.label)) {
+        if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(item.label)) {
           localVariables.push(item)
         } else {
           globalVariables.push(item)
@@ -860,6 +860,7 @@ export class Buffer {
    *
    * - l:xxx
    * - a:xxx
+   * - identifiers in function range
    */
   public getFunctionLocalIdentifierItems(line: number): CompletionItem[] {
     const vimLineNum = line + 1
@@ -897,8 +898,11 @@ export class Buffer {
       }))
     if (startLine !== -1 && endLine !== -1) {
       const funcLocalIdentifiers = this.getIdentifierItems(this.localVariables, sortTexts.one)
+        .concat(
+          this.getIdentifierItems(this.globalVariables, sortTexts.one)
+        )
         .filter(item => {
-          if (!/^l:/.test(item.label)) {
+          if (!(/^l:/.test(item.label) || /^([a-zA-Z_]\w*(\.\w+)*)$/.test(item.label))) {
             return false
           }
           const { data } = item
