@@ -9,6 +9,11 @@ export interface IDiagnostic {
   enable: boolean
 }
 
+export interface ISuggest {
+  fromRuntimepath: boolean
+  fromVimruntime: boolean
+}
+
 // initialization options
 export interface IConfig {
   iskeyword: string
@@ -16,6 +21,7 @@ export interface IConfig {
   runtimepath: string[]
   diagnostic: IDiagnostic
   snippetSupport: boolean
+  suggest: ISuggest
 }
 
 // builtin-doc

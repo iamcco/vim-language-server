@@ -4,6 +4,7 @@ import { Buffer, IFunction, IIdentifier } from './buffer';
 import { Node } from '../../lib/vimparser';
 import { findWorkDirectory } from '../common/util';
 import { CompletionItem, Location, Range, Position } from 'vscode-languageserver';
+import config from './config';
 // import logger from '../common/logger';
 
 // const log = logger('workspace')
@@ -27,10 +28,16 @@ export class Workspace {
     if (!buf) {
       return []
     }
+    const buffers = config.suggest.fromRuntimepath
+      ? Object.values(this.buffers)
+      : Object.values(this.buffers).filter(b => {
+        if (config.suggest.fromVimruntime && b.isBelongToWorkdir(config.vimruntime)) {
+          return true
+        }
+        return b.isBelongToWorkdir(buf.getWorkDir())
+      })
     return this.filterDuplicate(
-      Object.values(this.buffers)
-      .filter(b => b.isBelongToWorkdir(buf.getWorkDir()))
-      .reduce<CompletionItem[]>((res, buf) => {
+      buffers.reduce<CompletionItem[]>((res, buf) => {
         return res.concat(buf.getGlobalFunctionItems())
       }, [])
     )
@@ -48,10 +55,16 @@ export class Workspace {
     if (!buf) {
       return []
     }
+    const buffers = config.suggest.fromRuntimepath
+      ? Object.values(this.buffers)
+      : Object.values(this.buffers).filter(b => {
+        if (config.suggest.fromVimruntime && b.isBelongToWorkdir(config.vimruntime)) {
+          return true
+        }
+        return b.isBelongToWorkdir(buf.getWorkDir())
+      })
     return this.filterDuplicate(
-      Object.values(this.buffers)
-      .filter(b => b.isBelongToWorkdir(buf.getWorkDir()))
-      .reduce<CompletionItem[]>((res, buf) => {
+      buffers.reduce<CompletionItem[]>((res, buf) => {
         return res
           .concat(buf.getGlobalIdentifierItems())
           .concat(buf.getEnvItems())
@@ -445,10 +458,13 @@ export class Workspace {
     if (this.buffers[uri]) {
       this.buffers[uri].updateBufferByNode(node)
     } else {
-      const workDir = await findWorkDirectory(
+      let workDir = await findWorkDirectory(
         URIParser.parse(uri).fsPath,
         ['.git', 'autoload', 'plugin']
       )
+      if (workDir.indexOf(config.vimruntime) === 0) {
+        workDir = config.vimruntime
+      }
       this.buffers[uri] = new Buffer(uri, workDir, node)
     }
   }

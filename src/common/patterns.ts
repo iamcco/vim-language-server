@@ -4,13 +4,13 @@ export const errorLinePattern = /[^:]+:\s*(.+?):\s*line\s*([0-9]+)\s*col\s*([0-9
 
 export const commentPattern = /^[ \t]*("|')/
 
-export const keywordPattern = /[\w#&<>.:]/
+export const keywordPattern = /[\w#&$<>.:]/
 
 export const builtinFunctionPattern = /^((<SID>|\b(v|g|b|s|l|a):)?[\w#&]+)[ \t]*\([^)]*\)/
 
-export const wordPrePattern = /^.*?(((<SID>|\b(v|g|b|s|l|a):)?[\w#&.]+)|(<SID>|<SID|<SI|<S|<|\b(v|g|b|s|l|a):))$/
+export const wordPrePattern = /^.*?(((<SID>|\b(v|g|b|s|l|a):)?[\w#&$.]+)|(<SID>|<SID|<SI|<S|<|\b(v|g|b|s|l|a):))$/
 
-export const wordNextPattern = /^((SID>|ID>|D>|>|<SID>|\b(v|g|b|s|l|a):)?[\w#&.]+|(:[\w#&.]+)).*?(\r\n|\r|\n)?$/
+export const wordNextPattern = /^((SID>|ID>|D>|>|<SID>|\b(v|g|b|s|l|a):)?[\w#&$.]+|(:[\w#&$.]+)).*?(\r\n|\r|\n)?$/
 
 export const colorschemePattern = /\bcolorscheme[ \t]+\w*$/
 

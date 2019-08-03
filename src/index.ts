@@ -7,8 +7,8 @@ import { completionResolveProvider } from './handles/completionResolve';
 import { signatureHelpProvider } from './handles/signatureHelp';
 import { documents } from './server/documents';
 import { connection } from './server/connection';
-import { IConfig, IDiagnostic } from './common/types';
-import { next, unsubscribe } from './server/parser';
+import { IConfig, IDiagnostic, ISuggest } from './common/types';
+import { next, unsubscribe, scan } from './server/parser';
 import { builtinDocs } from './server/builtin';
 import config from './server/config';
 import { definitionProvider } from './handles/definition';
@@ -18,26 +18,42 @@ import { renameProvider, prepareProvider } from './handles/rename';
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
   const { initializationOptions = {} } = param
-  const { iskeyword, runtimepath, vimruntime, diagnostic }: {
+  const {
+    iskeyword,
+    runtimepath,
+    vimruntime,
+    diagnostic,
+    suggest
+  }: {
     iskeyword: string
     runtimepath: string
     vimruntime: string
     diagnostic: IDiagnostic
+    suggest: ISuggest
   } = initializationOptions
+
+  const runtimepaths = runtimepath ? runtimepath.split(',') : []
 
   // config by user's initializationOptions
   const conf:IConfig = {
     iskeyword: iskeyword || '',
-    runtimepath: runtimepath ? runtimepath.split(',') : [],
-    vimruntime: vimruntime || '',
+    runtimepath: runtimepaths,
+    vimruntime: (vimruntime || '').trim(),
     diagnostic: diagnostic || {
       enable: true
     },
-    snippetSupport: shvl.get(param, 'capabilities.textDocument.completion.completionItem.snippetSupport')
+    snippetSupport: shvl.get(param, 'capabilities.textDocument.completion.completionItem.snippetSupport'),
+    suggest: suggest || {
+      fromRuntimepath: false,
+      fromVimruntime: true
+    }
   }
 
   // init config
   config.init(conf)
+
+  // scan runtimepaths
+  scan([vimruntime].concat(runtimepaths))
 
   // init builtin docs
   builtinDocs.init()

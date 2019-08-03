@@ -4,6 +4,7 @@ import { Subject, timer, from } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
 import { TextDocument } from 'vscode-languageserver';
 import { waitMap } from 'rxjs-operators/lib/waitMap';
+import vscUri from 'vscode-uri';
 
 import { handleDiagnostic } from '../handles/diagnostic';
 import { workspace } from './workspaces';
@@ -85,4 +86,23 @@ export function unsubscribe(textDoc: TextDocument) {
     parserHandles[textDoc.uri]!.unsubscribe()
   }
   parserHandles[textDoc.uri] = undefined
+}
+
+// scan dirtory
+export function scan(paths: string | string[]) {
+  const list: string[] = [].concat(paths)
+
+  for (let idx = 0; idx < list.length; idx++) {
+    let p = list[idx]
+    if (!p) {
+      continue
+    }
+    p = p.trim();
+    if (!p || p === '/') {
+      continue
+    }
+    scanProcess.send({
+      uri: vscUri.file(join(p, 'f')).toString()
+    })
+  }
 }

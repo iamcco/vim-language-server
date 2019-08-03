@@ -1,4 +1,4 @@
-import { IConfig, IDiagnostic } from '../common/types';
+import { IConfig, IDiagnostic, ISuggest } from '../common/types';
 
 let conf: IConfig;
 
@@ -27,5 +27,12 @@ export default {
 
   get snippetSupport() : boolean {
     return conf && conf.snippetSupport || false
+  },
+
+  get suggest(): ISuggest {
+    return conf && conf.suggest || {
+      fromRuntimepath: false,
+      fromVimruntime: true
+    }
   }
 }

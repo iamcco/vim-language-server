@@ -53,6 +53,10 @@ lsp client config example with coc.nvim
       "runtimepath": "vim/runtime/path",
       "diagnostic": {
         "enable": true
+      },
+      "suggest": {
+        "fromVimruntime": true,   // completionItems from vimruntime's vim files
+        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ],
@@ -73,12 +77,18 @@ lsp client config example with coc.nvim
       "runtimepath": "vim/runtime/path",
       "diagnostic": {
         "enable": true
+      },
+      "suggest": {
+        "fromVimruntime": true,   // completionItems from vimruntime's vim files
+        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ]
   }
 }
 ```
+
+> **Note**: while `fromRuntimepath` is true, if you have install too many plugins it will slow down the complete
 
 ## References
 

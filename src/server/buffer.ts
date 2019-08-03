@@ -532,7 +532,7 @@ export class Buffer {
   }
 
   /*
-   * take function ref by
+   * FIXME: take function ref by
    *
    * - autocmd
    * - command
@@ -544,30 +544,34 @@ export class Buffer {
       return
     }
 
-    const regFunc = /([\w_#]+|[a-zA-Z]:[\w_#]+)[ \t]*\(/g
+    if (!/^[ \t]*((au|aut|auto|autoc|autocm|autocmd|com|comm|comma|comman|command)!?[ \t]+|([a-zA-Z]*map!?[ \t]+.*?:))/.test(str)) {
+      return
+    }
+
+    const regFunc = /(<sid>[\w_#]+|[a-zA-Z_]:[\w_#]+|[\w_#]+)[ \t]*\(/gi
     let m = regFunc.exec(str)
 
     while(m) {
       const name = m[1]
       if (name) {
-      }
-      const funcRef: IFunRef = {
-        name,
-        args: [],
-        startLine: pos.lnum,
-        startCol: pos.col + m.index
-      }
+        const funcRef: IFunRef = {
+          name,
+          args: [],
+          startLine: pos.lnum,
+          startCol: pos.col + m.index
+        }
 
-      if (globalFuncPattern.test(name)) {
-        if(!this.globalFunctionRefs[name] || !Array.isArray(this.globalFunctionRefs[name])) {
-          this.globalFunctionRefs[name] = []
+        if (globalFuncPattern.test(name)) {
+          if(!this.globalFunctionRefs[name] || !Array.isArray(this.globalFunctionRefs[name])) {
+            this.globalFunctionRefs[name] = []
+          }
+          this.globalFunctionRefs[name].push(funcRef)
+        } else if (scriptFuncPattern.test(name)) {
+          if(!this.scriptFunctionRefs[name] || !Array.isArray(this.scriptFunctionRefs[name])) {
+            this.scriptFunctionRefs[name] = []
+          }
+          this.scriptFunctionRefs[name].push(funcRef)
         }
-        this.globalFunctionRefs[name].push(funcRef)
-      } else if (scriptFuncPattern.test(name)) {
-        if(!this.scriptFunctionRefs[name] || !Array.isArray(this.scriptFunctionRefs[name])) {
-          this.scriptFunctionRefs[name] = []
-        }
-        this.scriptFunctionRefs[name].push(funcRef)
       }
       m = regFunc.exec(str)
     }
