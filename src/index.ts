@@ -7,7 +7,7 @@ import { completionResolveProvider } from './handles/completionResolve';
 import { signatureHelpProvider } from './handles/signatureHelp';
 import { documents } from './server/documents';
 import { connection } from './server/connection';
-import { IConfig, IDiagnostic, ISuggest } from './common/types';
+import { IConfig, IDiagnostic, ISuggest, IIndexes } from './common/types';
 import { next, unsubscribe, scan } from './server/parser';
 import { builtinDocs } from './server/builtin';
 import config from './server/config';
@@ -23,13 +23,15 @@ connection.onInitialize((param: InitializeParams) => {
     runtimepath,
     vimruntime,
     diagnostic,
-    suggest
+    suggest,
+    indexes
   }: {
     iskeyword: string
     runtimepath: string
     vimruntime: string
     diagnostic: IDiagnostic
     suggest: ISuggest
+    indexes: IIndexes
   } = initializationOptions
 
   const runtimepaths = runtimepath ? runtimepath.split(',') : []
@@ -39,13 +41,21 @@ connection.onInitialize((param: InitializeParams) => {
     iskeyword: iskeyword || '',
     runtimepath: runtimepaths,
     vimruntime: (vimruntime || '').trim(),
-    diagnostic: diagnostic || {
-      enable: true
+    diagnostic: {
+      enable: true,
+      ...(diagnostic || {})
     },
     snippetSupport: shvl.get(param, 'capabilities.textDocument.completion.completionItem.snippetSupport'),
-    suggest: suggest || {
+    suggest: {
       fromRuntimepath: false,
-      fromVimruntime: true
+      fromVimruntime: true,
+      ...(suggest || {})
+    },
+    indexes: {
+      runtimepath: true,
+      gap: 100,
+      count: 3,
+      ...(indexes || {})
     }
   }
 

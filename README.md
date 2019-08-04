@@ -54,6 +54,11 @@ lsp client config example with coc.nvim
       "diagnostic": {
         "enable": true
       },
+      "indexes": {
+        "runtimepath": true,      // if index runtimepath's vim files this will effect the suggest
+        "gap": 100,               // index time gap between next file
+        "count": 3                // count of files index at the same time
+      },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
         "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
@@ -78,6 +83,11 @@ lsp client config example with coc.nvim
       "diagnostic": {
         "enable": true
       },
+      "indexes": {
+        "runtimepath": true,      // if index runtimepath's vim files this will effect the suggest
+        "gap": 100,               // index time gap between next file
+        "count": 3                // count of files index at the same time
+      },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
         "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
@@ -88,7 +98,11 @@ lsp client config example with coc.nvim
 }
 ```
 
-> **Note**: while `fromRuntimepath` is true, if you have install too many plugins it will slow down the complete
+**Note**:
+
+- if you want to speed up index, change `gap` to smaller and `count` to greater, this will cause high CPU usage for some time
+- if you don't want to index vim's runtimepath files, set `runtimepath` to `false` and you will not get any suggest from those files.
+- while `fromRuntimepath` is true, if you have install too many plugins it will slow down the complete
 
 ## References
 

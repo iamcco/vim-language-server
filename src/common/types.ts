@@ -14,6 +14,12 @@ export interface ISuggest {
   fromVimruntime: boolean
 }
 
+export interface IIndexes {
+  runtimepath: boolean
+  gap: number
+  count: number
+}
+
 // initialization options
 export interface IConfig {
   iskeyword: string
@@ -22,6 +28,7 @@ export interface IConfig {
   diagnostic: IDiagnostic
   snippetSupport: boolean
   suggest: ISuggest
+  indexes: IIndexes
 }
 
 // builtin-doc

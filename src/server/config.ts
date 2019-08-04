@@ -1,4 +1,4 @@
-import { IConfig, IDiagnostic, ISuggest } from '../common/types';
+import { IConfig, IDiagnostic, ISuggest, IIndexes } from '../common/types';
 
 let conf: IConfig;
 
@@ -33,6 +33,14 @@ export default {
     return conf && conf.suggest || {
       fromRuntimepath: false,
       fromVimruntime: true
+    }
+  },
+
+  get indexes(): IIndexes {
+    return conf && conf.indexes || {
+      runtimepath: true,
+      gap: 100,
+      count: 3
     }
   }
 }

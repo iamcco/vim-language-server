@@ -1,5 +1,5 @@
 import { join } from 'path';
-import childProcess from 'child_process';
+import childProcess, {ChildProcess} from 'child_process';
 import { Subject, timer, from } from 'rxjs';
 import { switchMap, map, filter } from 'rxjs/operators';
 import { TextDocument } from 'vscode-languageserver';
@@ -17,30 +17,45 @@ const log = logger('parser')
 
 const parserHandles: IParserHandles = {}
 
-const indexs: Record<string, boolean> = {}
+const indexes: Record<string, boolean> = {}
 
 const origin$: Subject<TextDocument> = new Subject<TextDocument>()
 
-const scanProcess = childProcess.fork(
-  join(__dirname, 'scan.js'),
-  ['--node-ipc']
-)
+let scanProcess: ChildProcess
 
-scanProcess.on('message', (mess) => {
-  const { data, log } = mess
-  if (data) {
-    if (!workspace.isExistsBuffer(data.uri)) {
-      workspace.updateBuffer(data.uri, data.node)
+function startIndex() {
+  if (scanProcess) {
+    return
+  }
+  scanProcess = childProcess.fork(
+    join(__dirname, 'scan.js'),
+    ['--node-ipc']
+  )
+
+  scanProcess.on('message', (mess) => {
+    const { data, log } = mess
+    if (data) {
+      if (!workspace.isExistsBuffer(data.uri)) {
+        workspace.updateBuffer(data.uri, data.node)
+      }
     }
-  }
-  if (log) {
-    log.info(`child_log: ${mess.log}`)
-  }
-})
+    if (log) {
+      log.info(`child_log: ${mess.log}`)
+    }
+  })
 
-scanProcess.on('error', (err: Error) => {
-  log.error(`${err.stack || err.message || err}`)
-})
+  scanProcess.on('error', (err: Error) => {
+    log.error(`${err.stack || err.message || err}`)
+  })
+
+  scanProcess.send({
+    config: {
+      gap: config.indexes.gap,
+      count: config.indexes.count
+    }
+  })
+}
+
 
 export function next(
   textDoc: TextDocument,
@@ -66,8 +81,8 @@ export function next(
         // handle node
         workspace.updateBuffer(uri, res[0])
         // scan project
-        if (!indexs[uri]) {
-          indexs[uri] = true
+        if (!indexes[uri]) {
+          indexes[uri] = true
           scanProcess.send({
             uri
           })
@@ -77,6 +92,9 @@ export function next(
         log.error(`${err.stack || err.message || err}`)
       }
     )
+  }
+  if (!scanProcess) {
+    startIndex()
   }
   origin$.next(textDoc)
 }
@@ -90,19 +108,24 @@ export function unsubscribe(textDoc: TextDocument) {
 
 // scan dirtory
 export function scan(paths: string | string[]) {
-  const list: string[] = [].concat(paths)
+  if (!scanProcess) {
+    startIndex()
+  }
+  if (config.indexes.runtimepath) {
+    const list: string[] = [].concat(paths)
 
-  for (let idx = 0; idx < list.length; idx++) {
-    let p = list[idx]
-    if (!p) {
-      continue
+    for (let idx = 0; idx < list.length; idx++) {
+      let p = list[idx]
+      if (!p) {
+        continue
+      }
+      p = p.trim();
+      if (!p || p === '/') {
+        continue
+      }
+      scanProcess.send({
+        uri: vscUri.file(join(p, 'f')).toString()
+      })
     }
-    p = p.trim();
-    if (!p || p === '/') {
-      continue
-    }
-    scanProcess.send({
-      uri: vscUri.file(join(p, 'f')).toString()
-    })
   }
 }
