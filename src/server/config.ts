@@ -40,7 +40,7 @@ export default {
     return conf && conf.indexes || {
       runtimepath: true,
       gap: 100,
-      count: 3
+      count: 1
     }
   }
 }

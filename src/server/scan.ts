@@ -1,5 +1,5 @@
 import os from 'os';
-import { from, of, Subject, timer } from 'rxjs';
+import { from, of, Subject, timer, Observable } from 'rxjs';
 import fg from 'fast-glob';
 import { join } from 'path';
 import { mergeMap, filter, map, catchError, concatMap } from 'rxjs/operators';
@@ -10,6 +10,7 @@ import { handleParse, findWorkDirectory } from '../common/util';
 import { workDirPatterns } from '../common/constant';
 
 const indexes: Record<string, boolean> = {}
+const indexesFiles: Record<string, boolean> = {}
 let queue: any[] = []
 let source$: Subject<string>
 let gap: number = 100
@@ -21,7 +22,7 @@ function initSource() {
   }
   source$ = new Subject<string>()
   source$.pipe(
-    mergeMap(uri => {
+    concatMap(uri => {
       return from(findWorkDirectory(
         vscUri.parse(uri).fsPath,
         workDirPatterns
@@ -53,8 +54,15 @@ function initSource() {
           return of(undefined)
         }),
         filter(list => list && list.length > 0),
-        concatMap(list => {
-          return of(...list).pipe(
+        concatMap<string[], Observable<string>>(list => {
+          return of(...list.sort((a, b) => a.length - b.length)).pipe(
+            filter(fpath => {
+              if (!indexesFiles[fpath]) {
+                indexesFiles[fpath] = true
+                return true
+              }
+              return false
+            }),
             mergeMap((fpath) => {
               return timer(gap).pipe(
                 concatMap(() => {
@@ -79,7 +87,7 @@ function initSource() {
         }),
       )
     }),
-    filter(res => res)
+    filter(res => !!res)
   ).subscribe(
     (res) => {
       process.send({

@@ -1,3 +1,4 @@
+import { homedir } from 'os';
 import { join } from 'path';
 import childProcess, {ChildProcess} from 'child_process';
 import { Subject, timer, from } from 'rxjs';
@@ -22,6 +23,7 @@ const indexes: Record<string, boolean> = {}
 const origin$: Subject<TextDocument> = new Subject<TextDocument>()
 
 let scanProcess: ChildProcess
+let isScanRuntimepath: boolean = false
 
 function startIndex() {
   if (scanProcess) {
@@ -86,6 +88,10 @@ export function next(
           scanProcess.send({
             uri
           })
+          if (!isScanRuntimepath) {
+            isScanRuntimepath = true
+            scan([config.vimruntime].concat(config.runtimepath))
+          }
         }
       },
       (err: Error) => {

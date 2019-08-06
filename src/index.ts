@@ -8,7 +8,7 @@ import { signatureHelpProvider } from './handles/signatureHelp';
 import { documents } from './server/documents';
 import { connection } from './server/connection';
 import { IConfig, IDiagnostic, ISuggest, IIndexes } from './common/types';
-import { next, unsubscribe, scan } from './server/parser';
+import { next, unsubscribe } from './server/parser';
 import { builtinDocs } from './server/builtin';
 import config from './server/config';
 import { definitionProvider } from './handles/definition';
@@ -54,16 +54,13 @@ connection.onInitialize((param: InitializeParams) => {
     indexes: {
       runtimepath: true,
       gap: 100,
-      count: 3,
+      count: 1,
       ...(indexes || {})
     }
   }
 
   // init config
   config.init(conf)
-
-  // scan runtimepaths
-  scan([vimruntime].concat(runtimepaths))
 
   // init builtin docs
   builtinDocs.init()
