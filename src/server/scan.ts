@@ -43,7 +43,7 @@ function initSource() {
     }),
     concatMap(({ workDir }) => {
       const indexPath = join(workDir, '**/*.vim')
-      return from(fg<string>([indexPath, '!**/node_modules/**'])).pipe(
+      return from(fg([indexPath, '!**/node_modules/**'])).pipe(
         catchError(error => {
           process.send({
             log: [
