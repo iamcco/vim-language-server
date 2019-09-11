@@ -43,7 +43,9 @@ export const completionProvider = (params: CompletionParams): CompletionItem[] =
     if (word === '' && words && words.wordRight.trim() === ':') {
       word = ':'
     }
-    return completionItems.filter(item => fuzzy(item.label, word) >= word.length)
+    // options items start with &
+    const invalidLength = word.replace(/^&/, '').length
+    return completionItems.filter(item => fuzzy(item.label, word) >= invalidLength)
   }
   return []
 }
