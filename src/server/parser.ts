@@ -112,7 +112,7 @@ export function unsubscribe(textDoc: TextDocument) {
   parserHandles[textDoc.uri] = undefined
 }
 
-// scan dirtory
+// scan directory
 export function scan(paths: string | string[]) {
   if (!scanProcess) {
     startIndex()
