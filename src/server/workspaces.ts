@@ -1,7 +1,7 @@
 import URIParser from 'vscode-uri';
 
 import { Buffer, IFunction, IIdentifier } from './buffer';
-import { Node } from '../common/lib/vimparser';
+import { Node } from '../lib/vimparser';
 import { findWorkDirectory } from '../common/util';
 import { CompletionItem, Location, Range, Position } from 'vscode-languageserver';
 import config from './config';

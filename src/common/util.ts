@@ -4,7 +4,7 @@ import findup from 'findup';
 import { SpawnOptions, spawn } from 'child_process';
 import { kindPattern, keywordPattern, commentPattern, wordPrePattern, wordNextPattern } from './patterns';
 import { TextDocument, Position, Range, CompletionItem, InsertTextFormat } from 'vscode-languageserver';
-import { Node, StringReader, VimLParser } from './lib/vimparser';
+import { Node, StringReader, VimLParser } from '../lib/vimparser';
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
   return patterns.some(p => p.test(line))

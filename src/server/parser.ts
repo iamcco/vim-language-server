@@ -8,11 +8,11 @@ import { waitMap } from 'rxjs-operators/lib/waitMap';
 import vscUri from 'vscode-uri';
 
 import { handleDiagnostic } from '../handles/diagnostic';
-import { workspace } from '../server/workspaces';
+import { workspace } from './workspaces';
 import { handleParse } from '../common/util';
 import { IParserHandles} from '../common/types';
 import logger from '../common/logger';
-import config from '../server/config';
+import config from './config';
 
 const log = logger('parser')
 
