@@ -1,6 +1,6 @@
 {
   "name": "vim-language-server",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "vim language server",
   "keywords": [
     "viml",
@@ -14,8 +14,8 @@
   "author": "iamcco <ooiss@qq.com>",
   "license": "MIT",
   "scripts": {
-    "build-docs": "rm ./docs/builtin-docs.json & ./bin/build-docs.js",
-    "build": "rm -rf ./out & tsc -p ./",
+    "build-docs": "rm ./src/docs/builtin-docs.json && ./bin/build-docs.js",
+    "build": "rm -rf ./out && tsc -p ./",
     "watch": "tsc -w -p ./"
   },
   "bin": {

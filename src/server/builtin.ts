@@ -34,6 +34,7 @@ import {
   expandPattern,
 } from '../common/patterns';
 import config from './config';
+import buildDocs from '../docs/builtin-docs.json'
 
 const log = logger('builtin')
 
@@ -248,16 +249,8 @@ class Builtin {
     // get highlight arg values
     this.resolveHighlightArgValues()
 
-    // builtin docs
-    const [err, docs] = await pcb(readFile)(join(__dirname, '../../docs/builtin-docs.json'), 'utf-8')
-
-    if (err) {
-      log.error(`[vimls]: read docs/builtin-doc.json fail => ${err.message || err}`)
-      return
-    }
-
     try {
-      const data: BuiltinDoc = JSON.parse(docs)
+      const data: BuiltinDoc = buildDocs as BuiltinDoc
       this.vimBuiltinFunctionItems = data.completionItems.functions
       this.vimBuiltinFunctionItems.forEach(item => {
         if (!this.vimBuiltinFunctionMap[item.label]) {
