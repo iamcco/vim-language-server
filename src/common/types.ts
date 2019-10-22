@@ -17,7 +17,8 @@ export interface ISuggest {
 export interface IIndexes {
   runtimepath: boolean
   gap: number
-  count: number
+  count: number,
+  workDirPatterns: string[]
 }
 
 // initialization options

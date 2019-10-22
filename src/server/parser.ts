@@ -35,13 +35,13 @@ function startIndex() {
   )
 
   scanProcess.on('message', (mess) => {
-    const { data, log } = mess
+    const { data, msglog } = mess
     if (data) {
       if (!workspace.isExistsBuffer(data.uri)) {
         workspace.updateBuffer(data.uri, data.node)
       }
     }
-    if (log) {
+    if (mess.log) {
       log.info(`child_log: ${mess.log}`)
     }
   })
@@ -53,7 +53,8 @@ function startIndex() {
   scanProcess.send({
     config: {
       gap: config.indexes.gap,
-      count: config.indexes.count
+      count: config.indexes.count,
+      workDirPatterns: config.indexes.workDirPatterns
     }
   })
 }

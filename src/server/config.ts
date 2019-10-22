@@ -1,4 +1,5 @@
 import { IConfig, IDiagnostic, ISuggest, IIndexes } from '../common/types';
+import { workDirPatterns } from '../common/constant';
 
 let conf: IConfig;
 
@@ -40,7 +41,8 @@ export default {
     return conf && conf.indexes || {
       runtimepath: true,
       gap: 100,
-      count: 1
+      count: 1,
+      workDirPatterns: workDirPatterns
     }
   }
 }
