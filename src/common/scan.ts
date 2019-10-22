@@ -6,8 +6,8 @@ import { mergeMap, filter, map, catchError, concatMap } from 'rxjs/operators';
 import vscUri from 'vscode-uri';
 
 import { readFileSync } from 'fs';
-import { handleParse, findWorkDirectory } from '../common/util';
-import { workDirPatterns } from '../common/constant';
+import { handleParse, findWorkDirectory } from './util';
+import { workDirPatterns } from './constant';
 
 const indexes: Record<string, boolean> = {}
 const indexesFiles: Record<string, boolean> = {}

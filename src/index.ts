@@ -8,7 +8,7 @@ import { signatureHelpProvider } from './handles/signatureHelp';
 import { documents } from './server/documents';
 import { connection } from './server/connection';
 import { IConfig, IDiagnostic, ISuggest, IIndexes } from './common/types';
-import { next, unsubscribe } from './server/parser';
+import { next, unsubscribe } from './common/parser';
 import { builtinDocs } from './server/builtin';
 import config from './server/config';
 import { definitionProvider } from './handles/definition';

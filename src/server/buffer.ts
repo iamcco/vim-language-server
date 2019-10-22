@@ -1,4 +1,4 @@
-import { Node, Pos } from '../../lib/vimparser';
+import { Node, Pos } from '../common/lib/vimparser';
 import logger from '../common/logger';
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver';
 import { sortTexts } from '../common/constant';
