@@ -41,8 +41,8 @@ function startIndex() {
         workspace.updateBuffer(data.uri, data.node)
       }
     }
-    if (mess.log) {
-      log.info(`child_log: ${mess.log}`)
+    if (msglog) {
+      log.info(`child_log: ${msglog}`)
     }
   })
 

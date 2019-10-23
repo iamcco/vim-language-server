@@ -47,7 +47,7 @@ function initSource() {
       return from(fg([indexPath, '!**/node_modules/**'])).pipe(
         catchError(error => {
           process.send({
-            log: [
+            msglog: [
               `Index Workspace Error: ${indexPath}`,
               `Error => ${error.stack || error.message || error}`
             ].join('\n')
@@ -76,7 +76,7 @@ function initSource() {
                     })),
                     catchError(error => {
                       process.send({
-                        log: `${fpath}:\n${error.stack || error.message || error}`
+                        msglog: `${fpath}:\n${error.stack || error.message || error}`
                       })
                       return of(undefined)
                     })
@@ -97,7 +97,7 @@ function initSource() {
     },
     (error) => {
       process.send({
-        log: error.stack || error.message || error
+        msglog: error.stack || error.message || error
       })
     }
   )
