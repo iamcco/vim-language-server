@@ -83,11 +83,15 @@ export async function findWorkDirectory(
 ): Promise<string> {
   const dirname = path.dirname(filePath)
   let patterns = [].concat(rootPatterns)
+  let dirCandidate = ''
   for (const pattern of patterns) {
     const [err, dir] =  await pcb(findup)(dirname, pattern)
-    if (!err && dir && dir !== '/') {
-      return dir
+    if (!err && dir && dir !== '/' && dir.length > dirCandidate.length) {
+      dirCandidate = dir
     }
+  }
+  if (dirCandidate.length) {
+    return dirCandidate
   }
   return dirname
 }
