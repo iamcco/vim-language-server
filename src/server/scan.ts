@@ -119,9 +119,6 @@ process.on('message', (mess) => {
     }
   }
   if (config) {
-    process.send({
-      msglog: `Patterns: ${config.projectRootPatterns}`
-    })
     initSource()
   }
 })
