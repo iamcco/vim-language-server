@@ -41,8 +41,9 @@ function startIndex() {
         workspace.updateBuffer(data.uri, data.node)
       }
     }
-    if (mess.log) {
-      log.info(`child_log: ${mess.log}`)
+
+    if (msglog) {
+      log.info(`child_log: ${msglog}`)
     }
   })
 
@@ -53,7 +54,8 @@ function startIndex() {
   scanProcess.send({
     config: {
       gap: config.indexes.gap,
-      count: config.indexes.count
+      count: config.indexes.count,
+      workDirPatterns: config.indexes.workDirPatterns
     }
   })
 }

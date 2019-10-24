@@ -14,6 +14,7 @@ import config from './server/config';
 import { definitionProvider } from './handles/definition';
 import { referencesProvider } from './handles/references';
 import { renameProvider, prepareProvider } from './handles/rename';
+import { workDirPatterns } from './common/constant';
 
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
@@ -55,6 +56,7 @@ connection.onInitialize((param: InitializeParams) => {
       runtimepath: true,
       gap: 100,
       count: 1,
+      workDirPatterns: workDirPatterns,
       ...(indexes || {})
     }
   }
