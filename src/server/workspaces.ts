@@ -460,7 +460,7 @@ export class Workspace {
     } else {
       let projectRoot = await findProjectRoot(
         URIParser.parse(uri).fsPath,
-        ['.git', 'autoload', 'plugin']
+        config.indexes.projectRootPatterns
       )
       if (projectRoot.indexOf(config.vimruntime) === 0) {
         projectRoot = config.vimruntime
