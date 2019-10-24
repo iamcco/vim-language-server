@@ -119,18 +119,9 @@ process.on('message', (mess) => {
     }
   }
   if (config) {
-    if (config.gap !== undefined) {
-      gap = config.gap
-    }
-    if (config.count !== undefined) {
-      count = config.count
-    }
-    if (config.projectRootPatterns !== undefined
-        && Array.isArray(config.projectRootPatterns)
-        && config.projectRootPatterns.length
-       ) {
-      customProjectRootPatterns = config.projectRootPatterns
-    }
+    process.send({
+      msglog: `Patterns: ${config.projectRootPatterns}`
+    })
     initSource()
   }
 })
