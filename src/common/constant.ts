@@ -5,4 +5,4 @@ export const sortTexts = {
   four: '00004'
 }
 
-export const workDirPatterns = ['.git', 'autoload', 'plugin']
+export const projectRootPatterns = ['.git', 'autoload', 'plugin']

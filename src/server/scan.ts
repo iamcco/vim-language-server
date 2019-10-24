@@ -6,8 +6,8 @@ import { mergeMap, filter, map, catchError, concatMap } from 'rxjs/operators';
 import vscUri from 'vscode-uri';
 
 import { readFileSync } from 'fs';
-import { handleParse, findWorkDirectory } from '../common/util';
-import { workDirPatterns } from '../common/constant';
+import { handleParse, findProjectRoot } from '../common/util';
+import { projectRootPatterns } from '../common/constant';
 
 const indexes: Record<string, boolean> = {}
 const indexesFiles: Record<string, boolean> = {}
@@ -15,7 +15,7 @@ let queue: any[] = []
 let source$: Subject<string>
 let gap: number = 100
 let count: number = 3
-let customWorkDirPatterns = workDirPatterns
+let customProjectRootPatterns = projectRootPatterns
 
 function initSource() {
   if (source$) {
@@ -24,26 +24,26 @@ function initSource() {
   source$ = new Subject<string>()
   source$.pipe(
     concatMap(uri => {
-      return from(findWorkDirectory(
+      return from(findProjectRoot(
         vscUri.parse(uri).fsPath,
-        customWorkDirPatterns
+        customProjectRootPatterns
       )).pipe(
-        filter(workDir => workDir && workDir !== os.homedir()),
-        map(workDir => ({
+        filter(projectRoot => projectRoot && projectRoot !== os.homedir()),
+        map(projectRoot => ({
           uri,
-          workDir
+          projectRoot
         }))
       )
     }),
-    filter(({ workDir }) => {
-      if (!indexes[workDir]) {
-        indexes[workDir] = true
+    filter(({ projectRoot }) => {
+      if (!indexes[projectRoot]) {
+        indexes[projectRoot] = true
         return true
       }
       return false
     }),
-    concatMap(({ workDir }) => {
-      const indexPath = join(workDir, '**/*.vim')
+    concatMap(({ projectRoot }) => {
+      const indexPath = join(projectRoot, '**/*.vim')
       return from(fg([indexPath, '!**/node_modules/**'])).pipe(
         catchError(error => {
           process.send({
@@ -125,11 +125,11 @@ process.on('message', (mess) => {
     if (config.count !== undefined) {
       count = config.count
     }
-    if (config.workDirPatterns !== undefined
-        && Array.isArray(config.workDirPatterns)
-        && config.workDirPatterns.length
+    if (config.projectRootPatterns !== undefined
+        && Array.isArray(config.projectRootPatterns)
+        && config.projectRootPatterns.length
        ) {
-      customWorkDirPatterns = config.workDirPatterns
+      customProjectRootPatterns = config.projectRootPatterns
     }
     initSource()
   }

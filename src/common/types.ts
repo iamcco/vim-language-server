@@ -18,7 +18,7 @@ export interface IIndexes {
   runtimepath: boolean
   gap: number
   count: number,
-  workDirPatterns: string[]
+  projectRootPatterns: string[]
 }
 
 // initialization options

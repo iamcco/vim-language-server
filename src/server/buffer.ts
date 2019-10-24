@@ -146,7 +146,7 @@ export class Buffer {
 
   constructor(
     private uri: string,
-    private workDir: string,
+    private projectRoot: string,
     private node: Node
   ) {
     this.updateBufferByNode(this.node)
@@ -184,12 +184,12 @@ export class Buffer {
     return this.localVariableRefs
   }
 
-  public getWorkDir() {
-    return this.workDir
+  public getProjectRoot() {
+    return this.projectRoot
   }
 
   public isBelongToWorkdir(workUri: string) {
-    return this.workDir === workUri
+    return this.projectRoot === workUri
   }
 
   public updateBufferByNode(node: Node) {

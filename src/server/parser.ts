@@ -55,7 +55,7 @@ function startIndex() {
     config: {
       gap: config.indexes.gap,
       count: config.indexes.count,
-      workDirPatterns: config.indexes.workDirPatterns
+      projectRootPatterns: config.indexes.projectRootPatterns
     }
   })
 }

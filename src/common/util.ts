@@ -77,7 +77,7 @@ export function pcb(
 }
 
 // find work dirname by root patterns
-export async function findWorkDirectory(
+export async function findProjectRoot(
   filePath: string,
   rootPatterns: string | string[]
 ): Promise<string> {
