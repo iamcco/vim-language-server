@@ -48,17 +48,17 @@ lsp client config example with coc.nvim
     "module": "/path/to/vim-language-server/bin/index.js",
     "args": ["--node-ipc"],
     "initializationOptions": {
-      "iskeyword": "vim iskeyword option",
-      "vimruntime": "path/to/$VIMRUNTIME",
-      "runtimepath": "vim/runtime/path",
+      "iskeyword": "@,48-57,_,192-255,-#", // vim iskeyword option
+      "vimruntime": "", // $VIMRUNTIME option
+      "runtimepath": "",   // vim runtime path separate by `,`
       "diagnostic": {
         "enable": true
       },
       "indexes": {
         "runtimepath": true,      // if index runtimepath's vim files this will effect the suggest
         "gap": 100,               // index time gap between next file
-        "count": 3,                // count of files index at the same time
-		"workDirPatterns" : ["strange-root-pattern", ".git", "autoload", "plugin"] // Names of files used as the mark of project root. If empty, the default value [".git", "autoload", "plugin"] will be used
+        "count": 3,               // count of files index at the same time
+        "workDirPatterns" : ["strange-root-pattern", ".git", "autoload", "plugin"] // Names of files used as the mark of project root. If empty, the default value [".git", "autoload", "plugin"] will be used
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
@@ -78,16 +78,17 @@ lsp client config example with coc.nvim
     "command": "vim-language-server",
     "args": ["--stdio"],
     "initializationOptions": {
-      "iskeyword": "vim iskeyword option",
-      "vimruntime": "path/to/$VIMRUNTIME",
-      "runtimepath": "vim/runtime/path",
+      "iskeyword": "@,48-57,_,192-255,-#", // vim iskeyword option
+      "vimruntime": "",                    // $VIMRUNTIME option
+      "runtimepath": "",                   // vim runtime path separate by `,`
       "diagnostic": {
         "enable": true
       },
       "indexes": {
         "runtimepath": true,      // if index runtimepath's vim files this will effect the suggest
         "gap": 100,               // index time gap between next file
-        "count": 3                // count of files index at the same time
+        "count": 3,               // count of files index at the same time
+        "workDirPatterns" : ["strange-root-pattern", ".git", "autoload", "plugin"] // Names of files used as the mark of project root. If empty, the default value [".git", "autoload", "plugin"] will be used
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
