@@ -15,6 +15,7 @@ let queue: any[] = []
 let source$: Subject<string>
 let gap: number = 100
 let count: number = 3
+let customWorkDirPatterns = workDirPatterns
 
 function initSource() {
   if (source$) {
@@ -25,7 +26,7 @@ function initSource() {
     concatMap(uri => {
       return from(findWorkDirectory(
         vscUri.parse(uri).fsPath,
-        workDirPatterns
+        customWorkDirPatterns
       )).pipe(
         filter(workDir => workDir && workDir !== os.homedir()),
         map(workDir => ({
@@ -46,7 +47,7 @@ function initSource() {
       return from(fg([indexPath, '!**/node_modules/**'])).pipe(
         catchError(error => {
           process.send({
-            log: [
+            msglog: [
               `Index Workspace Error: ${indexPath}`,
               `Error => ${error.stack || error.message || error}`
             ].join('\n')
@@ -75,7 +76,7 @@ function initSource() {
                     })),
                     catchError(error => {
                       process.send({
-                        log: `${fpath}:\n${error.stack || error.message || error}`
+                        msglog: `${fpath}:\n${error.stack || error.message || error}`
                       })
                       return of(undefined)
                     })
@@ -96,7 +97,7 @@ function initSource() {
     },
     (error) => {
       process.send({
-        log: error.stack || error.message || error
+        msglog: error.stack || error.message || error
       })
     }
   )
@@ -123,6 +124,12 @@ process.on('message', (mess) => {
     }
     if (config.count !== undefined) {
       count = config.count
+    }
+    if (config.workDirPatterns !== undefined
+        && Array.isArray(config.workDirPatterns)
+        && config.workDirPatterns.length
+       ) {
+      customWorkDirPatterns = config.workDirPatterns
     }
     initSource()
   }
