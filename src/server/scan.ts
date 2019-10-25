@@ -7,7 +7,7 @@ import vscUri from 'vscode-uri';
 
 import { readFileSync } from 'fs';
 import { handleParse, findProjectRoot } from '../common/util';
-import { projectRootPatterns } from '../common/constant';
+import config from './config';
 
 const indexes: Record<string, boolean> = {}
 const indexesFiles: Record<string, boolean> = {}
@@ -15,7 +15,6 @@ let queue: any[] = []
 let source$: Subject<string>
 let gap: number = 100
 let count: number = 3
-let customProjectRootPatterns = projectRootPatterns
 
 function initSource() {
   if (source$) {
@@ -24,9 +23,12 @@ function initSource() {
   source$ = new Subject<string>()
   source$.pipe(
     concatMap(uri => {
+      process.send({
+        msglog: `Patterns: ${config.indexes.projectRootPatterns}`
+      })
       return from(findProjectRoot(
         vscUri.parse(uri).fsPath,
-        customProjectRootPatterns
+        config.indexes.projectRootPatterns
       )).pipe(
         filter(projectRoot => projectRoot && projectRoot !== os.homedir()),
         map(projectRoot => ({
