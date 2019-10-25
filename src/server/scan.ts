@@ -125,10 +125,7 @@ process.on('message', (mess) => {
     if (config.count !== undefined) {
       count = config.count
     }
-    if (config.projectRootPatterns !== undefined
-        && Array.isArray(config.projectRootPatterns)
-        && config.projectRootPatterns.length
-       ) {
+    if (config.projectRootPatterns !== undefined) {
       customProjectRootPatterns = config.projectRootPatterns
     }
     initSource()
