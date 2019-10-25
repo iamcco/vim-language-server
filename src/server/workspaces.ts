@@ -2,7 +2,7 @@ import URIParser from 'vscode-uri';
 
 import { Buffer, IFunction, IIdentifier } from './buffer';
 import { Node } from '../lib/vimparser';
-import { findWorkDirectory } from '../common/util';
+import { findProjectRoot } from '../common/util';
 import { CompletionItem, Location, Range, Position } from 'vscode-languageserver';
 import config from './config';
 // import logger from '../common/logger';
@@ -34,7 +34,7 @@ export class Workspace {
         if (config.suggest.fromVimruntime && b.isBelongToWorkdir(config.vimruntime)) {
           return true
         }
-        return b.isBelongToWorkdir(buf.getWorkDir())
+        return b.isBelongToWorkdir(buf.getProjectRoot())
       })
     return this.filterDuplicate(
       buffers.reduce<CompletionItem[]>((res, buf) => {
@@ -61,7 +61,7 @@ export class Workspace {
         if (config.suggest.fromVimruntime && b.isBelongToWorkdir(config.vimruntime)) {
           return true
         }
-        return b.isBelongToWorkdir(buf.getWorkDir())
+        return b.isBelongToWorkdir(buf.getProjectRoot())
       })
     return this.filterDuplicate(
       buffers.reduce<CompletionItem[]>((res, buf) => {
@@ -458,14 +458,14 @@ export class Workspace {
     if (this.buffers[uri]) {
       this.buffers[uri].updateBufferByNode(node)
     } else {
-      let workDir = await findWorkDirectory(
+      let projectRoot = await findProjectRoot(
         URIParser.parse(uri).fsPath,
         ['.git', 'autoload', 'plugin']
       )
-      if (workDir.indexOf(config.vimruntime) === 0) {
-        workDir = config.vimruntime
+      if (projectRoot.indexOf(config.vimruntime) === 0) {
+        projectRoot = config.vimruntime
       }
-      this.buffers[uri] = new Buffer(uri, workDir, node)
+      this.buffers[uri] = new Buffer(uri, projectRoot, node)
     }
   }
 
