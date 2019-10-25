@@ -119,6 +119,15 @@ process.on('message', (mess) => {
     }
   }
   if (config) {
+    if (config.gap !== undefined) {
+      gap = config.gap
+    }
+    if (config.count !== undefined) {
+      count = config.count
+    }
+    if (config.projectRootPatterns !== undefined) {
+      customProjectRootPatterns = config.projectRootPatterns
+    }
     initSource()
   }
 })
