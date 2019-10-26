@@ -17,7 +17,8 @@
     "build-docs": "rm ./src/docs/builtin-docs.json && ./bin/build-docs.js",
     "build": "rm -rf ./out && webpack",
     "watch": "webpack -w",
-    "test": "mocha test/src/**/*.ts --require ts-node/register"
+    "test": "mocha test/src/**/*.ts --require ts-node/register",
+    "lint": "tslint -c tslint.json {.,test}/src/**/*.ts"
   },
   "bin": {
     "vim-language-server": "./bin/index.js"
@@ -40,5 +41,8 @@
     "vscode-uri": "^1.0.6",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.9"
+  },
+  "dependencies": {
+    "tslint": "^5.20.0"
   }
 }
