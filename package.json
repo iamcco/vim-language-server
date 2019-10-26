@@ -16,23 +16,29 @@
   "scripts": {
     "build-docs": "rm ./src/docs/builtin-docs.json && ./bin/build-docs.js",
     "build": "rm -rf ./out && webpack",
-    "watch": "webpack -w"
+    "watch": "webpack -w",
+    "test": "mocha test/src/**/*.ts --require ts-node/register"
   },
   "bin": {
     "vim-language-server": "./bin/index.js"
   },
   "devDependencies": {
+    "@types/mocha": "^5.2.7",
     "@types/node": "^11.13.6",
-    "ts-loader": "^6.2.0",
-    "typescript": "^3.4.4",
-    "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "fast-glob": "^3.0.4",
     "findup": "^0.1.5",
+    "mocha": "^6.2.2",
     "rxjs": "^6.4.0",
     "rxjs-operators": "^1.1.2",
     "shvl": "^2.0.0",
+    "ts-loader": "^6.2.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4",
     "vscode-languageserver": "^5.2.1",
-    "vscode-uri": "^1.0.6"
+    "vscode-uri": "^1.0.6",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.9"
   }
 }
