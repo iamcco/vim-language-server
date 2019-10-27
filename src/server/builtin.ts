@@ -31,7 +31,7 @@ import {
   featurePattern,
   optionPattern,
 } from "../common/patterns";
-import { BuiltinDoc } from "../common/types";
+import { IBuiltinDoc } from "../common/types";
 import { isSomeMatchPattern, pcb } from "../common/util";
 import buildDocs from "../docs/builtin-docs.json";
 import config from "./config";
@@ -250,7 +250,7 @@ class Builtin {
     this.resolveHighlightArgValues();
 
     try {
-      const data: BuiltinDoc = buildDocs as BuiltinDoc;
+      const data: IBuiltinDoc = buildDocs as IBuiltinDoc;
       this.vimBuiltinFunctionItems = data.completionItems.functions;
       this.vimBuiltinFunctionItems.forEach((item) => {
         if (!this.vimBuiltinFunctionMap[item.label]) {

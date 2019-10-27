@@ -33,7 +33,7 @@ export interface IConfig {
 }
 
 // builtin-doc
-export interface BuiltinDoc {
+export interface IBuiltinDoc {
   completionItems: {
     functions: CompletionItem[]
     commands: CompletionItem[]
