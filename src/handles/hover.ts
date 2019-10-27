@@ -1,29 +1,29 @@
 import {
-  TextDocumentPositionParams,
   Hover,
-} from 'vscode-languageserver';
-import { builtinDocs } from '../server/builtin';
-import { documents } from '../server/documents';
-import { getWordFromPosition } from '../common/util';
+  TextDocumentPositionParams,
+} from "vscode-languageserver";
+import { getWordFromPosition } from "../common/util";
+import { builtinDocs } from "../server/builtin";
+import { documents } from "../server/documents";
 
 export const hoverProvider = (
-  params: TextDocumentPositionParams
+  params: TextDocumentPositionParams,
 ): Hover | undefined => {
-  const { textDocument, position } = params
-  const doc = documents.get(textDocument.uri)
+  const { textDocument, position } = params;
+  const doc = documents.get(textDocument.uri);
   if (!doc) {
-    return
+    return;
   }
 
-  const words = getWordFromPosition(doc, position)
+  const words = getWordFromPosition(doc, position);
 
   if (!words) {
-    return
+    return;
   }
 
   return builtinDocs.getHoverDocument(
     words.word,
     words.wordLeft,
-    words.wordRight
-  )
-}
+    words.wordRight,
+  );
+};

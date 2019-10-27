@@ -1,139 +1,138 @@
-import { homedir } from 'os';
-import { join } from 'path';
-import childProcess, {ChildProcess} from 'child_process';
-import { Subject, timer, from } from 'rxjs';
-import { switchMap, map, filter } from 'rxjs/operators';
-import { TextDocument } from 'vscode-languageserver';
-import { waitMap } from 'rxjs-operators/lib/waitMap';
-import vscUri from 'vscode-uri';
+import childProcess, {ChildProcess} from "child_process";
+import { homedir } from "os";
+import { join } from "path";
+import { from, Subject, timer } from "rxjs";
+import { waitMap } from "rxjs-operators/lib/waitMap";
+import { filter, map, switchMap } from "rxjs/operators";
+import { TextDocument } from "vscode-languageserver";
+import vscUri from "vscode-uri";
 
-import { handleDiagnostic } from '../handles/diagnostic';
-import { workspace } from './workspaces';
-import { handleParse } from '../common/util';
-import { IParserHandles} from '../common/types';
-import logger from '../common/logger';
-import config from './config';
+import logger from "../common/logger";
+import { IParserHandles} from "../common/types";
+import { handleParse } from "../common/util";
+import { handleDiagnostic } from "../handles/diagnostic";
+import config from "./config";
+import { workspace } from "./workspaces";
 
-const log = logger('parser')
+const log = logger("parser");
 
-const parserHandles: IParserHandles = {}
+const parserHandles: IParserHandles = {};
 
-const indexes: Record<string, boolean> = {}
+const indexes: Record<string, boolean> = {};
 
-const origin$: Subject<TextDocument> = new Subject<TextDocument>()
+const origin$: Subject<TextDocument> = new Subject<TextDocument>();
 
-let scanProcess: ChildProcess
-let isScanRuntimepath: boolean = false
+let scanProcess: ChildProcess;
+let isScanRuntimepath: boolean = false;
 
 function startIndex() {
   if (scanProcess) {
-    return
+    return;
   }
   scanProcess = childProcess.fork(
-    join(__dirname, 'scan.js'),
-    ['--node-ipc']
-  )
+    join(__dirname, "scan.js"),
+    ["--node-ipc"],
+  );
 
-  scanProcess.on('message', (mess) => {
-    const { data, msglog } = mess
+  scanProcess.on("message", (mess) => {
+    const { data, msglog } = mess;
     if (data) {
       if (!workspace.isExistsBuffer(data.uri)) {
-        workspace.updateBuffer(data.uri, data.node)
+        workspace.updateBuffer(data.uri, data.node);
       }
     }
 
     if (msglog) {
-      log.info(`child_log: ${msglog}`)
+      log.info(`child_log: ${msglog}`);
     }
-  })
+  });
 
-  scanProcess.on('error', (err: Error) => {
-    log.error(`${err.stack || err.message || err}`)
-  })
+  scanProcess.on("error", (err: Error) => {
+    log.error(`${err.stack || err.message || err}`);
+  });
 
   scanProcess.send({
     config: {
       gap: config.indexes.gap,
       count: config.indexes.count,
-      projectRootPatterns: config.indexes.projectRootPatterns
-    }
-  })
+      projectRootPatterns: config.indexes.projectRootPatterns,
+    },
+  });
 }
-
 
 export function next(
   textDoc: TextDocument,
 ) {
   if (!parserHandles[textDoc.uri]) {
-    const { uri } = textDoc
+    const { uri } = textDoc;
     parserHandles[uri] = origin$.pipe(
       filter((textDoc: TextDocument) => uri === textDoc.uri),
       switchMap((textDoc: TextDocument) => {
         return timer(100).pipe(
-          map(() => textDoc)
-        )
+          map(() => textDoc),
+        );
       }),
       waitMap((textDoc: TextDocument) => {
-        return from(handleParse(textDoc))
-      }, true)
+        return from(handleParse(textDoc));
+      }, true),
     ).subscribe(
       (res) => {
         if (config.diagnostic.enable) {
           // handle diagnostic
-          handleDiagnostic(textDoc, res[1])
+          handleDiagnostic(textDoc, res[1]);
         }
         // handle node
-        workspace.updateBuffer(uri, res[0])
+        workspace.updateBuffer(uri, res[0]);
         // scan project
         if (!indexes[uri]) {
-          indexes[uri] = true
+          indexes[uri] = true;
           scanProcess.send({
-            uri
-          })
+            uri,
+          });
           if (!isScanRuntimepath) {
-            isScanRuntimepath = true
-            scan([config.vimruntime].concat(config.runtimepath))
+            isScanRuntimepath = true;
+            scan([config.vimruntime].concat(config.runtimepath));
           }
         }
       },
       (err: Error) => {
-        log.error(`${err.stack || err.message || err}`)
-      }
-    )
+        log.error(`${err.stack || err.message || err}`);
+      },
+    );
   }
   if (!scanProcess) {
-    startIndex()
+    startIndex();
   }
-  origin$.next(textDoc)
+  origin$.next(textDoc);
 }
 
 export function unsubscribe(textDoc: TextDocument) {
   if (parserHandles[textDoc.uri] !== undefined) {
-    parserHandles[textDoc.uri]!.unsubscribe()
+    parserHandles[textDoc.uri]!.unsubscribe();
   }
-  parserHandles[textDoc.uri] = undefined
+  parserHandles[textDoc.uri] = undefined;
 }
 
 // scan directory
 export function scan(paths: string | string[]) {
   if (!scanProcess) {
-    startIndex()
+    startIndex();
   }
   if (config.indexes.runtimepath) {
-    const list: string[] = [].concat(paths)
+    const list: string[] = [].concat(paths);
 
     for (let idx = 0; idx < list.length; idx++) {
-      let p = list[idx]
+      let p = list[idx];
       if (!p) {
-        continue
+        continue;
       }
       p = p.trim();
-      if (!p || p === '/') {
-        continue
+      if (!p || p === "/") {
+        continue;
       }
       scanProcess.send({
-        uri: vscUri.file(join(p, 'f')).toString()
-      })
+        uri: vscUri.file(join(p, "f")).toString(),
+      });
     }
   }
 }

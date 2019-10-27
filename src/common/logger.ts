@@ -1,18 +1,18 @@
-import { connection } from '../server/connection';
+import { connection } from "../server/connection";
 
 export default function(name: string) {
   return {
     log(message: string) {
-      connection.console.log(`${name}: ${message}`)
+      connection.console.log(`${name}: ${message}`);
     },
     info(message: string) {
-      connection.console.info(`${name}: ${message}`)
+      connection.console.info(`${name}: ${message}`);
     },
     warn(message: string) {
-      connection.console.warn(`${name}: ${message}`)
+      connection.console.warn(`${name}: ${message}`);
     },
     error(message: string) {
-      connection.console.error(`${name}: ${message}`)
+      connection.console.error(`${name}: ${message}`);
     },
-  }
+  };
 }

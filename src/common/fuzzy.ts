@@ -16,4 +16,4 @@ export default function fuzzy(origin: string, query: string): number {
   }
 
   return score;
-};
+}

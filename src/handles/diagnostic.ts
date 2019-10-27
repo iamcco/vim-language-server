@@ -1,17 +1,17 @@
 import {
-  TextDocument,
-  Range,
+  DiagnosticSeverity,
   Position,
-  DiagnosticSeverity
-} from 'vscode-languageserver';
-import { errorLinePattern } from '../common/patterns';
-import { connection } from '../server/connection';
+  Range,
+  TextDocument,
+} from "vscode-languageserver";
+import { errorLinePattern } from "../common/patterns";
+import { connection } from "../server/connection";
 
 export async function handleDiagnostic(
   textDoc: TextDocument,
-  error: string
+  error: string,
 ) {
-  const m = (error || '').match(errorLinePattern)
+  const m = (error || "").match(errorLinePattern);
   if (m) {
    return connection.sendDiagnostics({
       uri: textDoc.uri,
@@ -19,16 +19,16 @@ export async function handleDiagnostic(
         message: m[1],
         range: Range.create(
           Position.create(parseFloat(m[2]) - 1, parseFloat(m[3]) - 1),
-          Position.create(parseFloat(m[2]) - 1, parseFloat(m[3]))
+          Position.create(parseFloat(m[2]) - 1, parseFloat(m[3])),
         ),
-        severity: DiagnosticSeverity.Error
-      }]
-    })
+        severity: DiagnosticSeverity.Error,
+      }],
+    });
   }
 
   // clear diagnostics
   connection.sendDiagnostics({
     uri: textDoc.uri,
-    diagnostics: []
-  })
+    diagnostics: [],
+  });
 }

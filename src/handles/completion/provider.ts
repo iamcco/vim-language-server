@@ -1,14 +1,14 @@
 import {
   CompletionItem,
-  Position
-} from 'vscode-languageserver';
+  Position,
+} from "vscode-languageserver";
 
-type Provider = (line: string, uri?: string, position?: Position) => CompletionItem[]
+type Provider = (line: string, uri?: string, position?: Position) => CompletionItem[];
 
-const providers: Provider[] = []
+const providers: Provider[] = [];
 
 export function useProvider(p: Provider) {
-  providers.push(p)
+  providers.push(p);
 }
 
 export function getProvider() {
@@ -17,19 +17,19 @@ export function getProvider() {
       line: string,
       uri: string,
       position: Position,
-      items: CompletionItem[]
+      items: CompletionItem[],
     ) => pre(
       line,
       uri,
       position,
-      items.concat(next(line, uri, position))
-    )
+      items.concat(next(line, uri, position)),
+    );
 
   }, (
     _line: string,
     _uri: string,
     _position: Position,
     items: CompletionItem[],
-  ) => items
-  )
+  ) => items,
+  );
 }

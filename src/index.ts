@@ -1,125 +1,125 @@
-import { InitializeParams } from 'vscode-languageserver';
-import * as shvl from 'shvl';
+import * as shvl from "shvl";
+import { InitializeParams } from "vscode-languageserver";
 
-import { completionProvider } from './handles/completion';
-import { hoverProvider } from './handles/hover';
-import { completionResolveProvider } from './handles/completionResolve';
-import { signatureHelpProvider } from './handles/signatureHelp';
-import { documents } from './server/documents';
-import { connection } from './server/connection';
-import { IConfig, IDiagnostic, ISuggest, IIndexes } from './common/types';
-import { next, unsubscribe } from './server/parser';
-import { builtinDocs } from './server/builtin';
-import config from './server/config';
-import { definitionProvider } from './handles/definition';
-import { referencesProvider } from './handles/references';
-import { renameProvider, prepareProvider } from './handles/rename';
-import { projectRootPatterns } from './common/constant';
+import { projectRootPatterns } from "./common/constant";
+import { IConfig, IDiagnostic, IIndexes, ISuggest } from "./common/types";
+import { completionProvider } from "./handles/completion";
+import { completionResolveProvider } from "./handles/completionResolve";
+import { definitionProvider } from "./handles/definition";
+import { hoverProvider } from "./handles/hover";
+import { referencesProvider } from "./handles/references";
+import { prepareProvider, renameProvider } from "./handles/rename";
+import { signatureHelpProvider } from "./handles/signatureHelp";
+import { builtinDocs } from "./server/builtin";
+import config from "./server/config";
+import { connection } from "./server/connection";
+import { documents } from "./server/documents";
+import { next, unsubscribe } from "./server/parser";
 
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
-  const { initializationOptions = {} } = param
+  const { initializationOptions = {} } = param;
   const {
     iskeyword,
     runtimepath,
     vimruntime,
     diagnostic,
     suggest,
-    indexes
+    indexes,
   }: {
     iskeyword: string
     runtimepath: string
     vimruntime: string
     diagnostic: IDiagnostic
     suggest: ISuggest
-    indexes: IIndexes
-  } = initializationOptions
+    indexes: IIndexes,
+  } = initializationOptions;
 
-  const runtimepaths = runtimepath ? runtimepath.split(',') : []
+  const runtimepaths = runtimepath ? runtimepath.split(",") : [];
 
   // config by user's initializationOptions
-  const conf:IConfig = {
-    iskeyword: iskeyword || '',
+  const conf: IConfig = {
+    iskeyword: iskeyword || "",
     runtimepath: runtimepaths,
-    vimruntime: (vimruntime || '').trim(),
+    vimruntime: (vimruntime || "").trim(),
     diagnostic: {
       enable: true,
-      ...(diagnostic || {})
+      ...(diagnostic || {}),
     },
-    snippetSupport: shvl.get(param, 'capabilities.textDocument.completion.completionItem.snippetSupport'),
+    snippetSupport: shvl.get(param, "capabilities.textDocument.completion.completionItem.snippetSupport"),
     suggest: {
       fromRuntimepath: false,
       fromVimruntime: true,
-      ...(suggest || {})
+      ...(suggest || {}),
     },
     indexes: {
       runtimepath: true,
       gap: 100,
       count: 1,
-      projectRootPatterns: projectRootPatterns,
-      ...(indexes || {})
-    }
-  }
+      projectRootPatterns,
+      ...(indexes || {}),
+    },
+  };
 
   // init config
-  config.init(conf)
+  config.init(conf);
 
   // init builtin docs
-  builtinDocs.init()
+  builtinDocs.init();
 
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
       hoverProvider: true,
       completionProvider: {
-        triggerCharacters: ['.', ':', '#', '[', '&', '$', '<', '"', "'"],
-        resolveProvider: true
+        triggerCharacters: [".", ":", "#", "[", "&", "$", "<", '"', "'"],
+        resolveProvider: true,
       },
       signatureHelpProvider: {
-        triggerCharacters: ['(', ',']
+        triggerCharacters: ["(", ","],
       },
       definitionProvider: true,
       referencesProvider: true,
       renameProvider: {
-        prepareProvider: true
-      }
-    }
+        prepareProvider: true,
+      },
+    },
   };
 });
 
 // document change or open
 documents.onDidChangeContent(( change ) => {
-  next(change.document)
+  next(change.document);
 });
 
 documents.onDidClose((evt) => {
-  unsubscribe(evt.document)
-})
+  unsubscribe(evt.document);
+});
 
 // listen for document's open/close/change
 documents.listen(connection);
 
 // handle completion
-connection.onCompletion(completionProvider)
+connection.onCompletion(completionProvider);
 
 // handle completion resolve
-connection.onCompletionResolve(completionResolveProvider)
+connection.onCompletionResolve(completionResolveProvider);
 
 // handle signaturehelp
-connection.onSignatureHelp(signatureHelpProvider)
+connection.onSignatureHelp(signatureHelpProvider);
 
 // handle hover
-connection.onHover(hoverProvider)
+connection.onHover(hoverProvider);
 
 // handle definition request
-connection.onDefinition(definitionProvider)
+connection.onDefinition(definitionProvider);
 
 // handle references
-connection.onReferences(referencesProvider)
+connection.onReferences(referencesProvider);
 
 // handle rename
-connection.onPrepareRename(prepareProvider)
-connection.onRenameRequest(renameProvider)
+connection.onPrepareRename(prepareProvider);
+connection.onRenameRequest(renameProvider);
 
 // lsp start
 connection.listen();
