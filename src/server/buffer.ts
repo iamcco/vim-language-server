@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from "vscode-languageserver";
 import { sortTexts } from "../common/constant";
 import logger from "../common/logger";
-import { Node, Pos } from "../lib/vimparser";
+import { Node, IPos } from "../lib/vimparser";
 
 const log = logger("buffer");
 
@@ -847,7 +847,7 @@ export class Buffer {
     }
   }
 
-  private getDotPos(node: Node): Pos | null {
+  private getDotPos(node: Node): IPos | null {
     if (!node) {
       return null;
     }

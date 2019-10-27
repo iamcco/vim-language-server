@@ -1,4 +1,4 @@
-export declare interface Pos {
+export declare interface IPos {
   lnum: number;
   col: number;
   offset: number;
@@ -6,12 +6,12 @@ export declare interface Pos {
 
 export declare interface Node {
   type: number;
-  pos: Pos;
+  pos: IPos;
   body: Node[];
   ea: {
-    linepos: Pos
-    cmdpos: Pos
-    argpos: Pos
+    linepos: IPos
+    cmdpos: IPos
+    argpos: IPos
     cmd: {
       name: string,
     },
