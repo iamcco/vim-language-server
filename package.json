@@ -40,9 +40,7 @@
     "vscode-languageserver": "^5.2.1",
     "vscode-uri": "^1.0.6",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.9"
-  },
-  "dependencies": {
+    "webpack-cli": "^3.3.9",
     "tslint": "^5.20.0"
   }
 }
