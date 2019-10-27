@@ -57,7 +57,7 @@ export function executeFile(
 
     // error will occur when cp get error
     if (!isPassAsText) {
-      input.pipe(cp.stdin).on("error", () => {});
+      input.pipe(cp.stdin).on("error", () => { return; });
     }
 
   });
@@ -150,10 +150,14 @@ export function getWordFromPosition(
 
   return {
     word,
-    wordLeft: wordLeft && wordLeft[1] ? preSegment.replace(new RegExp(`${wordLeft[1]}$`), word) : `${preSegment}${word}`,
-    wordRight: wordRight && wordRight[1] ? nextSegment.replace(new RegExp(`^${wordRight[1]}`), word) : `${word}${nextSegment}`,
     left: wordLeft && wordLeft[1] || "",
     right: wordRight && wordRight[1] || "",
+    wordLeft: wordLeft && wordLeft[1]
+      ? preSegment.replace(new RegExp(`${wordLeft[1]}$`), word)
+      : `${preSegment}${word}`,
+    wordRight: wordRight && wordRight[1]
+      ? nextSegment.replace(new RegExp(`^${wordRight[1]}`), word)
+      : `${word}${nextSegment}`,
   };
 }
 
