@@ -18,7 +18,8 @@
     "build": "rm -rf ./out && webpack",
     "watch": "webpack -w",
     "test": "mocha test/src/**/*.ts --require ts-node/register",
-    "lint": "tslint -c tslint.json {.,test}/src/**/*.ts"
+    "lint": "tslint -c tslint.json {.,test}/src/**/*.ts",
+    "fix": "tslint -c tslint.json --fix {.,test}/src/**/*.ts"
   },
   "bin": {
     "vim-language-server": "./bin/index.js"
