@@ -1,4 +1,4 @@
-import { TextDocuments } from 'vscode-languageserver';
+import { TextDocuments } from "vscode-languageserver";
 
 // sync text document manager
 // TODO: increment

@@ -8,33 +8,33 @@
  * - xx#xxx
  * - Xxx
  */
-import { CompletionItem, Position } from 'vscode-languageserver';
-import { workspace } from '../../server/workspaces';
-import config from '../../server/config';
-import { isSomeMatchPattern } from '../../common/util';
-import { notFunctionPattern } from '../../common/patterns';
-import { builtinDocs } from '../../server/builtin';
-import { useProvider } from './provider';
+import { CompletionItem, Position } from "vscode-languageserver";
+import { notFunctionPattern } from "../../common/patterns";
+import { isSomeMatchPattern } from "../../common/util";
+import { builtinDocs } from "../../server/builtin";
+import config from "../../server/config";
+import { workspace } from "../../server/workspaces";
+import { useProvider } from "./provider";
 
 function provider(line: string, uri: string, position: Position): CompletionItem[] {
   if (/\b(g:|s:|<SID>)\w*$/.test(line)) {
-    let list: CompletionItem[] = []
+    let list: CompletionItem[] = [];
     if (/\bg:\w*$/.test(line)) {
       list = workspace.getFunctionItems(uri)
-        .filter(item => /^g:/.test(item.label))
+        .filter((item) => /^g:/.test(item.label));
     } else if (/\b(s:|<SID>)\w*$/i.test(line)) {
       list = workspace.getFunctionItems(uri)
-        .filter(item => /^s:/.test(item.label))
+        .filter((item) => /^s:/.test(item.label));
     }
-    return list.map(item => ({
+    return list.map((item) => ({
       ...item,
-      insertText: !/:/.test(config.iskeyword) ? item.insertText.slice(2) : item.insertText
-    }))
+      insertText: !/:/.test(config.iskeyword) ? item.insertText.slice(2) : item.insertText,
+    }));
   } else if (/\B:\w*$/.test(line)) {
     return workspace.getFunctionItems(uri)
-      .filter(item => /:/.test(item.label))
-      .map(item => {
-        const m = line.match(/:[^:]*$/)
+      .filter((item) => /:/.test(item.label))
+      .map((item) => {
+        const m = line.match(/:[^:]*$/);
         return {
           ...item,
           // delete the `:` symbol
@@ -42,27 +42,27 @@ function provider(line: string, uri: string, position: Position): CompletionItem
             range: {
               start: {
                 line: position.line,
-                character: line.length - m[0].length
+                character: line.length - m[0].length,
               },
               end: {
                 line: position.line,
-                character: line.length - m[0].length + 1
-              }
+                character: line.length - m[0].length + 1,
+              },
             },
-            newText: item.insertText
-          }
-        }
-      })
+            newText: item.insertText,
+          },
+        };
+      });
   } else if (isSomeMatchPattern(notFunctionPattern, line)) {
-    return []
+    return [];
   }
   return workspace.getFunctionItems(uri)
-    .filter(item => {
-      return !builtinDocs.isBuiltinFunction(item.label)
+    .filter((item) => {
+      return !builtinDocs.isBuiltinFunction(item.label);
     })
     .concat(
-      builtinDocs.getBuiltinVimFunctions()
-    )
+      builtinDocs.getBuiltinVimFunctions(),
+    );
 }
 
-useProvider(provider)
+useProvider(provider);

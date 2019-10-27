@@ -8,74 +8,74 @@
  * 5. has features
  * 6. expand Keyword
  */
-import { readFile, writeFileSync } from 'fs';
-import { join } from 'path';
+import { readFile, writeFileSync } from "fs";
+import { join } from "path";
 
-import { pcb } from '../common/util';
 import {
   CompletionItem,
   CompletionItemKind,
   InsertTextFormat,
-} from 'vscode-languageserver';
-import { sortTexts } from '../common/constant';
+} from "vscode-languageserver";
+import { sortTexts } from "../common/constant";
+import { pcb } from "../common/util";
 
 interface IConfig {
-  vimruntime: string
+  vimruntime: string;
 }
 
-const EVAL_PATH = '/doc/eval.txt'
-const OPTIONS_PATH = '/doc/options.txt'
-const INDEX_PATH = '/doc/index.txt'
-const API_PATH = '/doc/api.txt'
-const AUTOCMD_PATH = '/doc/autocmd.txt'
+const EVAL_PATH = "/doc/eval.txt";
+const OPTIONS_PATH = "/doc/options.txt";
+const INDEX_PATH = "/doc/index.txt";
+const API_PATH = "/doc/api.txt";
+const AUTOCMD_PATH = "/doc/autocmd.txt";
 
 class Server {
-  constructor(private config: IConfig) {}
-
-  // raw docs
-  private text: Record<string, string[]> = {}
 
   // completion items
-  public vimPredefinedVariablesItems: CompletionItem[] = []
-  public vimOptionItems: CompletionItem[] = []
-  public vimBuiltinFunctionItems: CompletionItem[] = []
-  public vimCommandItems: CompletionItem[] = []
-  public vimFeatureItems: CompletionItem[] = []
-  public vimExpandKeywordItems: CompletionItem[] = []
-  public vimAutocmdItems: CompletionItem[] = []
+  public vimPredefinedVariablesItems: CompletionItem[] = [];
+  public vimOptionItems: CompletionItem[] = [];
+  public vimBuiltinFunctionItems: CompletionItem[] = [];
+  public vimCommandItems: CompletionItem[] = [];
+  public vimFeatureItems: CompletionItem[] = [];
+  public vimExpandKeywordItems: CompletionItem[] = [];
+  public vimAutocmdItems: CompletionItem[] = [];
 
   // documents
-  public vimBuiltFunctionDocuments: Record<string, string[]> = {}
-  public vimOptionDocuments: Record<string, string[]> = {}
-  public vimPredefinedVariableDocuments: Record<string, string[]> = {}
-  public vimCommandDocuments: Record<string, string[]> = {}
-  public vimFeatureDocuments: Record<string, string[]> = {}
-  public expandKeywordDocuments: Record<string, string[]> = {}
+  public vimBuiltFunctionDocuments: Record<string, string[]> = {};
+  public vimOptionDocuments: Record<string, string[]> = {};
+  public vimPredefinedVariableDocuments: Record<string, string[]> = {};
+  public vimCommandDocuments: Record<string, string[]> = {};
+  public vimFeatureDocuments: Record<string, string[]> = {};
+  public expandKeywordDocuments: Record<string, string[]> = {};
 
   // signature help
-  public vimBuiltFunctionSignatureHelp: Record<string, string[]> = {}
+  public vimBuiltFunctionSignatureHelp: Record<string, string[]> = {};
+
+  // raw docs
+  private text: Record<string, string[]> = {};
+  constructor(private config: IConfig) {}
 
   public async build() {
-    const { vimruntime } = this.config
+    const { vimruntime } = this.config;
     if (vimruntime) {
-      const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH, AUTOCMD_PATH]
+      const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH, AUTOCMD_PATH];
       for (let index = 0; index < paths.length; index++) {
-        const p = join(vimruntime, paths[index])
-        const [err, data]: [Error, Buffer] = await pcb(readFile)(p, 'utf-8')
+        const p = join(vimruntime, paths[index]);
+        const [err, data]: [Error, Buffer] = await pcb(readFile)(p, "utf-8");
         if (err) {
-          console.error(`[vimls]: read ${p} error: ${ err.message}`)
+          console.error(`[vimls]: read ${p} error: ${ err.message}`);
         }
-        this.text[paths[index]] = (data && data.toString().split('\n')) || []
+        this.text[paths[index]] = (data && data.toString().split("\n")) || [];
       }
-      this.resolveVimPredefinedVariables()
-      this.resolveVimOptions()
-      this.resolveBuiltinFunctions()
-      this.resolveBuiltinFunctionsDocument()
-      this.resolveBuiltinNvimFunctions()
-      this.resolveExpandKeywords()
-      this.resolveVimCommands()
-      this.resolveVimFeatures()
-      this.resolveVimAutocmds()
+      this.resolveVimPredefinedVariables();
+      this.resolveVimOptions();
+      this.resolveBuiltinFunctions();
+      this.resolveBuiltinFunctionsDocument();
+      this.resolveBuiltinNvimFunctions();
+      this.resolveExpandKeywords();
+      this.resolveVimCommands();
+      this.resolveVimFeatures();
+      this.resolveVimAutocmds();
     }
   }
 
@@ -88,7 +88,7 @@ class Server {
         options: this.vimOptionItems,
         features: this.vimFeatureItems,
         expandKeywords: this.vimExpandKeywordItems,
-        autocmds: this.vimAutocmdItems
+        autocmds: this.vimAutocmdItems,
       },
       signatureHelp: this.vimBuiltFunctionSignatureHelp,
       documents: {
@@ -97,68 +97,68 @@ class Server {
         variables: this.vimPredefinedVariableDocuments,
         options: this.vimOptionDocuments,
         features: this.vimFeatureDocuments,
-        expandKeywords: this.expandKeywordDocuments
-      }
-    }, null, 2)
-    writeFileSync('./docs/builtin-docs.json', str, 'utf-8')
+        expandKeywords: this.expandKeywordDocuments,
+      },
+    }, null, 2);
+    writeFileSync("./docs/builtin-docs.json", str, "utf-8");
   }
 
   private formatFunctionSnippets(fname: string, snippets: string): string {
-    if (snippets === '') {
-      return `${fname}(\${0})`
+    if (snippets === "") {
+      return `${fname}(\${0})`;
     }
-    let idx = 0
+    let idx = 0;
     if (/^\[.+\]/.test(snippets)) {
-      return `${fname}(\${1})\${0}`
+      return `${fname}(\${1})\${0}`;
     }
-    const str = snippets.split('[')[0].trim().replace(/\{?(\w+)\}?/g, (m, g1) => {
-      return `\${${idx+=1}:${g1}}`
-    })
-    return `${fname}(${str})\${0}`
+    const str = snippets.split("[")[0].trim().replace(/\{?(\w+)\}?/g, (m, g1) => {
+      return `\${${idx += 1}:${g1}}`;
+    });
+    return `${fname}(${str})\${0}`;
   }
 
   // get vim predefined variables from vim document eval.txt
   private resolveVimPredefinedVariables() {
-    const evalText = this.text[EVAL_PATH] || []
-    let isMatchLine = false
-    let completionItem: CompletionItem
+    const evalText = this.text[EVAL_PATH] || [];
+    let isMatchLine = false;
+    let completionItem: CompletionItem;
     for (let idx = 0; idx < evalText.length; idx++) {
       const line = evalText[idx];
       if (!isMatchLine) {
         if (/\*vim-variable\*/.test(line)) {
-          isMatchLine = true
+          isMatchLine = true;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^(v:[^ \t]+)[ \t]+([^ ].*)$/)
+        const m = line.match(/^(v:[^ \t]+)[ \t]+([^ ].*)$/);
         if (m) {
           if (completionItem) {
-            this.vimPredefinedVariablesItems.push(completionItem)
-            this.vimPredefinedVariableDocuments[completionItem.label].pop()
-            completionItem = undefined
+            this.vimPredefinedVariablesItems.push(completionItem);
+            this.vimPredefinedVariableDocuments[completionItem.label].pop();
+            completionItem = undefined;
           }
-          const label = m[1]
+          const label = m[1];
           completionItem = {
             label,
             kind: CompletionItemKind.Variable,
             sortText: sortTexts.four,
             insertText: label.slice(2),
-            insertTextFormat: InsertTextFormat.PlainText
-          }
+            insertTextFormat: InsertTextFormat.PlainText,
+          };
           if (!this.vimPredefinedVariableDocuments[label]) {
-            this.vimPredefinedVariableDocuments[label] = []
+            this.vimPredefinedVariableDocuments[label] = [];
           }
-          this.vimPredefinedVariableDocuments[label].push(m[2])
+          this.vimPredefinedVariableDocuments[label].push(m[2]);
 
         } else if (/^\s*$/.test(line) && completionItem) {
-          this.vimPredefinedVariablesItems.push(completionItem)
-          completionItem = undefined
+          this.vimPredefinedVariablesItems.push(completionItem);
+          completionItem = undefined;
         } else if (completionItem) {
           this.vimPredefinedVariableDocuments[completionItem.label].push(
-            line
-          )
+            line,
+          );
         } else if (/===============/.test(line)) {
-          break
+          break;
         }
       }
     }
@@ -166,40 +166,40 @@ class Server {
 
   // get vim options from vim document options.txt
   private resolveVimOptions() {
-    const optionsText: string[] = this.text[OPTIONS_PATH] || []
-    let isMatchLine = false
-    let completionItem: CompletionItem
+    const optionsText: string[] = this.text[OPTIONS_PATH] || [];
+    let isMatchLine = false;
+    let completionItem: CompletionItem;
     for (let idx = 0; idx < optionsText.length; idx++) {
       const line = optionsText[idx];
       if (!isMatchLine) {
         if (/\*'aleph'\*/.test(line)) {
-          isMatchLine = true
+          isMatchLine = true;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^'([^']+)'[ \t]+('[^']+')?[ \t]+([^ \t].*)$/)
+        const m = line.match(/^'([^']+)'[ \t]+('[^']+')?[ \t]+([^ \t].*)$/);
         if (m) {
-          const label = m[1]
+          const label = m[1];
           completionItem = {
             label,
             kind: CompletionItemKind.Property,
             detail: m[3].trim().split(/[ \t]/)[0],
-            documentation: '',
-            sortText: '00004',
+            documentation: "",
+            sortText: "00004",
             insertText: m[1],
-            insertTextFormat: InsertTextFormat.PlainText
-          }
+            insertTextFormat: InsertTextFormat.PlainText,
+          };
           if (!this.vimOptionDocuments[label]) {
-            this.vimOptionDocuments[label] = []
+            this.vimOptionDocuments[label] = [];
           }
-          this.vimOptionDocuments[label].push(m[3])
+          this.vimOptionDocuments[label].push(m[3]);
         } else if (/^\s*$/.test(line) && completionItem) {
-          this.vimOptionItems.push(completionItem)
-          completionItem = undefined
+          this.vimOptionItems.push(completionItem);
+          completionItem = undefined;
         } else if (completionItem) {
           this.vimOptionDocuments[completionItem.label].push(
-            line
-          )
+            line,
+          );
         }
       }
     }
@@ -207,46 +207,46 @@ class Server {
 
   // get vim builtin function from document eval.txt
   private resolveBuiltinFunctions() {
-    const evalText = this.text[EVAL_PATH] || []
-    let isMatchLine = false
-    let completionItem: CompletionItem
+    const evalText = this.text[EVAL_PATH] || [];
+    let isMatchLine = false;
+    let completionItem: CompletionItem;
     for (let idx = 0; idx < evalText.length; idx++) {
       const line = evalText[idx];
       if (!isMatchLine) {
         if (/\*functions\*/.test(line)) {
-          isMatchLine = true
+          isMatchLine = true;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/)
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
         if (m) {
           if (completionItem) {
-            this.vimBuiltinFunctionItems.push(completionItem)
+            this.vimBuiltinFunctionItems.push(completionItem);
           }
-          const label = m[2]
+          const label = m[2];
           completionItem = {
             label,
             kind: CompletionItemKind.Function,
-            detail: (m[4] || '').split(/[ \t]/)[0],
-            sortText: '00004',
+            detail: (m[4] || "").split(/[ \t]/)[0],
+            sortText: "00004",
             insertText: this.formatFunctionSnippets(m[2], m[3]),
-            insertTextFormat: InsertTextFormat.Snippet
-          }
+            insertTextFormat: InsertTextFormat.Snippet,
+          };
           this.vimBuiltFunctionSignatureHelp[label] = [
             m[3],
-            (m[4] || '').split(/[ \t]/)[0]
-          ]
+            (m[4] || "").split(/[ \t]/)[0],
+          ];
         } else if (/^[ \t]*$/.test(line)) {
           if (completionItem) {
-            this.vimBuiltinFunctionItems.push(completionItem)
-            completionItem = undefined
-            break
+            this.vimBuiltinFunctionItems.push(completionItem);
+            completionItem = undefined;
+            break;
           }
         } else if (completionItem) {
-          if (completionItem.detail === '') {
-            completionItem.detail = line.trim().split(/[ \t]/)[0]
+          if (completionItem.detail === "") {
+            completionItem.detail = line.trim().split(/[ \t]/)[0];
             if (this.vimBuiltFunctionSignatureHelp[completionItem.label]) {
-              this.vimBuiltFunctionSignatureHelp[completionItem.label][1] = line.trim().split(/[ \t]/)[0]
+              this.vimBuiltFunctionSignatureHelp[completionItem.label][1] = line.trim().split(/[ \t]/)[0];
             }
           }
         }
@@ -255,214 +255,214 @@ class Server {
   }
 
   private resolveBuiltinFunctionsDocument() {
-    const evalText = this.text[EVAL_PATH] || []
-    let isMatchLine = false
-    let label: string = ''
+    const evalText = this.text[EVAL_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
     for (let idx = 0; idx < evalText.length; idx++) {
       const line = evalText[idx];
       if (!isMatchLine) {
         if (/\*abs\(\)\*/.test(line)) {
-          isMatchLine = true
-          idx -= 1
+          isMatchLine = true;
+          idx -= 1;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/)
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
         if (m) {
           if (label) {
-            this.vimBuiltFunctionDocuments[label].pop()
+            this.vimBuiltFunctionDocuments[label].pop();
           }
-          label = m[2]
+          label = m[2];
           if (!this.vimBuiltFunctionDocuments[label]) {
-            this.vimBuiltFunctionDocuments[label] = []
+            this.vimBuiltFunctionDocuments[label] = [];
           }
         } else if (/^[ \t]*\*string-match\*[ \t]*$/.test(line)) {
           if (label) {
-            this.vimBuiltFunctionDocuments[label].pop()
+            this.vimBuiltFunctionDocuments[label].pop();
           }
-          break
+          break;
         } else if (label) {
-          this.vimBuiltFunctionDocuments[label].push(line)
+          this.vimBuiltFunctionDocuments[label].push(line);
         }
       }
     }
   }
 
   private resolveBuiltinNvimFunctions() {
-    const evalText = this.text[API_PATH] || []
-    let completionItem: CompletionItem
-    const pattern = /^((nvim_\w+)\(([^)]*)\))[ \t]*/m
+    const evalText = this.text[API_PATH] || [];
+    let completionItem: CompletionItem;
+    const pattern = /^((nvim_\w+)\(([^)]*)\))[ \t]*/m;
     for (let idx = 0; idx < evalText.length; idx++) {
       const line = evalText[idx];
-      let m = line.match(pattern)
+      let m = line.match(pattern);
       if (!m && evalText[idx + 1]) {
-        m = [line, evalText[idx + 1].trim()].join(' ').match(pattern)
+        m = [line, evalText[idx + 1].trim()].join(" ").match(pattern);
         if (m) {
-          idx++
+          idx++;
         }
       }
       if (m) {
         if (completionItem) {
           this.vimBuiltinFunctionItems.push(
-            completionItem
-          )
+            completionItem,
+          );
           if (this.vimBuiltFunctionDocuments[completionItem.label]) {
-            this.vimBuiltFunctionDocuments[completionItem.label].pop()
+            this.vimBuiltFunctionDocuments[completionItem.label].pop();
           }
         }
-        const label = m[2]
+        const label = m[2];
         completionItem = {
           label,
           kind: CompletionItemKind.Function,
-          detail: '',
-          documentation: '',
-          sortText: '00004',
+          detail: "",
+          documentation: "",
+          sortText: "00004",
           insertText: this.formatFunctionSnippets(m[2], m[3]),
-          insertTextFormat: InsertTextFormat.Snippet
-        }
+          insertTextFormat: InsertTextFormat.Snippet,
+        };
         if (!this.vimBuiltFunctionDocuments[label]) {
-          this.vimBuiltFunctionDocuments[label] = []
+          this.vimBuiltFunctionDocuments[label] = [];
         }
         this.vimBuiltFunctionSignatureHelp[label] = [
           m[3],
-          ''
-        ]
+          "",
+        ];
       } else if (/^(================|[ \t]*vim:tw=78:ts=8:ft=help:norl:)/.test(line)) {
         if (completionItem) {
           this.vimBuiltinFunctionItems.push(
-            completionItem
-          )
+            completionItem,
+          );
           if (this.vimBuiltFunctionDocuments[completionItem.label]) {
-            this.vimBuiltFunctionDocuments[completionItem.label].pop()
+            this.vimBuiltFunctionDocuments[completionItem.label].pop();
           }
-          completionItem = undefined
+          completionItem = undefined;
         }
       } else if (completionItem && !/^[ \t]\*nvim(_\w+)+\(\)\*\s*$/.test(line)) {
-        this.vimBuiltFunctionDocuments[completionItem.label].push(line)
+        this.vimBuiltFunctionDocuments[completionItem.label].push(line);
       }
     }
   }
 
   private resolveVimCommands() {
-    const indexText = this.text[INDEX_PATH] || []
-    let isMatchLine = false
-    let completionItem: CompletionItem
+    const indexText = this.text[INDEX_PATH] || [];
+    let isMatchLine = false;
+    let completionItem: CompletionItem;
     for (let idx = 0; idx < indexText.length; idx++) {
       const line = indexText[idx];
       if (!isMatchLine) {
         if (/\*ex-cmd-index\*/.test(line)) {
-          isMatchLine = true
+          isMatchLine = true;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^\|?:([^ \t]+?)\|?[ \t]+:([^ \t]+)[ \t]+([^ \t].*)$/)
+        const m = line.match(/^\|?:([^ \t]+?)\|?[ \t]+:([^ \t]+)[ \t]+([^ \t].*)$/);
         if (m) {
           if (completionItem) {
-            this.vimCommandItems.push(completionItem)
+            this.vimCommandItems.push(completionItem);
           }
-          const label = m[1]
+          const label = m[1];
           completionItem = {
             label: m[1],
             kind: CompletionItemKind.Operator,
             detail: m[2],
             documentation: m[3],
-            sortText: '00004',
+            sortText: "00004",
             insertText: m[1],
-            insertTextFormat: InsertTextFormat.PlainText
-          }
+            insertTextFormat: InsertTextFormat.PlainText,
+          };
           if (!this.vimCommandDocuments[label]) {
-            this.vimCommandDocuments[label] = []
+            this.vimCommandDocuments[label] = [];
           }
           this.vimCommandDocuments[label].push(
-            m[3]
-          )
+            m[3],
+          );
         } else if (/^[ \t]*$/.test(line)) {
           if (completionItem) {
-            this.vimCommandItems.push(completionItem)
-            completionItem = undefined
-            break
+            this.vimCommandItems.push(completionItem);
+            completionItem = undefined;
+            break;
           }
         } else if (completionItem) {
-          completionItem.documentation += ` ${line.trim()}`
+          completionItem.documentation += ` ${line.trim()}`;
           this.vimCommandDocuments[completionItem.label].push(
-            line
-          )
+            line,
+          );
         }
       }
     }
   }
 
   private resolveVimFeatures() {
-    const text = this.text[EVAL_PATH] || []
-    let isMatchLine = false
-    let completionItem: CompletionItem
-    let features: CompletionItem[] = []
+    const text = this.text[EVAL_PATH] || [];
+    let isMatchLine = false;
+    let completionItem: CompletionItem;
+    const features: CompletionItem[] = [];
     for (let idx = 0; idx < text.length; idx++) {
       const line = text[idx];
       if (!isMatchLine) {
         if (/^[ \t]*acl[ \t]/.test(line)) {
-          isMatchLine = true
-          idx -= 1
+          isMatchLine = true;
+          idx -= 1;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^[ \t]*\*?([^ \t]+?)\*?[ \t]+([^ \t].*)$/)
+        const m = line.match(/^[ \t]*\*?([^ \t]+?)\*?[ \t]+([^ \t].*)$/);
         if (m) {
           if (completionItem) {
-            features.push(completionItem)
+            features.push(completionItem);
           }
-          const label = m[1]
+          const label = m[1];
           completionItem = {
             label: m[1],
             kind: CompletionItemKind.EnumMember,
-            documentation: '',
-            sortText: '00004',
+            documentation: "",
+            sortText: "00004",
             insertText: m[1],
-            insertTextFormat: InsertTextFormat.PlainText
-          }
+            insertTextFormat: InsertTextFormat.PlainText,
+          };
           if (!this.vimFeatureDocuments[label]) {
-            this.vimFeatureDocuments[label] = []
+            this.vimFeatureDocuments[label] = [];
           }
-          this.vimFeatureDocuments[label].push(m[2])
+          this.vimFeatureDocuments[label].push(m[2]);
         } else if (/^[ \t]*$/.test(line)) {
           if (completionItem) {
-            features.push(completionItem)
-            break
+            features.push(completionItem);
+            break;
           }
         } else if (completionItem) {
           this.vimFeatureDocuments[completionItem.label].push(
-            line
-          )
+            line,
+          );
         }
       }
     }
-    this.vimFeatureItems = features
+    this.vimFeatureItems = features;
   }
 
   private resolveVimAutocmds() {
-    const text = this.text[AUTOCMD_PATH] || []
-    let isMatchLine = false
+    const text = this.text[AUTOCMD_PATH] || [];
+    let isMatchLine = false;
     for (let idx = 0; idx < text.length; idx++) {
       const line = text[idx];
       if (!isMatchLine) {
         if (/^\|BufNewFile\|/.test(line)) {
-          isMatchLine = true
-          idx -= 1
+          isMatchLine = true;
+          idx -= 1;
         }
-        continue
+        continue;
       } else {
-        const m = line.match(/^\|([^ \t]+)\|[ \t]+([^ \t].*)$/)
+        const m = line.match(/^\|([^ \t]+)\|[ \t]+([^ \t].*)$/);
         if (m) {
           this.vimAutocmdItems.push({
             label: m[1],
             kind: CompletionItemKind.EnumMember,
             documentation: m[2],
-            sortText: '00004',
+            sortText: "00004",
             insertText: m[1],
-            insertTextFormat: InsertTextFormat.PlainText
-          })
-          if (m[1] === 'Signal') {
-            break
+            insertTextFormat: InsertTextFormat.PlainText,
+          });
+          if (m[1] === "Signal") {
+            break;
           }
         }
       }
@@ -471,108 +471,108 @@ class Server {
 
   private resolveExpandKeywords() {
       this.vimExpandKeywordItems = [
-        '<cfile>,file name under the cursor',
-        '<afile>,autocmd file name',
-        '<abuf>,autocmd buffer number (as a String!)',
-        '<amatch>,autocmd matched name',
-        '<sfile>,sourced script file or function name',
-        '<slnum>,sourced script file line number',
-        '<cword>,word under the cursor',
-        '<cWORD>,WORD under the cursor',
-        '<client>,the {clientid} of the last received message `server2client()`',
-      ].map(line => {
-        const item = line.split(',')
+        "<cfile>,file name under the cursor",
+        "<afile>,autocmd file name",
+        "<abuf>,autocmd buffer number (as a String!)",
+        "<amatch>,autocmd matched name",
+        "<sfile>,sourced script file or function name",
+        "<slnum>,sourced script file line number",
+        "<cword>,word under the cursor",
+        "<cWORD>,WORD under the cursor",
+        "<client>,the {clientid} of the last received message `server2client()`",
+      ].map((line) => {
+        const item = line.split(",");
         this.expandKeywordDocuments[item[0]] = [
-          item[1]
-        ]
+          item[1],
+        ];
         return {
           label: item[0],
           kind: CompletionItemKind.Keyword,
           documentation: item[1],
-          sortText: '00004',
+          sortText: "00004",
           insertText: item[0],
-          insertTextFormat: InsertTextFormat.PlainText
-        }
-      })
+          insertTextFormat: InsertTextFormat.PlainText,
+        };
+      });
   }
 
 }
 
 async function main() {
-  const servers: Server[] = []
+  const servers: Server[] = [];
   for (let idx = 2; idx < process.argv.length; idx++) {
     servers.push(
       new Server({
         vimruntime: process.argv[idx],
-      })
-    )
-    await servers[servers.length - 1].build()
+      }),
+    );
+    await servers[servers.length - 1].build();
   }
   const server: Server = servers.reduce((pre, next) => {
     // merge functions
-    next.vimBuiltinFunctionItems.forEach(item => {
-      const { label } = item
+    next.vimBuiltinFunctionItems.forEach((item) => {
+      const { label } = item;
       if (!pre.vimBuiltFunctionDocuments[label]) {
-        pre.vimBuiltinFunctionItems.push(item)
-        pre.vimBuiltFunctionDocuments[label] = next.vimBuiltFunctionDocuments[label]
+        pre.vimBuiltinFunctionItems.push(item);
+        pre.vimBuiltFunctionDocuments[label] = next.vimBuiltFunctionDocuments[label];
       }
-    })
+    });
     // merge commands
-    next.vimCommandItems.forEach(item => {
-      const { label } = item
+    next.vimCommandItems.forEach((item) => {
+      const { label } = item;
       if (!pre.vimCommandDocuments[label]) {
-        pre.vimCommandItems.push(item)
-        pre.vimCommandDocuments[label] = next.vimCommandDocuments[label]
+        pre.vimCommandItems.push(item);
+        pre.vimCommandDocuments[label] = next.vimCommandDocuments[label];
       }
-    })
+    });
     // merge options
-    next.vimOptionItems.forEach(item => {
-      const { label } = item
+    next.vimOptionItems.forEach((item) => {
+      const { label } = item;
       if (!pre.vimOptionDocuments[label]) {
-        pre.vimOptionItems.push(item)
-        pre.vimOptionDocuments[label] = next.vimOptionDocuments[label]
+        pre.vimOptionItems.push(item);
+        pre.vimOptionDocuments[label] = next.vimOptionDocuments[label];
       }
-    })
+    });
     // merge variables
-    next.vimPredefinedVariablesItems.forEach(item => {
-      const { label } = item
+    next.vimPredefinedVariablesItems.forEach((item) => {
+      const { label } = item;
       if (!pre.vimPredefinedVariableDocuments[label]) {
-        pre.vimPredefinedVariablesItems.push(item)
-        pre.vimPredefinedVariableDocuments[label] = next.vimPredefinedVariableDocuments[label]
+        pre.vimPredefinedVariablesItems.push(item);
+        pre.vimPredefinedVariableDocuments[label] = next.vimPredefinedVariableDocuments[label];
       }
-    })
+    });
     // merge features
-    next.vimFeatureItems.forEach(item => {
-      const { label } = item
+    next.vimFeatureItems.forEach((item) => {
+      const { label } = item;
       if (!pre.vimFeatureDocuments[label]) {
-        pre.vimFeatureItems.push(item)
-        pre.vimFeatureDocuments[label] = next.vimFeatureDocuments[label]
+        pre.vimFeatureItems.push(item);
+        pre.vimFeatureDocuments[label] = next.vimFeatureDocuments[label];
       }
-    })
+    });
     // merge expand key words
-    next.vimExpandKeywordItems.forEach(item => {
-      const { label } = item
+    next.vimExpandKeywordItems.forEach((item) => {
+      const { label } = item;
       if (!pre.expandKeywordDocuments[label]) {
-        pre.vimExpandKeywordItems.push(item)
-        pre.expandKeywordDocuments[label] = next.expandKeywordDocuments[label]
+        pre.vimExpandKeywordItems.push(item);
+        pre.expandKeywordDocuments[label] = next.expandKeywordDocuments[label];
       }
-    })
+    });
     // merge autocmd
-    next.vimAutocmdItems.forEach(item => {
-      const { label } = item
-      if (!pre.vimAutocmdItems.some(item => item.label === label)) {
-        pre.vimAutocmdItems.push(item)
+    next.vimAutocmdItems.forEach((item) => {
+      const { label } = item;
+      if (!pre.vimAutocmdItems.some((item) => item.label === label)) {
+        pre.vimAutocmdItems.push(item);
       }
-    })
+    });
     // merge signature help
     pre.vimBuiltFunctionSignatureHelp = {
       ...next.vimBuiltFunctionSignatureHelp,
-      ...pre.vimBuiltFunctionSignatureHelp
-    }
-    return pre
-  })
+      ...pre.vimBuiltFunctionSignatureHelp,
+    };
+    return pre;
+  });
 
-  server.serialize()
+  server.serialize();
 }
 
-main()
+main();
