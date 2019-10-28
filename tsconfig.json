@@ -62,6 +62,7 @@
   },
   "exclude": [
     "out",
+    "test",
     "node_modules"
   ]
 }
