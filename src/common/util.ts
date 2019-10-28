@@ -149,9 +149,9 @@ export function getWordFromPosition(
   const word = `${wordLeft && wordLeft[1] || ""}${wordRight && wordRight[1] || ""}`;
 
   return {
+    word,
     left: wordLeft && wordLeft[1] || "",
     right: wordRight && wordRight[1] || "",
-    word,
     wordLeft: wordLeft && wordLeft[1]
       ? preSegment.replace(new RegExp(`${wordLeft[1]}$`), word)
       : `${preSegment}${word}`,

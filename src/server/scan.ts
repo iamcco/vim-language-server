@@ -30,8 +30,8 @@ function initSource() {
       )).pipe(
         filter((projectRoot) => projectRoot && projectRoot !== os.homedir()),
         map((projectRoot) => ({
-          projectRoot,
           uri,
+          projectRoot,
         })),
       );
     }),

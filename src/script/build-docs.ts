@@ -82,23 +82,23 @@ class Server {
   public serialize() {
     const str = JSON.stringify({
       completionItems: {
-        autocmds: this.vimAutocmdItems,
         commands: this.vimCommandItems,
-        expandKeywords: this.vimExpandKeywordItems,
-        features: this.vimFeatureItems,
         functions: this.vimBuiltinFunctionItems,
-        options: this.vimOptionItems,
         variables: this.vimPredefinedVariablesItems,
-      },
-      documents: {
-        commands: this.vimCommandDocuments,
-        expandKeywords: this.expandKeywordDocuments,
-        features: this.vimFeatureDocuments,
-        functions: this.vimBuiltFunctionDocuments,
-        options: this.vimOptionDocuments,
-        variables: this.vimPredefinedVariableDocuments,
+        options: this.vimOptionItems,
+        features: this.vimFeatureItems,
+        expandKeywords: this.vimExpandKeywordItems,
+        autocmds: this.vimAutocmdItems,
       },
       signatureHelp: this.vimBuiltFunctionSignatureHelp,
+      documents: {
+        commands: this.vimCommandDocuments,
+        functions: this.vimBuiltFunctionDocuments,
+        variables: this.vimPredefinedVariableDocuments,
+        options: this.vimOptionDocuments,
+        features: this.vimFeatureDocuments,
+        expandKeywords: this.expandKeywordDocuments,
+      },
     }, null, 2);
     writeFileSync("./docs/builtin-docs.json", str, "utf-8");
   }
@@ -139,11 +139,11 @@ class Server {
           }
           const label = m[1];
           completionItem = {
+            label,
+            kind: CompletionItemKind.Variable,
+            sortText: sortTexts.four,
             insertText: label.slice(2),
             insertTextFormat: InsertTextFormat.PlainText,
-            kind: CompletionItemKind.Variable,
-            label,
-            sortText: sortTexts.four,
           };
           if (!this.vimPredefinedVariableDocuments[label]) {
             this.vimPredefinedVariableDocuments[label] = [];
@@ -181,13 +181,13 @@ class Server {
         if (m) {
           const label = m[1];
           completionItem = {
+            label,
+            kind: CompletionItemKind.Property,
             detail: m[3].trim().split(/[ \t]/)[0],
             documentation: "",
+            sortText: "00004",
             insertText: m[1],
             insertTextFormat: InsertTextFormat.PlainText,
-            kind: CompletionItemKind.Property,
-            label,
-            sortText: "00004",
           };
           if (!this.vimOptionDocuments[label]) {
             this.vimOptionDocuments[label] = [];
@@ -225,12 +225,12 @@ class Server {
           }
           const label = m[2];
           completionItem = {
+            label,
+            kind: CompletionItemKind.Function,
             detail: (m[4] || "").split(/[ \t]/)[0],
+            sortText: "00004",
             insertText: this.formatFunctionSnippets(m[2], m[3]),
             insertTextFormat: InsertTextFormat.Snippet,
-            kind: CompletionItemKind.Function,
-            label,
-            sortText: "00004",
           };
           this.vimBuiltFunctionSignatureHelp[label] = [
             m[3],
@@ -312,13 +312,13 @@ class Server {
         }
         const label = m[2];
         completionItem = {
+          label,
+          kind: CompletionItemKind.Function,
           detail: "",
           documentation: "",
+          sortText: "00004",
           insertText: this.formatFunctionSnippets(m[2], m[3]),
           insertTextFormat: InsertTextFormat.Snippet,
-          kind: CompletionItemKind.Function,
-          label,
-          sortText: "00004",
         };
         if (!this.vimBuiltFunctionDocuments[label]) {
           this.vimBuiltFunctionDocuments[label] = [];
@@ -362,13 +362,13 @@ class Server {
           }
           const label = m[1];
           completionItem = {
+            label: m[1],
+            kind: CompletionItemKind.Operator,
             detail: m[2],
             documentation: m[3],
+            sortText: "00004",
             insertText: m[1],
             insertTextFormat: InsertTextFormat.PlainText,
-            kind: CompletionItemKind.Operator,
-            label: m[1],
-            sortText: "00004",
           };
           if (!this.vimCommandDocuments[label]) {
             this.vimCommandDocuments[label] = [];
@@ -413,12 +413,12 @@ class Server {
           }
           const label = m[1];
           completionItem = {
+            label: m[1],
+            kind: CompletionItemKind.EnumMember,
             documentation: "",
+            sortText: "00004",
             insertText: m[1],
             insertTextFormat: InsertTextFormat.PlainText,
-            kind: CompletionItemKind.EnumMember,
-            label: m[1],
-            sortText: "00004",
           };
           if (!this.vimFeatureDocuments[label]) {
             this.vimFeatureDocuments[label] = [];
@@ -454,12 +454,12 @@ class Server {
         const m = line.match(/^\|([^ \t]+)\|[ \t]+([^ \t].*)$/);
         if (m) {
           this.vimAutocmdItems.push({
+            label: m[1],
+            kind: CompletionItemKind.EnumMember,
             documentation: m[2],
+            sortText: "00004",
             insertText: m[1],
             insertTextFormat: InsertTextFormat.PlainText,
-            kind: CompletionItemKind.EnumMember,
-            label: m[1],
-            sortText: "00004",
           });
           if (m[1] === "Signal") {
             break;
@@ -486,12 +486,12 @@ class Server {
           item[1],
         ];
         return {
+          label: item[0],
+          kind: CompletionItemKind.Keyword,
           documentation: item[1],
+          sortText: "00004",
           insertText: item[0],
           insertTextFormat: InsertTextFormat.PlainText,
-          kind: CompletionItemKind.Keyword,
-          label: item[0],
-          sortText: "00004",
         };
       });
   }

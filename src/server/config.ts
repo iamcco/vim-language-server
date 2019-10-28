@@ -39,10 +39,10 @@ export default {
 
   get indexes(): IIndexes {
     const defaults = {
-      count: 1,
-      gap: 100,
-      projectRootPatterns,
       runtimepath: true,
+      gap: 100,
+      count: 1,
+      projectRootPatterns,
     };
 
     if (!conf || !conf.indexes) {

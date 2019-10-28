@@ -24,11 +24,11 @@ export const prepareProvider = (params: TextDocumentPositionParams): {
   }
 
   return {
-    placeholder: currentName,
     range: Range.create(
       Position.create(position.line, position.character - words.left.length),
       Position.create(position.line, position.character + words.right.length - 1),
     ),
+    placeholder: currentName,
   };
 };
 
