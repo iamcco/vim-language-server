@@ -2,7 +2,7 @@ import URIParser from "vscode-uri";
 
 import { CompletionItem, Location, Position, Range } from "vscode-languageserver";
 import { findProjectRoot } from "../common/util";
-import { Node } from "../lib/vimparser";
+import { INode } from "../lib/vimparser";
 import { Buffer, IFunction, IIdentifier } from "./buffer";
 import config from "./config";
 // import logger from '../common/logger';
@@ -19,7 +19,7 @@ export class Workspace {
     return false;
   }
 
-  public async updateBuffer(uri: string, node: Node) {
+  public async updateBuffer(uri: string, node: INode) {
     if (!node) {
       return;
     }

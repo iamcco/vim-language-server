@@ -3,7 +3,7 @@ import findup from "findup";
 import path from "path";
 import { Readable } from "stream";
 import { CompletionItem, InsertTextFormat, Position, Range, TextDocument } from "vscode-languageserver";
-import { Node, StringReader, VimLParser } from "../lib/vimparser";
+import { INode, StringReader, VimLParser } from "../lib/vimparser";
 import { commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern } from "./patterns";
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
@@ -57,7 +57,7 @@ export function executeFile(
 
     // error will occur when cp get error
     if (!isPassAsText) {
-      input.pipe(cp.stdin).on("error", () => {});
+      input.pipe(cp.stdin).on("error", () => { return; });
     }
 
   });
@@ -150,19 +150,23 @@ export function getWordFromPosition(
 
   return {
     word,
-    wordLeft: wordLeft && wordLeft[1] ? preSegment.replace(new RegExp(`${wordLeft[1]}$`), word) : `${preSegment}${word}`,
-    wordRight: wordRight && wordRight[1] ? nextSegment.replace(new RegExp(`^${wordRight[1]}`), word) : `${word}${nextSegment}`,
     left: wordLeft && wordLeft[1] || "",
     right: wordRight && wordRight[1] || "",
+    wordLeft: wordLeft && wordLeft[1]
+      ? preSegment.replace(new RegExp(`${wordLeft[1]}$`), word)
+      : `${preSegment}${word}`,
+    wordRight: wordRight && wordRight[1]
+      ? nextSegment.replace(new RegExp(`^${wordRight[1]}`), word)
+      : `${word}${nextSegment}`,
   };
 }
 
 // parse vim buffer
-export async function handleParse(textDoc: TextDocument | string): Promise<[Node | null, string]> {
+export async function handleParse(textDoc: TextDocument | string): Promise<[INode | null, string]> {
   const text = textDoc instanceof Object ? textDoc.getText() : textDoc;
   const tokens = new StringReader(text);
   try {
-    const node: Node = new VimLParser(true).parse(tokens);
+    const node: INode = new VimLParser(true).parse(tokens);
     return [node, ""];
   } catch (error) {
     return [null, error];

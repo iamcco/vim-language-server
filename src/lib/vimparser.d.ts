@@ -1,34 +1,34 @@
-export declare interface Pos {
+export declare interface IPos {
   lnum: number;
   col: number;
   offset: number;
 }
 
-export declare interface Node {
+export declare interface INode {
   type: number;
-  pos: Pos;
-  body: Node[];
+  pos: IPos;
+  body: INode[];
   ea: {
-    linepos: Pos
-    cmdpos: Pos
-    argpos: Pos
+    linepos: IPos
+    cmdpos: IPos
+    argpos: IPos
     cmd: {
       name: string,
     },
   };
-  cond?: Node;
-  elseif?: Node[];
-  _else?: Node;
+  cond?: INode;
+  elseif?: INode[];
+  _else?: INode;
   op?: string;
-  catch?: Node[];
-  _finally?: Node;
-  left: Node;
-  right: Node;
-  rlist: Node[];
+  catch?: INode[];
+  _finally?: INode;
+  left: INode;
+  right: INode;
+  rlist: INode[];
   str: string;
   value?: any;
-  endfunction?: Node;
-  list?: Node[];
+  endfunction?: INode;
+  list?: INode[];
 }
 
 export declare class StringReader {
@@ -39,5 +39,5 @@ export declare class StringReader {
 
 export declare class VimLParser {
   constructor(isNeovim: boolean)
-  public parse(stringReader: StringReader): Node;
+  public parse(stringReader: StringReader): INode;
 }

@@ -1,7 +1,7 @@
 import { CompletionItem, CompletionItemKind, InsertTextFormat } from "vscode-languageserver";
 import { sortTexts } from "../common/constant";
 import logger from "../common/logger";
-import { Node, Pos } from "../lib/vimparser";
+import { INode, IPos } from "../lib/vimparser";
 
 const log = logger("buffer");
 
@@ -103,7 +103,7 @@ const NODE_CONST = 94;
  */
 export interface IFunction {
   name: string;
-  args: Node[];
+  args: INode[];
   startLine: number;
   startCol: number;
   endLine: number;
@@ -112,7 +112,7 @@ export interface IFunction {
 
 export interface IFunRef {
   name: string;
-  args: Node[];
+  args: INode[];
   startLine: number;
   startCol: number;
 }
@@ -147,7 +147,7 @@ export class Buffer {
   constructor(
     private uri: string,
     private projectRoot: string,
-    private node: Node,
+    private node: INode,
   ) {
     this.updateBufferByNode(this.node);
   }
@@ -192,7 +192,7 @@ export class Buffer {
     return this.projectRoot === workUri;
   }
 
-  public updateBufferByNode(node: Node) {
+  public updateBufferByNode(node: INode) {
     this.node = node;
     this.resetProperties();
     try {
@@ -394,8 +394,8 @@ export class Buffer {
     this.envRefs = {};
   }
 
-  private resolveCompletionItems(nodes: Node | Node[]) {
-    let nodeList: Node[] = [].concat(nodes);
+  private resolveCompletionItems(nodes: INode | INode[]) {
+    let nodeList: INode[] = [].concat(nodes);
     while (nodeList.length > 0) {
       const node = nodeList.pop();
       switch (node.type) {
@@ -509,7 +509,7 @@ export class Buffer {
           break;
         case NODE_DICT:
           nodeList = nodeList.concat(
-            (node.value || []).map((item: [Node, Node]) => item[1]),
+            (node.value || []).map((item: [INode, INode]) => item[1]),
           );
           break;
         case NODE_SLICE:
@@ -547,7 +547,7 @@ export class Buffer {
     // log.info(`parse_buffer: ${JSON.stringify(this)}`)
   }
 
-  private takeFunction(node: Node) {
+  private takeFunction(node: INode) {
     const { left, rlist, endfunction } = node;
     const name = this.getDotName(left);
     if (!name) {
@@ -584,7 +584,7 @@ export class Buffer {
    * - let funcName = function()
    * - let funcName = funcref()
    */
-  private takeFunctionByRef(node: Node): boolean {
+  private takeFunctionByRef(node: INode): boolean {
     const { left, right } = node;
     if (!right || right.type !== NODE_CALL) {
       return;
@@ -629,14 +629,14 @@ export class Buffer {
     return false;
   }
 
-  private takeFuncRef(node: Node) {
+  private takeFuncRef(node: INode) {
     const { left, rlist } = node;
     let name = "";
     if (left.type === NODE_IDENTIFIER) {
       name = left.value;
     // <SID>funName
     } else if (left.type === NODE_CURLYNAME) {
-      name = ((left.value || []) as Node[]).map((item) => item.value).join("");
+      name = ((left.value || []) as INode[]).map((item) => item.value).join("");
     } else if (left.type === NODE_DOT) {
       name = this.getDotName(left);
     }
@@ -675,7 +675,7 @@ export class Buffer {
    * - function('funcName')
    * - funcref('funcName')
    */
-  private takeFuncRefByRef(node: Node) {
+  private takeFuncRefByRef(node: INode) {
     const { left, rlist } = node;
     const funcNode = rlist && rlist[0];
     if (
@@ -717,7 +717,7 @@ export class Buffer {
    * - command
    * - map
    */
-  private takeFuncRefByExcmd(node: Node) {
+  private takeFuncRefByExcmd(node: INode) {
     const { pos, str } = node;
     if (!str) {
       return;
@@ -756,7 +756,7 @@ export class Buffer {
     }
   }
 
-  private takeLet(node: Node) {
+  private takeLet(node: INode) {
     const pos = this.getDotPos(node.left);
     const name = this.getDotName(node.left);
     if (!pos || !name) {
@@ -785,7 +785,7 @@ export class Buffer {
     }
   }
 
-  private takeFor(nodes: Node[]) {
+  private takeFor(nodes: INode[]) {
     nodes.forEach((node) => {
       if (node.type !== NODE_IDENTIFIER || !node.pos) {
         return;
@@ -815,7 +815,7 @@ export class Buffer {
     });
   }
 
-  private takeIdentifier(node: Node) {
+  private takeIdentifier(node: INode) {
     const name = this.getDotName(node);
     if (!name) {
       return;
@@ -847,7 +847,7 @@ export class Buffer {
     }
   }
 
-  private getDotPos(node: Node): Pos | null {
+  private getDotPos(node: INode): IPos | null {
     if (!node) {
       return null;
     }
@@ -862,7 +862,7 @@ export class Buffer {
     return this.getDotPos(left);
   }
 
-  private getDotName(node: Node) {
+  private getDotName(node: INode) {
     if (
       node.type === NODE_IDENTIFIER ||
       node.type === NODE_STRING ||
@@ -871,7 +871,7 @@ export class Buffer {
     ) {
       return node.value;
     } else if (node.type === NODE_CURLYNAME) {
-      return ((node.value || []) as Node[]).map((item) => item.value).join("");
+      return ((node.value || []) as INode[]).map((item) => item.value).join("");
     } else if (node.type === NODE_SUBSCRIPT) {
       return this.getDotName(node.left);
     }
