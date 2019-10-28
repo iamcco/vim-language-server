@@ -53,8 +53,8 @@ function startIndex() {
 
   scanProcess.send({
     config: {
-      gap: config.indexes.gap,
       count: config.indexes.count,
+      gap: config.indexes.gap,
       projectRootPatterns: config.indexes.projectRootPatterns,
     },
   });

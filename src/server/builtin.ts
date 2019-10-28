@@ -122,17 +122,17 @@ class Builtin {
     const params = this.vimBuiltFunctionSignatureHelp[name];
     if (params) {
       return {
+        activeParameter: idx,
+        activeSignature: 0,
         signatures: [{
-          label: `${name}(${params[0]})${params[1] ? `: ${params[1]}` : ""}`,
           documentation: this.formatVimDocument(this.vimBuiltFunctionDocuments[name]),
+          label: `${name}(${params[0]})${params[1] ? `: ${params[1]}` : ""}`,
           parameters: params[0].split("[")[0].split(",").map((param) => {
             return {
               label: param.trim(),
             };
           }),
         }],
-        activeSignature: 0,
-        activeParameter: idx,
       };
     }
     return;
@@ -301,11 +301,11 @@ class Builtin {
     this.vimMapArgsItems = [ "<buffer>", "<nowait>", "<silent>", "<script>", "<expr>", "<unique>" ]
       .map((item) => {
         return {
-          label: item,
-          kind: CompletionItemKind.EnumMember,
           documentation: "",
           insertText: item,
           insertTextFormat: InsertTextFormat.PlainText,
+          kind: CompletionItemKind.EnumMember,
+          label: item,
         };
       });
   }
@@ -330,10 +330,10 @@ class Builtin {
     this.colorschemeItems = colorschemes.map((p) => {
       const label = path.basename(p, ".vim");
       const item: CompletionItem = {
-        label,
-        kind: CompletionItemKind.EnumMember,
         insertText: label,
         insertTextFormat: InsertTextFormat.PlainText,
+        kind: CompletionItemKind.EnumMember,
+        label,
       };
       return item;
     });
@@ -355,11 +355,11 @@ class Builtin {
     ]
     .map((item) => {
       return {
-        label: item,
-        kind: CompletionItemKind.EnumMember,
         documentation: "",
         insertText: `${item}=$\{0\}`,
         insertTextFormat: InsertTextFormat.Snippet,
+        kind: CompletionItemKind.EnumMember,
+        label: item,
       };
     });
   }
@@ -406,11 +406,11 @@ class Builtin {
     const argValues: Record<string, CompletionItem[]> = {};
     Object.keys(values).forEach((key) => {
       const items: CompletionItem[] = values[key].map((val: string) => ({
-        label: val,
-        kind: CompletionItemKind.EnumMember,
         documentation: "",
         insertText: val,
         insertTextFormat: InsertTextFormat.PlainText,
+        kind: CompletionItemKind.EnumMember,
+        label: val,
       }));
       key.split(" ").forEach((name) => {
         argValues[name] = items;

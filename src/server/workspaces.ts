@@ -175,11 +175,11 @@ export class Workspace {
 
   private getLocation(uri: string, item: IFunction | IIdentifier): Location {
     return {
-      uri,
       range: Range.create(
         Position.create(item.startLine - 1, item.startCol - 1),
         Position.create(item.startLine - 1, item.startCol - 1 + item.name.length),
       ),
+      uri,
     };
   }
 
@@ -378,11 +378,11 @@ export class Workspace {
               return false;
             });
             return {
-              uri,
               range: Range.create(
                 Position.create(startLine, startCol),
                 Position.create(startLine, endCol),
               ),
+              uri,
             };
           });
       }
@@ -412,11 +412,11 @@ export class Workspace {
               flist.forEach((fitem) => {
                 if (fitem.startLine < item.startLine && item.startLine < fitem.endLine) {
                   res.push({
-                    uri,
                     range: Range.create(
                       Position.create(item.startLine - 1, item.startCol - 1),
                       Position.create(item.startLine - 1, item.startCol - 1 + item.name.length),
                     ),
+                    uri,
                   });
                 }
               });
@@ -478,11 +478,11 @@ export class Workspace {
             identifiers[key].forEach((item) => {
               if (startLine < item.startLine && item.startLine < endLine) {
                 res.push({
-                  uri,
                   range: Range.create(
                     Position.create(item.startLine - 1, item.startCol - 1),
                     Position.create(item.startLine - 1, item.startCol - 1 + item.name.length),
                   ),
+                  uri,
                 });
               }
             });
@@ -522,11 +522,11 @@ export class Workspace {
               return false;
             });
             return {
-              uri,
               range: Range.create(
                 Position.create(startLine, startCol),
                 Position.create(startLine, endCol),
               ),
+              uri,
             };
           });
       }

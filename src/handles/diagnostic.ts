@@ -14,7 +14,6 @@ export async function handleDiagnostic(
   const m = (error || "").match(errorLinePattern);
   if (m) {
    return connection.sendDiagnostics({
-      uri: textDoc.uri,
       diagnostics: [{
         message: m[1],
         range: Range.create(
@@ -23,12 +22,13 @@ export async function handleDiagnostic(
         ),
         severity: DiagnosticSeverity.Error,
       }],
+      uri: textDoc.uri,
     });
   }
 
   // clear diagnostics
   connection.sendDiagnostics({
-    uri: textDoc.uri,
     diagnostics: [],
+    uri: textDoc.uri,
   });
 }

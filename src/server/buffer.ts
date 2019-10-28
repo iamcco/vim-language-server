@@ -339,11 +339,11 @@ export class Buffer {
         return res;
       }, [])
       .map((name) => ({
-        label: `a:${name}`,
-        kind: CompletionItemKind.Variable,
-        sortText: sortTexts.one,
         insertText: `a:${name}`,
         insertTextFormat: InsertTextFormat.PlainText,
+        kind: CompletionItemKind.Variable,
+        label: `a:${name}`,
+        sortText: sortTexts.one,
       }));
     if (startLine !== -1 && endLine !== -1) {
       const funcLocalIdentifiers = this.getIdentifierItems(this.localVariables, sortTexts.one)
@@ -373,10 +373,10 @@ export class Buffer {
   public getEnvItems(): CompletionItem[] {
     return Object.keys(this.envs).map<CompletionItem>((name) => {
       return {
-        label: name,
         insertText: name,
-        sortText: sortTexts.three,
         insertTextFormat: InsertTextFormat.PlainText,
+        label: name,
+        sortText: sortTexts.three,
       };
     });
   }
@@ -558,12 +558,12 @@ export class Buffer {
       return;
     }
     const func: IFunction = {
-      name,
       args: rlist || [],
-      startLine: pos.lnum,
-      startCol: pos.col,
-      endLine: endfunction!.pos.lnum,
       endCol: endfunction!.pos.col,
+      endLine: endfunction!.pos.lnum,
+      name,
+      startCol: pos.col,
+      startLine: pos.lnum,
     };
     if (globalFuncPattern.test(name)) {
       if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {
@@ -606,12 +606,12 @@ export class Buffer {
       return false;
     }
     const func: IFunction = {
-      name,
       args: [],
-      startLine: pos.lnum,
-      startCol: pos.col,
-      endLine: pos.lnum,
       endCol: pos.col,
+      endLine: pos.lnum,
+      name,
+      startCol: pos.col,
+      startLine: pos.lnum,
     };
     if (globalFuncPattern.test(name)) {
       if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {
@@ -648,10 +648,10 @@ export class Buffer {
       return;
     }
     const funcRef: IFunRef = {
-      name,
       args: rlist || [],
-      startLine: pos.lnum,
+      name,
       startCol: pos.col,
+      startLine: pos.lnum,
     };
 
     if (globalFuncPattern.test(name)) {
@@ -691,10 +691,10 @@ export class Buffer {
     // delete '/" of function name
     const name = (funcNode.value as string).replace(/^['"]|['"]$/g, "");
     const funcRef: IFunRef = {
-      name,
       args: [],
-      startLine: funcNode.pos.lnum,
+      name,
       startCol: funcNode.pos.col + 1, // +1 by '/"
+      startLine: funcNode.pos.lnum,
     };
 
     if (globalFuncPattern.test(name)) {
@@ -734,10 +734,10 @@ export class Buffer {
       const name = m[1];
       if (name) {
         const funcRef: IFunRef = {
-          name,
           args: [],
-          startLine: pos.lnum,
+          name,
           startCol: pos.col + m.index,
+          startLine: pos.lnum,
         };
 
         if (globalFuncPattern.test(name)) {
@@ -764,8 +764,8 @@ export class Buffer {
     }
     const identifier: IIdentifier =  {
       name,
-      startLine: pos.lnum,
       startCol: pos.col,
+      startLine: pos.lnum,
     };
     if (localVariablePattern.test(name)) {
       if (!this.localVariables[name] || !Array.isArray(this.localVariables[name])) {
@@ -793,8 +793,8 @@ export class Buffer {
       const name = node.value;
       const identifier: IIdentifier =  {
         name,
-        startLine: node.pos.lnum,
         startCol: node.pos.col,
+        startLine: node.pos.lnum,
       };
       if (localVariablePattern.test(name)) {
         if (!this.localVariables[name] || !Array.isArray(this.localVariables[name])) {
@@ -826,8 +826,8 @@ export class Buffer {
     }
     const identifier: IIdentifier = {
       name,
-      startLine: pos.lnum,
       startCol: pos.col,
+      startLine: pos.lnum,
     };
     if (globalVariablePattern.test(name)) {
       if (!this.globalVariableRefs[name] || !Array.isArray(this.globalVariableRefs[name])) {
@@ -908,13 +908,13 @@ export class Buffer {
         label = name.replace(/^<SID>/, "s:");
       }
       return {
-        label,
         detail: "any",
-        sortText,
         documentation: "User defined function",
-        kind: CompletionItemKind.Function,
         insertText: `${label}(${args})\${0}`,
         insertTextFormat: InsertTextFormat.Snippet,
+        kind: CompletionItemKind.Function,
+        label,
+        sortText,
       };
     });
   }
@@ -925,13 +925,13 @@ export class Buffer {
       .map<CompletionItem>((name) => {
         const list: IIdentifier[] = items[name];
         return {
-          label: name,
-          kind: CompletionItemKind.Variable,
-          sortText,
+          data: list || [],
           documentation: "User defined variable",
           insertText: name,
           insertTextFormat: InsertTextFormat.PlainText,
-          data: list || [],
+          kind: CompletionItemKind.Variable,
+          label: name,
+          sortText,
         };
       });
   }
