@@ -28,6 +28,11 @@ const OPTIONS_PATH = "/doc/options.txt";
 const INDEX_PATH = "/doc/index.txt";
 const API_PATH = "/doc/api.txt";
 const AUTOCMD_PATH = "/doc/autocmd.txt";
+const POPUP_PATH = "/doc/popup.txt";
+const CHANNEL_PATH = "/doc/channel.txt";
+const TEXTPROP_PATH = "/doc/textprop.txt";
+const TERMINAL_PATH = "/doc/terminal.txt";
+const TESTING_PATH = "/doc/testing.txt";
 
 class Server {
 
@@ -58,7 +63,18 @@ class Server {
   public async build() {
     const { vimruntime } = this.config;
     if (vimruntime) {
-      const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH, AUTOCMD_PATH];
+      const paths = [
+        EVAL_PATH,
+        OPTIONS_PATH,
+        INDEX_PATH,
+        API_PATH,
+        AUTOCMD_PATH,
+        POPUP_PATH,
+        CHANNEL_PATH,
+        TEXTPROP_PATH,
+        TERMINAL_PATH,
+        TESTING_PATH,
+      ];
       // tslint:disable-next-line: prefer-for-of
       for (let index = 0; index < paths.length; index++) {
         const p = join(vimruntime, paths[index]);
@@ -73,6 +89,12 @@ class Server {
       this.resolveVimOptions();
       this.resolveBuiltinFunctions();
       this.resolveBuiltinFunctionsDocument();
+      this.resolveBuiltinVimPopupFunctionsDocument();
+      this.resolveBuiltinVimChannelFunctionsDocument();
+      this.resolveBuiltinVimJobFunctionsDocument();
+      this.resolveBuiltinVimTextpropFunctionsDocument();
+      this.resolveBuiltinVimTerminalFunctionsDocument();
+      this.resolveBuiltinVimTestingFunctionsDocument();
       this.resolveBuiltinNvimFunctions();
       this.resolveExpandKeywords();
       this.resolveVimCommands();
@@ -276,6 +298,211 @@ class Server {
             this.vimBuiltFunctionDocuments[label] = [];
           }
         } else if (/^[ \t]*\*string-match\*[ \t]*$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimPopupFunctionsDocument() {
+    const popupText = this.text[POPUP_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    for (let idx = 0; idx < popupText.length; idx++) {
+      const line = popupText[idx];
+      if (!isMatchLine) {
+        if (/^DETAILS\s+\*popup-function-details\*/.test(line)) {
+          isMatchLine = true;
+          idx += 1;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimChannelFunctionsDocument() {
+    const channelText = this.text[CHANNEL_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    for (let idx = 0; idx < channelText.length; idx++) {
+      const line = channelText[idx];
+      if (!isMatchLine) {
+        if (/^8\.\sChannel\sfunctions\sdetails\s+\*channel-functions-details\*/.test(line)) {
+          isMatchLine = true;
+          idx += 1;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimJobFunctionsDocument() {
+    const channelText = this.text[CHANNEL_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    for (let idx = 0; idx < channelText.length; idx++) {
+      const line = channelText[idx];
+      if (!isMatchLine) {
+        if (/^11\.\sJob\sfunctions\s+\*job-functions-details\*/.test(line)) {
+          isMatchLine = true;
+          idx += 1;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimTextpropFunctionsDocument() {
+    const textpropText = this.text[TEXTPROP_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    // tslint:disable-next-line: prefer-for-of
+    for (let idx = 0; idx < textpropText.length; idx++) {
+      const line = textpropText[idx];
+      if (!isMatchLine) {
+        if (/^\s+\*prop_add\(\)\*\s\*E965/.test(line)) {
+          isMatchLine = true;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimTerminalFunctionsDocument() {
+    const terminalText = this.text[TERMINAL_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    // tslint:disable-next-line: prefer-for-of
+    for (let idx = 0; idx < terminalText.length; idx++) {
+      const line = terminalText[idx];
+      if (!isMatchLine) {
+        if (/^\s+\*term_dumpdiff\(\)/.test(line)) {
+          isMatchLine = true;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          break;
+        } else if (label) {
+          this.vimBuiltFunctionDocuments[label].push(line);
+        }
+      }
+    }
+  }
+
+  private resolveBuiltinVimTestingFunctionsDocument() {
+    const testingText = this.text[TESTING_PATH] || [];
+    let isMatchLine = false;
+    let label: string = "";
+    // tslint:disable-next-line: prefer-for-of
+    for (let idx = 0; idx < testingText.length; idx++) {
+      const line = testingText[idx];
+      if (!isMatchLine) {
+        if (/^2\.\sTest\sfunctions\s+\*test-functions-details\*/.test(line)) {
+          isMatchLine = true;
+          idx += 1;
+        }
+        continue;
+      } else {
+        const m = line.match(/^((\w+)\(([^)]*)\))[ \t]*([^ \t].*)?$/);
+        if (m) {
+          if (label) {
+            this.vimBuiltFunctionDocuments[label].pop();
+          }
+          label = m[2];
+          if (!this.vimBuiltFunctionDocuments[label]) {
+            this.vimBuiltFunctionDocuments[label] = [];
+          }
+        } else if (/^=+$/.test(line)) {
           if (label) {
             this.vimBuiltFunctionDocuments[label].pop();
           }
