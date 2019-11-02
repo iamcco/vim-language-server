@@ -59,10 +59,12 @@ class Server {
     const { vimruntime } = this.config;
     if (vimruntime) {
       const paths = [EVAL_PATH, OPTIONS_PATH, INDEX_PATH, API_PATH, AUTOCMD_PATH];
+      // tslint:disable-next-line: prefer-for-of
       for (let index = 0; index < paths.length; index++) {
         const p = join(vimruntime, paths[index]);
         const [err, data]: [Error, Buffer] = await pcb(readFile)(p, "utf-8");
         if (err) {
+          // tslint:disable-next-line: no-console
           console.error(`[vimls]: read ${p} error: ${ err.message}`);
         }
         this.text[paths[index]] = (data && data.toString().split("\n")) || [];
@@ -100,7 +102,7 @@ class Server {
         expandKeywords: this.expandKeywordDocuments,
       },
     }, null, 2);
-    writeFileSync("./docs/builtin-docs.json", str, "utf-8");
+    writeFileSync("./src/docs/builtin-docs.json", str, "utf-8");
   }
 
   private formatFunctionSnippets(fname: string, snippets: string): string {
@@ -122,8 +124,7 @@ class Server {
     const evalText = this.text[EVAL_PATH] || [];
     let isMatchLine = false;
     let completionItem: CompletionItem;
-    for (let idx = 0; idx < evalText.length; idx++) {
-      const line = evalText[idx];
+    for (const line of evalText) {
       if (!isMatchLine) {
         if (/\*vim-variable\*/.test(line)) {
           isMatchLine = true;
@@ -169,8 +170,7 @@ class Server {
     const optionsText: string[] = this.text[OPTIONS_PATH] || [];
     let isMatchLine = false;
     let completionItem: CompletionItem;
-    for (let idx = 0; idx < optionsText.length; idx++) {
-      const line = optionsText[idx];
+    for (const line of optionsText) {
       if (!isMatchLine) {
         if (/\*'aleph'\*/.test(line)) {
           isMatchLine = true;
@@ -210,8 +210,7 @@ class Server {
     const evalText = this.text[EVAL_PATH] || [];
     let isMatchLine = false;
     let completionItem: CompletionItem;
-    for (let idx = 0; idx < evalText.length; idx++) {
-      const line = evalText[idx];
+    for (const line of evalText) {
       if (!isMatchLine) {
         if (/\*functions\*/.test(line)) {
           isMatchLine = true;
@@ -347,8 +346,7 @@ class Server {
     const indexText = this.text[INDEX_PATH] || [];
     let isMatchLine = false;
     let completionItem: CompletionItem;
-    for (let idx = 0; idx < indexText.length; idx++) {
-      const line = indexText[idx];
+    for (const line of indexText) {
       if (!isMatchLine) {
         if (/\*ex-cmd-index\*/.test(line)) {
           isMatchLine = true;
@@ -560,7 +558,7 @@ async function main() {
     // merge autocmd
     next.vimAutocmdItems.forEach((item) => {
       const { label } = item;
-      if (!pre.vimAutocmdItems.some((item) => item.label === label)) {
+      if (!pre.vimAutocmdItems.some((n) => n.label === label)) {
         pre.vimAutocmdItems.push(item);
       }
     });

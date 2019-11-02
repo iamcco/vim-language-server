@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-require('../out/script/build-docs')
+require('../out/build-docs')

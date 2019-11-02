@@ -64,7 +64,6 @@ class Builtin {
   private vimCommandDocuments: Record<string, string[]> = {};
   private vimFeatureDocuments: Record<string, string[]> = {};
   private expandKeywordDocuments: Record<string, string[]> = {};
-  constructor() {}
 
   public init() {
     this.start();
@@ -225,7 +224,7 @@ class Builtin {
         contents: this.formatVimDocument(this.expandKeywordDocuments[`<${name}>`]),
       };
     // command
-    } if (isSomeMatchPattern(commandPattern, pre) && this.vimCommandDocuments[name]) {
+    } else if (isSomeMatchPattern(commandPattern, pre) && this.vimCommandDocuments[name]) {
       return {
         contents: this.formatVimDocument(this.vimCommandDocuments[name]),
       };

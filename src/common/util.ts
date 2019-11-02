@@ -67,10 +67,10 @@ export function executeFile(
 export function pcb(
   cb: (...args: any[]) => void,
 ): (...args: any[]) => Promise<any> {
-  return function(...args: any[]): Promise<any> {
+  return (...args: any[]): Promise<any> => {
     return new Promise((resolve) => {
-      cb(...args, function(...args: any[]) {
-        resolve(args);
+      cb(...args, (...params: any[]) => {
+        resolve(params);
       });
     });
   };

@@ -276,7 +276,8 @@ export class Buffer {
 
         localVariables.forEach((l) => {
           if ((l.data as IIdentifier[]).some((identifier) => {
-            return funList.every((fun) => !(fun.startLine < identifier.startLine && identifier.startLine < fun.endLine));
+            return funList.every((fun) =>
+              !(fun.startLine < identifier.startLine && identifier.startLine < fun.endLine));
           })) {
             globalVariables.push(l);
           }
@@ -723,6 +724,7 @@ export class Buffer {
       return;
     }
 
+    // tslint:disable-next-line: max-line-length
     if (!/^[ \t]*((au|aut|auto|autoc|autocm|autocmd|com|comm|comma|comman|command)!?[ \t]+|([a-zA-Z]*map!?[ \t]+.*?:))/.test(str)) {
       return;
     }

@@ -66,14 +66,14 @@ export function next(
   if (!parserHandles[textDoc.uri]) {
     const { uri } = textDoc;
     parserHandles[uri] = origin$.pipe(
-      filter((textDoc: TextDocument) => uri === textDoc.uri),
-      switchMap((textDoc: TextDocument) => {
+      filter((td: TextDocument) => uri === td.uri),
+      switchMap((td: TextDocument) => {
         return timer(100).pipe(
-          map(() => textDoc),
+          map(() => td),
         );
       }),
-      waitMap((textDoc: TextDocument) => {
-        return from(handleParse(textDoc));
+      waitMap((td: TextDocument) => {
+        return from(handleParse(td));
       }, true),
     ).subscribe(
       (res) => {
@@ -121,8 +121,7 @@ export function scan(paths: string | string[]) {
   if (config.indexes.runtimepath) {
     const list: string[] = [].concat(paths);
 
-    for (let idx = 0; idx < list.length; idx++) {
-      let p = list[idx];
+    for (let p of list) {
       if (!p) {
         continue;
       }

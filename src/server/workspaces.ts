@@ -127,8 +127,8 @@ export class Workspace {
         return b.isBelongToWorkdir(buf.getProjectRoot());
       });
     return this.filterDuplicate(
-      buffers.reduce<CompletionItem[]>((res, buf) => {
-        return res.concat(buf.getGlobalFunctionItems());
+      buffers.reduce<CompletionItem[]>((res, cur) => {
+        return res.concat(cur.getGlobalFunctionItems());
       }, []),
     );
   }
@@ -154,10 +154,10 @@ export class Workspace {
         return b.isBelongToWorkdir(buf.getProjectRoot());
       });
     return this.filterDuplicate(
-      buffers.reduce<CompletionItem[]>((res, buf) => {
+      buffers.reduce<CompletionItem[]>((res, cur) => {
         return res
-          .concat(buf.getGlobalIdentifierItems())
-          .concat(buf.getEnvItems());
+          .concat(cur.getGlobalIdentifierItems())
+          .concat(cur.getEnvItems());
       }, []),
     );
   }
@@ -185,7 +185,9 @@ export class Workspace {
 
   private getGlobalLocaltion(
     name: string,
+    // tslint:disable-next-line: variable-name
     _uri: string,
+    // tslint:disable-next-line: variable-name
     _position: Position,
     locationType: "definition" | "references",
   ): Location[] {
@@ -215,11 +217,11 @@ export class Workspace {
       });
       // filter function local variables
       if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
-        const gloalFunctions = this.buffers[uri].getGlobalFunctions();
+        const glFunctions = this.buffers[uri].getGlobalFunctions();
         const scriptFunctions = this.buffers[uri].getScriptFunctions();
-        const funList = Object.values(gloalFunctions).concat(
+        const funList = Object.values(glFunctions).concat(
           Object.values(scriptFunctions),
-        ).reduce((res, fs) => res.concat(fs), []);
+        ).reduce((aur, fs) => aur.concat(fs), []);
         tmp.forEach((l) => {
           if (!funList.some((fun) => {
             return fun.startLine - 1 < l.range.start.line && l.range.start.line < fun.endLine - 1;
@@ -238,6 +240,7 @@ export class Workspace {
   private getScriptLocation(
     names: string[],
     uri: string,
+    // tslint:disable-next-line: variable-name
     _position: Position,
     locationType: "definition" | "references",
   ): Location[] {
@@ -282,9 +285,9 @@ export class Workspace {
     }
     const vimLineNum = position.line + 1;
     let startLine = -1;
-    let endLine = -1
+    let endLine = -1;
     // get function args completion items
-    ; ([] as IFunction[])
+    ([] as IFunction[])
       .concat(
         Object
         .values(this.buffers[uri].getGlobalFunctions())
@@ -364,7 +367,7 @@ export class Workspace {
       });
       if (flist.length) {
         const n = name.slice(2);
-        return flist.filter((item) => item.args && item.args.some((item) => item.value === n))
+        return flist.filter((item) => item.args && item.args.some((m) => m.value === n))
           .map((item) => {
             const startLine = item.startLine - 1;
             let startCol = item.startCol - 1;
@@ -508,7 +511,7 @@ export class Workspace {
         });
       });
       if (flist.length) {
-        return flist.filter((item) => item.args && item.args.some((item) => item.value === name))
+        return flist.filter((item) => item.args && item.args.some((n) => n.value === name))
           .map((item) => {
             const startLine = item.startLine - 1;
             let startCol = item.startCol - 1;

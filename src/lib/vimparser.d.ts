@@ -37,6 +37,7 @@ export declare class StringReader {
   constructor(str: string)
 }
 
+// tslint:disable-next-line
 export declare class VimLParser {
   constructor(isNeovim: boolean)
   public parse(stringReader: StringReader): INode;
