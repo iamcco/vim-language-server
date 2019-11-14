@@ -533,6 +533,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "cabove",
+        "kind": 24,
+        "detail": "cabo[ve]",
+        "documentation": "go to error above current line",
+        "sortText": "00004",
+        "insertText": "cabove",
+        "insertTextFormat": 1
+      },
+      {
         "label": "caddbuffer",
         "kind": 24,
         "detail": "cad[dbuffer]",
@@ -575,6 +584,15 @@
         "documentation": "part of a :try command",
         "sortText": "00004",
         "insertText": "catch",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "cbelow",
+        "kind": 24,
+        "detail": "cbe[low]",
+        "documentation": "go to error below current line",
+        "sortText": "00004",
+        "insertText": "cbelow",
         "insertTextFormat": 1
       },
       {
@@ -1964,6 +1982,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "labove",
+        "kind": 24,
+        "detail": "lab[ove]",
+        "documentation": "go to location above current line",
+        "sortText": "00004",
+        "insertText": "labove",
+        "insertTextFormat": 1
+      },
+      {
         "label": "laddexpr",
         "kind": 24,
         "detail": "lad[dexpr]",
@@ -2015,6 +2042,15 @@
         "documentation": "go to newer change, redo",
         "sortText": "00004",
         "insertText": "later",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "lbelow",
+        "kind": 24,
+        "detail": "lbe[low]",
+        "documentation": "go to location below current line",
+        "sortText": "00004",
+        "insertText": "lbelow",
         "insertTextFormat": 1
       },
       {
@@ -4844,15 +4880,6 @@
         "insertTextFormat": 1
       },
       {
-        "label": "cabove",
-        "kind": 24,
-        "detail": "cabo[ve]",
-        "documentation": "go to error above current line",
-        "sortText": "00004",
-        "insertText": "cabove",
-        "insertTextFormat": 1
-      },
-      {
         "label": "cafter",
         "kind": 24,
         "detail": "caf[ter]",
@@ -4868,15 +4895,6 @@
         "documentation": "go to error before current cursor",
         "sortText": "00004",
         "insertText": "cbefore",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "cbelow",
-        "kind": 24,
-        "detail": "cbel[ow]",
-        "documentation": "go to error below current line",
-        "sortText": "00004",
-        "insertText": "cbelow",
         "insertTextFormat": 1
       },
       {
@@ -4898,15 +4916,6 @@
         "insertTextFormat": 1
       },
       {
-        "label": "labove",
-        "kind": 24,
-        "detail": "lab[ove]",
-        "documentation": "go to location above current line",
-        "sortText": "00004",
-        "insertText": "labove",
-        "insertTextFormat": 1
-      },
-      {
         "label": "lafter",
         "kind": 24,
         "detail": "laf[ter]",
@@ -4922,15 +4931,6 @@
         "documentation": "go to location before current cursor",
         "sortText": "00004",
         "insertText": "lbefore",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "lbelow",
-        "kind": 24,
-        "detail": "lbel[ow]",
-        "documentation": "go to location below current line",
-        "sortText": "00004",
-        "insertText": "lbelow",
         "insertTextFormat": 1
       },
       {
@@ -8904,6 +8904,42 @@
         "insertTextFormat": 2
       },
       {
+        "label": "nvim_buf_get_extmark_by_id",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_get_extmark_by_id(${1:buffer}, ${2:ns_id}, ${3:id})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "nvim_buf_get_extmarks",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_get_extmarks(${1:buffer}, ${2:ns_id}, ${3:start}, ${4:end}, ${5:opts})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "nvim_buf_set_extmark",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_set_extmark(${1:buffer}, ${2:ns_id}, ${3:id}, ${4:line}, ${5:col}, ${6:opts})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "nvim_buf_del_extmark",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_del_extmark(${1:buffer}, ${2:ns_id}, ${3:id})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "nvim_buf_add_highlight",
         "kind": 3,
         "detail": "",
@@ -8928,6 +8964,15 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "nvim_buf_set_virtual_text(${1:buffer}, ${2:ns_id}, ${3:line}, ${4:chunks}, ${5:opts})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "nvim_buf_get_virtual_text",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_buf_get_virtual_text(${1:buffer}, ${2:lnum})${0}",
         "insertTextFormat": 2
       },
       {
@@ -10279,7 +10324,7 @@
       {
         "label": "win_splitmove",
         "kind": 3,
-        "detail": "none",
+        "detail": "Number",
         "sortText": "00004",
         "insertText": "win_splitmove(${1:nr}, ${2:target})${0}",
         "insertTextFormat": 2
@@ -10536,6 +10581,13 @@
         "kind": 6,
         "sortText": "00004",
         "insertText": "lnum",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "v:lua",
+        "kind": 6,
+        "sortText": "00004",
+        "insertText": "lua",
         "insertTextFormat": 1
       },
       {
@@ -10830,6 +10882,13 @@
         "kind": 6,
         "sortText": "00004",
         "insertText": "windowid",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "v:argv",
+        "kind": 6,
+        "sortText": "00004",
+        "insertText": "argv",
         "insertTextFormat": 1
       },
       {
@@ -13450,6 +13509,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "tagfunc",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "tagfunc",
+        "insertTextFormat": 1
+      },
+      {
         "label": "taglength",
         "kind": 10,
         "detail": "number",
@@ -14347,15 +14415,6 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "swapsync",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "tagfunc",
-        "kind": 10,
-        "detail": "string",
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "tagfunc",
         "insertTextFormat": 1
       },
       {
@@ -17155,14 +17214,6 @@
         "insertTextFormat": 1
       },
       {
-        "label": "TerminalOpen",
-        "kind": 20,
-        "documentation": "after a terminal buffer was created",
-        "sortText": "00004",
-        "insertText": "TerminalOpen",
-        "insertTextFormat": 1
-      },
-      {
         "label": "EncodingChanged",
         "kind": 20,
         "documentation": "after the 'encoding' option has been changed",
@@ -17192,6 +17243,22 @@
         "documentation": "after starting the GUI failed",
         "sortText": "00004",
         "insertText": "GUIFailed",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TerminalOpen",
+        "kind": 20,
+        "documentation": "after a terminal buffer was created",
+        "sortText": "00004",
+        "insertText": "TerminalOpen",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "TerminalWinOpen",
+        "kind": 20,
+        "documentation": "after a terminal buffer was created in a new window",
+        "sortText": "00004",
+        "insertText": "TerminalWinOpen",
         "insertTextFormat": 1
       },
       {
@@ -19043,7 +19110,7 @@
     ],
     "win_splitmove": [
       "{nr}, {target} [, {options}]",
-      "none"
+      "Number"
     ],
     "winbufnr": [
       "{nr}",
@@ -19557,6 +19624,22 @@
       "{buffer}, {name}",
       ""
     ],
+    "nvim_buf_get_extmark_by_id": [
+      "{buffer}, {ns_id}, {id}",
+      ""
+    ],
+    "nvim_buf_get_extmarks": [
+      "{buffer}, {ns_id}, {start}, {end}, {opts}",
+      ""
+    ],
+    "nvim_buf_set_extmark": [
+      "{buffer}, {ns_id}, {id}, {line}, {col}, {opts}",
+      ""
+    ],
+    "nvim_buf_del_extmark": [
+      "{buffer}, {ns_id}, {id}",
+      ""
+    ],
     "nvim_buf_add_highlight": [
       "{buffer}, {ns_id}, {hl_group}, {line}, {col_start}, {col_end}",
       ""
@@ -19567,6 +19650,10 @@
     ],
     "nvim_buf_set_virtual_text": [
       "{buffer}, {ns_id}, {line}, {chunks}, {opts}",
+      ""
+    ],
+    "nvim_buf_get_virtual_text": [
+      "{buffer}, {lnum}",
       ""
     ],
     "nvim__buf_stats": [
@@ -19888,6 +19975,9 @@
       "cabclear": [
         "clear all abbreviations for Command-line mode"
       ],
+      "cabove": [
+        "go to error above current line"
+      ],
       "caddbuffer": [
         "add errors from buffer"
       ],
@@ -19902,6 +19992,9 @@
       ],
       "catch": [
         "part of a :try command"
+      ],
+      "cbelow": [
+        "go to error below current line"
       ],
       "cbottom": [
         "scroll to the bottom of the quickfix window"
@@ -20367,6 +20460,9 @@
       "list": [
         "print lines"
       ],
+      "labove": [
+        "go to location above current line"
+      ],
       "laddexpr": [
         "add locations from expr"
       ],
@@ -20384,6 +20480,9 @@
       ],
       "later": [
         "go to newer change, redo"
+      ],
+      "lbelow": [
+        "go to location below current line"
       ],
       "lbottom": [
         "scroll to the bottom of the location window"
@@ -21351,17 +21450,11 @@
       "X": [
         "ask for encryption key"
       ],
-      "cabove": [
-        "go to error above current line"
-      ],
       "cafter": [
         "go to error after current cursor"
       ],
       "cbefore": [
         "go to error before current cursor"
-      ],
-      "cbelow": [
-        "go to error below current line"
       ],
       "fixdel": [
         "set key code of <Del>"
@@ -21369,17 +21462,11 @@
       "helpfind": [
         "dialog to open a help window"
       ],
-      "labove": [
-        "go to location above current line"
-      ],
       "lafter": [
         "go to location after current cursor"
       ],
       "lbefore": [
         "go to location before current cursor"
-      ],
-      "lbelow": [
-        "go to location below current line"
       ],
       "mzscheme": [
         "execute MzScheme command"
@@ -22521,7 +22608,7 @@
         "\t\t\t\t\tstring)",
         "\t\t\t*funcname\tbuilt-in function (see |functions|)",
         "\t\t\t\t\tor user defined function (see",
-        "\t\t\t\t\t|user-functions|). Also works for a",
+        "\t\t\t\t\t|user-function|). Also works for a",
         "\t\t\t\t\tvariable that is a Funcref.",
         "\t\t\tvarname\t\tinternal variable (see",
         "\t\t\t\t\t|internal-variables|).  Also works",
@@ -23525,7 +23612,11 @@
         "",
         "\t\tIf the optional {what} dictionary argument is supplied, then",
         "\t\treturns the items listed in {what} as a dictionary. Refer to",
-        "\t\t|getqflist()| for the supported items in {what}."
+        "\t\t|getqflist()| for the supported items in {what}.",
+        "\t\tIf {what} contains 'filewinid', then returns the id of the",
+        "\t\twindow used to display files from the location list. This",
+        "\t\tfield is applicable only when called from a location list",
+        "\t\twindow."
       ],
       "getmatches": [
         "\t\tReturns a |List| with all matches previously defined for the",
@@ -28596,10 +28687,10 @@
         "                    {enter}   Enter the window (make it the current window)",
         "                    {config}  Map defining the window configuration. Keys:",
         "                              •  `relative` : Sets the window layout to \"floating\", placed",
-        "                                at (row,col) coordinates relative to one of:",
+        "                                at (row,col) coordinates relative to:",
         "                                • \"editor\" The global editor grid",
         "                                • \"win\" Window given by the `win` field, or",
-        "                                  current window by default.",
+        "                                  current window.",
         "                                • \"cursor\" Cursor position in current window.",
         "",
         "                              • `win` : |window-ID| for relative=\"win\".",
@@ -29205,45 +29296,66 @@
         "                    Line count, or 0 for unloaded buffer. |api-buffer|"
       ],
       "nvim_buf_attach": [
-        "                Activates buffer-update events on a channel, or as lua",
+        "                Activates buffer-update events on a channel, or as Lua",
         "                callbacks.",
         "",
         "                Parameters: ~",
         "                    {buffer}       Buffer handle, or 0 for current buffer",
-        "                    {send_buffer}  Set to true if the initial notification",
-        "                                   should contain the whole buffer. If so, the",
-        "                                   first notification will be a",
-        "                                   `nvim_buf_lines_event` . Otherwise, the",
-        "                                   first notification will be a",
-        "                                   `nvim_buf_changedtick_event` . Not used for",
-        "                                   lua callbacks.",
+        "                    {send_buffer}  True if the initial notification should",
+        "                                   contain the whole buffer: first",
+        "                                   notification will be `nvim_buf_lines_event`",
+        "                                   . Else the first notification will be",
+        "                                   `nvim_buf_changedtick_event` . Not for Lua",
+        "                                   callbacks.",
         "                    {opts}         Optional parameters.",
-        "                                   • `on_lines` : lua callback received on",
-        "                                     change.",
-        "                                   • `on_changedtick` : lua callback received",
-        "                                     on changedtick increment without text",
-        "                                     change.",
-        "                                   • `utf_sizes` : include UTF-32 and UTF-16",
-        "                                     size of the replaced region. See",
-        "                                     |api-buffer-updates-lua| for more",
-        "                                     information",
+        "                                   • on_lines: Lua callback invoked on change.",
+        "                                     Return `true` to detach. Args:",
+        "                                     • buffer handle",
+        "                                     • b:changedtick",
+        "                                     • first line that changed (zero-indexed)",
+        "                                     • last line that was changed",
+        "                                     • last line in the updated range",
+        "                                     • byte count of previous contents",
+        "                                     • deleted_codepoints (if `utf_sizes` is",
+        "                                       true)",
+        "                                     • deleted_codeunits (if `utf_sizes` is",
+        "                                       true)",
+        "",
+        "                                   • on_changedtick: Lua callback invoked on",
+        "                                     changedtick increment without text",
+        "                                     change. Args:",
+        "                                     • buffer handle",
+        "                                     • b:changedtick",
+        "",
+        "                                   • on_detach: Lua callback invoked on",
+        "                                     detach. Args:",
+        "                                     • buffer handle",
+        "",
+        "                                   • utf_sizes: include UTF-32 and UTF-16 size",
+        "                                     of the replaced region, as args to",
+        "                                     `on_lines` .",
         "",
         "                Return: ~",
-        "                    False when updates couldn't be enabled because the buffer",
-        "                    isn't loaded or `opts` contained an invalid key; otherwise",
-        "                    True. TODO: LUA_API_NO_EVAL"
+        "                    False if attach failed (invalid parameter, or buffer isn't",
+        "                    loaded); otherwise True. TODO: LUA_API_NO_EVAL",
+        "",
+        "                See also: ~",
+        "                    |nvim_buf_detach()|",
+        "                    |api-buffer-updates-lua|"
       ],
       "nvim_buf_detach": [
         "                Deactivates buffer-update events on the channel.",
-        "",
-        "                For Lua callbacks see |api-lua-detach|.",
         "",
         "                Parameters: ~",
         "                    {buffer}  Buffer handle, or 0 for current buffer",
         "",
         "                Return: ~",
-        "                    False when updates couldn't be disabled because the buffer",
-        "                    isn't loaded; otherwise True.",
+        "                    False if detach failed (because the buffer isn't loaded);",
+        "                    otherwise True.",
+        "",
+        "                See also: ~",
+        "                    |nvim_buf_attach()|",
+        "                    |api-lua-detach| for detaching Lua callbacks",
         ""
       ],
       "nvim_buf_get_lines": [
@@ -29455,6 +29567,86 @@
         "                    (row, col) tuple",
         ""
       ],
+      "nvim_buf_get_extmark_by_id": [
+        "                Returns position for a given extmark id",
+        "",
+        "                Parameters: ~",
+        "                    {buffer}     The buffer handle",
+        "                    {namespace}  a identifier returned previously with",
+        "                                 nvim_create_namespace",
+        "                    {id}         the extmark id",
+        "",
+        "                Return: ~",
+        "                    (row, col) tuple or empty list () if extmark id was absent",
+        ""
+      ],
+      "nvim_buf_get_extmarks": [
+        "                List extmarks in a range (inclusive)",
+        "",
+        "                range ends can be specified as (row, col) tuples, as well as",
+        "                extmark ids in the same namespace. In addition, 0 and -1 works",
+        "                as shorthands for (0,0) and (-1,-1) respectively, so that all",
+        "                marks in the buffer can be quieried as:",
+        "",
+        "                all_marks = nvim_buf_get_extmarks(0, my_ns, 0, -1, -1)",
+        "",
+        "                If end is a lower position than start, then the range will be",
+        "                traversed backwards. This is mostly used with limited amount,",
+        "                to be able to get the first marks prior to a given position.",
+        "",
+        "                Parameters: ~",
+        "                    {buffer}  The buffer handle",
+        "                    {ns_id}   An id returned previously from",
+        "                              nvim_create_namespace",
+        "                    {lower}   One of: extmark id, (row, col) or 0, -1 for",
+        "                              buffer ends",
+        "                    {upper}   One of: extmark id, (row, col) or 0, -1 for",
+        "                              buffer ends",
+        "                    {opts}    additional options. Supports the keys:",
+        "                              • amount: Maximum number of marks to return",
+        "",
+        "                Return: ~",
+        "                    [[extmark_id, row, col], ...]",
+        ""
+      ],
+      "nvim_buf_set_extmark": [
+        "                Create or update an extmark at a position",
+        "",
+        "                If an invalid namespace is given, an error will be raised.",
+        "",
+        "                To create a new extmark, pass in id=0. The new extmark id will",
+        "                be returned. To move an existing mark, pass in its id.",
+        "",
+        "                It is also allowed to create a new mark by passing in a",
+        "                previously unused id, but the caller must then keep track of",
+        "                existing and unused ids itself. This is mainly useful over",
+        "                RPC, to avoid needing to wait for the return value.",
+        "",
+        "                Parameters: ~",
+        "                    {buffer}  The buffer handle",
+        "                    {ns_id}   a identifier returned previously with",
+        "                              nvim_create_namespace",
+        "                    {id}      The extmark's id or 0 to create a new mark.",
+        "                    {row}     The row to set the extmark to.",
+        "                    {col}     The column to set the extmark to.",
+        "                    {opts}    Optional parameters. Currently not used.",
+        "",
+        "                Return: ~",
+        "                    the id of the extmark."
+      ],
+      "nvim_buf_del_extmark": [
+        "                Remove an extmark",
+        "",
+        "                Parameters: ~",
+        "                    {buffer}  The buffer handle",
+        "                    {ns_id}   a identifier returned previously with",
+        "                              nvim_create_namespace",
+        "                    {id}      The extmarks's id",
+        "",
+        "                Return: ~",
+        "                    true on success, false if the extmark was not found.",
+        ""
+      ],
       "nvim_buf_add_highlight": [
         "                Adds a highlight to buffer.",
         "",
@@ -29547,6 +29739,27 @@
         "",
         "                Return: ~",
         "                    The ns_id that was used"
+      ],
+      "nvim_buf_get_virtual_text": [
+        "                Get the virtual text (annotation) for a buffer line.",
+        "",
+        "                The virtual text is returned as list of lists, whereas the",
+        "                inner lists have either one or two elements. The first element",
+        "                is the actual text, the optional second element is the",
+        "                highlight group.",
+        "",
+        "                The format is exactly the same as given to",
+        "                nvim_buf_set_virtual_text().",
+        "",
+        "                If there is no virtual text associated with the given line, an",
+        "                empty list is returned.",
+        "",
+        "                Parameters: ~",
+        "                    {buffer}  Buffer handle, or 0 for current buffer",
+        "                    {line}    Line to get the virtual text from (zero-indexed)",
+        "",
+        "                Return: ~",
+        "                    List of virtual text chunks"
       ],
       "nvim__buf_stats": [
         "                TODO: Documentation",
@@ -30191,8 +30404,8 @@
         "\t\tExpand special items in {expr} like what is done for an Ex",
         "\t\tcommand such as `:edit`.  This expands special keywords, like",
         "\t\twith |expand()|, and environment variables, anywhere in",
-        "\t\t{expr}.  Returns the expanded string.",
-        "\t\tExample: >",
+        "\t\t{expr}.  \"~user\" and \"~/path\" are only expanded at the start.",
+        "\t\tReturns the expanded string.  Example: >",
         "\t\t\t:echo expandcmd('make %<.o')",
         "",
         "<\t\tCan also be used as a |method|: >",
@@ -30447,8 +30660,8 @@
         "\t\t    a:bufnr\tthe buffer that was changed",
         "\t\t    a:start\tfirst changed line number",
         "\t\t    a:end\tfirst line number below the change",
-        "\t\t    a:added\ttotal number of lines added, negative if lines",
-        "\t\t\t\twere deleted",
+        "\t\t    a:added\tnumber of lines added, negative if lines were",
+        "\t\t\t\tdeleted",
         "\t\t    a:changes\ta List of items with details about the changes",
         "",
         "\t\tExample: >",
@@ -30504,8 +30717,8 @@
         "\t\tThe {callback} is also not invoked when the buffer is",
         "\t\tunloaded, use the |BufUnload| autocmd event for that.",
         "",
-        "\t\tCan also be used as a |method|, where the base is passed as",
-        "\t\tthe second argument, the buffer: >",
+        "\t\tCan also be used as a |method|, the base is passed as the",
+        "\t\tsecond argument: >",
         "\t\t\tGetBuffer()->listener_add(callback)"
       ],
       "listener_flush": [
@@ -30695,14 +30908,14 @@
         "\t\tGet the |window-ID| for the popup info window, as it used by",
         "\t\tthe popup menu.  See |complete-popup|.  The info popup is",
         "\t\thidden when not used, it can be deleted with |popup_clear()|",
-        "\t\tand |popup_close()|.",
-        "\t\tReturn zero if there is none.",
+        "\t\tand |popup_close()|.  Use |popup_show()| to reposition it to",
+        "\t\tthe item in the popup menu.",
+        "\t\tReturns zero if there is none.",
         ""
       ],
       "popup_findpreview": [
         "\t\tGet the |window-ID| for the popup preview window.",
         "\t\tReturn zero if there is none.",
-        "",
         ""
       ],
       "popup_getoptions": [
@@ -30751,7 +30964,8 @@
         "\t\t    core_width\twidth of the text box in screen cells",
         "\t\t    core_height\theight of the text box in screen cells",
         "\t\t    firstline\tline of the buffer at top (1 unless scrolled)",
-        "\t\t    \t\t(not the value of the \"firstline\" property)",
+        "\t\t\t\t(not the value of the \"firstline\" property)",
+        "\t\t    lastline\tline of the buffer at the bottom",
         "\t\t    scrollbar\tnon-zero if a scrollbar is displayed",
         "\t\t    visible\tone if the popup is displayed, zero if hidden",
         "\t\tNote that these are the actual screen positions.  They differ",
@@ -30857,6 +31071,8 @@
       "popup_show": [
         "\t\tIf {id} is a hidden popup, show it now.",
         "\t\tFor {id} see `popup_hide()`.",
+        "\t\tIf {id} is the info popup it will be positioned next to the",
+        "\t\tcurrent popup menu item.",
         ""
       ],
       "popup_setoptions": [
@@ -31182,7 +31398,7 @@
         "\t\t\trow\t\ttop screen row (0 first row)",
         "\t\t\tcol\t\tleftmost screen column (0 first col)",
         "\t\t\tsize\t\ttotal nr of items",
-        "\t\t\tscrollbar\t|TRUE| if visible",
+        "\t\t\tscrollbar\t|TRUE| if scrollbar is visible",
         "",
         "\t\tThe values are the same as in |v:event| during",
         "\t\t|CompleteChanged|."
@@ -31315,8 +31531,8 @@
         "\t\t        e.g. after |f|",
         "\t\t    a\tInsert mode autocomplete active",
         "\t\t    x\texecuting an autocommand",
-        "\t\t    w\tblocked on waiting, e.g. ch_evalexpr() and",
-        "\t\t\tch_read(), ch_readraw() when reading json.",
+        "\t\t    w\tblocked on waiting, e.g. ch_evalexpr(), ch_read() and",
+        "\t\t\tch_readraw() when reading json.",
         "\t\t    S\tnot triggering SafeState or SafeStateAgain",
         "\t\t    c\tcallback invoked, including timer (repeats for",
         "\t\t\trecursiveness up to \"ccc\")",
@@ -31399,7 +31615,7 @@
         "\t\tFor {options} see |term_dumpdiff()|.",
         "",
         "\t\tCan also be used as a |method|: >",
-        "\t\t\tGetFilename()-> term_dumpload()",
+        "\t\t\tGetFilename()->term_dumpload()",
         "<"
       ],
       "term_dumpwrite": [
@@ -31417,7 +31633,7 @@
         "",
         "\t\tCan also be used as a |method|, the base is used for the file",
         "\t\tname: >",
-        "\t\t\tGetFilename()-> term_dumpwrite(bufnr)"
+        "\t\t\tGetFilename()->term_dumpwrite(bufnr)"
       ],
       "term_getaltscreen": [
         "\t\tReturns 1 if the terminal of {buf} is using the alternate",
@@ -31765,8 +31981,6 @@
         "",
         "\t\tCan also be used as a |method|: >",
         "\t\t\tGetCommand()->term_start()",
-        "",
-        "<\t\t{only available when compiled with the |+terminal| feature}",
         ""
       ],
       "term_wait": [
@@ -31965,8 +32179,8 @@
         "\t\tNot all commands are allowed in popup windows.",
         "\t\tWhen window {id} does not exist then no error is given.",
         "",
-        "\t\tCan also be used as a |method|, the base is used for the",
-        "\t\tcommand: >",
+        "\t\tCan also be used as a |method|, the base is passed as the",
+        "\t\tsecond argument: >",
         "\t\t\tGetCommand()->win_execute(winid)"
       ],
       "win_splitmove": [
@@ -32293,6 +32507,10 @@
         "\t\texpressions is being evaluated.  Read-only when in the",
         "\t\t|sandbox|."
       ],
+      "v:lua": [
+        "Prefix for calling lua functions from expressions.",
+        "\t\tSee |v:lua-call| for more information."
+      ],
       "v:mouse_win": [
         "Window number for a mouse click obtained with |getchar()|.",
         "\t\tFirst window has number 1, like with |winnr()|.  The value is",
@@ -32551,6 +32769,10 @@
         "\t\tattached UI. Defaults to zero.",
         "\t\tNote: For Nvim |windows| use |winnr()| or |win_getid()|, see",
         "\t\t|window-ID|."
+      ],
+      "v:argv": [
+        "The command line arguments Vim was invoked with.  This is a",
+        "\t\tlist of strings.  The first item is the Vim command."
       ],
       "v:none": [
         "An empty String. Used to put an empty item in JSON.  See",
@@ -33395,7 +33617,7 @@
         "\tsecurity reasons."
       ],
       "diffopt": [
-        "string\t(default \"internal,filler\")",
+        "string\t(default \"internal,filler,closeoff\")",
         "\t\t\tglobal",
         "\tOption settings for diff mode.  It can consist of the following items.",
         "\tAll are optional.  Items must be separated by a comma."
@@ -33634,8 +33856,7 @@
       ],
       "fileformat": [
         "string (Windows default: \"dos\",",
-        "\t\t\t\tUnix default: \"unix\",",
-        "\t\t\t\tMacintosh default: \"mac\")",
+        "\t\t\t\tUnix default: \"unix\")",
         "\t\t\tlocal to buffer",
         "\tThis gives the <EOL> of the current buffer, which is used for",
         "\treading/writing the buffer from/to a file:",
@@ -33657,7 +33878,6 @@
         "string (default:",
         "\t\t\t\tVim+Vi\tWin32: \"dos,unix\",",
         "\t\t\t\tVim\tUnix: \"unix,dos\",",
-        "\t\t\t\tVim\tMac: \"mac,unix,dos\",",
         "\t\t\t\tVi\tothers: \"\")",
         "\t\t\tglobal",
         "\tThis gives the end-of-line (<EOL>) formats that will be tried when",
@@ -36274,6 +36494,14 @@
         "\t   match\tMatch case",
         "\t   smart\tIgnore case unless an upper case letter is used"
       ],
+      "tagfunc": [
+        "string\t(default: empty)",
+        "\t\t\tlocal to buffer",
+        "\tThis option specifies a function to be used to perform tag searches.",
+        "\tThe function gets the tag pattern and should return a List of matching",
+        "\ttags.  See |tag-function| for an explanation of how to write the",
+        "\tfunction and an example."
+      ],
       "taglength": [
         "number\t(default 0)",
         "\t\t\tglobal",
@@ -36962,7 +37190,7 @@
       "completeslash": [
         "string\t(default: \"\")",
         "\t\t\tlocal to buffer",
-        "\t\t\t{not in Vi}  {only for MS-Windows}",
+        "\t\t\t{only for MS-Windows}",
         "\tWhen this option is set it overrules 'shellslash' for completion:",
         "\t- When this option is set to \"slash\", a forward slash is used for path",
         "\t  completion in insert mode. This is useful when editing HTML tag, or",
@@ -37021,7 +37249,6 @@
       "cursorlineopt": [
         "string (default: \"number,line\")",
         "\t\t\tlocal to window",
-        "\t\t\t{not in Vi}",
         "\t\t\t{not available when compiled without the |+syntax|",
         "\t\t\tfeature}",
         "\tComma separated list of settings for how 'cursorline' is displayed.",
@@ -37101,6 +37328,7 @@
         "\t\t\t\t     \"8:SpecialKey,~:EndOfBuffer,@:NonText,",
         "\t\t\t\t     d:Directory,e:ErrorMsg,i:IncSearch,",
         "\t\t\t\t     l:Search,m:MoreMsg,M:ModeMsg,n:LineNr,",
+        "\t\t\t\t     a:LineNrAbove,b:LineNrBelow,",
         "\t\t\t\t     N:CursorLineNr,r:Question,s:StatusLine,",
         "\t\t\t\t     S:StatusLineNC,c:VertSplit,t:Title,",
         "\t\t\t\t     v:Visual,V:VisualNOS,w:WarningMsg,",
@@ -37132,6 +37360,10 @@
         "\t|hl-ModeMsg|\t M  Mode (e.g., \"-- INSERT --\")",
         "\t|hl-LineNr|\t n  line number for \":number\" and \":#\" commands, and",
         "\t\t\t    when 'number' or 'relativenumber' option is set.",
+        "\t|hl-LineNrAbove|   a  line number above the cursor for when the",
+        "\t\t\t    'relativenumber' option is set.",
+        "\t|hl-LineNrBelow|   b  line number below the cursor for when the",
+        "\t\t\t    'relativenumber' option is set.",
         "\t|hl-CursorLineNr|  N like n for when 'cursorline' or 'relativenumber' is",
         "\t\t\t    set.",
         "\t|hl-Question|\t r  |hit-enter| prompt and yes/no questions",
@@ -37437,16 +37669,6 @@
         "\tsetting it to \"sync\" will use the sync() call instead of the default",
         "\tfsync(), which may work better on some systems.",
         "\tThe 'fsync' option is used for the actual file."
-      ],
-      "tagfunc": [
-        "string\t(default: empty)",
-        "\t\t\tlocal to buffer",
-        "\t\t\t{not available when compiled without the |+eval|",
-        "\t\t\tfeature}",
-        "\tThis option specifies a function to be used to perform tag searches.",
-        "\tThe function gets the tag pattern and should return a List of matching",
-        "\ttags.  See |tag-function| for an explanation of how to write the",
-        "\tfunction and an example."
       ],
       "tcldll": [
         "string\t(default depends on the build)",
