@@ -6909,6 +6909,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "pum_getpos",
+        "kind": 3,
+        "detail": "Dict",
+        "sortText": "00004",
+        "insertText": "pum_getpos(${0})",
+        "insertTextFormat": 2
+      },
+      {
         "label": "pumvisible",
         "kind": 3,
         "detail": "Number",
@@ -8085,6 +8093,15 @@
         "insertTextFormat": 2
       },
       {
+        "label": "nvim_exec",
+        "kind": 3,
+        "detail": "",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "nvim_exec(${1:src}, ${2:output})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "nvim_command",
         "kind": 3,
         "detail": "",
@@ -8148,15 +8165,6 @@
         "insertTextFormat": 2
       },
       {
-        "label": "nvim_command_output",
-        "kind": 3,
-        "detail": "",
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "nvim_command_output(${1:command})${0}",
-        "insertTextFormat": 2
-      },
-      {
         "label": "nvim_eval",
         "kind": 3,
         "detail": "",
@@ -8166,12 +8174,12 @@
         "insertTextFormat": 2
       },
       {
-        "label": "nvim_execute_lua",
+        "label": "nvim_exec_lua",
         "kind": 3,
         "detail": "",
         "documentation": "",
         "sortText": "00004",
-        "insertText": "nvim_execute_lua(${1:code}, ${2:args})${0}",
+        "insertText": "nvim_exec_lua(${1:code}, ${2:args})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9482,11 +9490,27 @@
         "insertTextFormat": 2
       },
       {
+        "label": "getmousepos",
+        "kind": 3,
+        "detail": "Dict",
+        "sortText": "00004",
+        "insertText": "getmousepos(${0})",
+        "insertTextFormat": 2
+      },
+      {
         "label": "inputdialog",
         "kind": 3,
         "detail": "String",
         "sortText": "00004",
         "insertText": "inputdialog(${1:prompt})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "interrupt",
+        "kind": 3,
+        "detail": "none",
+        "sortText": "00004",
+        "insertText": "interrupt(${0})",
         "insertTextFormat": 2
       },
       {
@@ -9858,11 +9882,11 @@
         "insertTextFormat": 2
       },
       {
-        "label": "pum_getpos",
+        "label": "rand",
         "kind": 3,
-        "detail": "Dict",
+        "detail": "Number",
         "sortText": "00004",
-        "insertText": "pum_getpos(${0})",
+        "insertText": "rand(${1})${0}",
         "insertTextFormat": 2
       },
       {
@@ -9954,6 +9978,14 @@
         "insertTextFormat": 2
       },
       {
+        "label": "srand",
+        "kind": 3,
+        "detail": "List",
+        "sortText": "00004",
+        "insertText": "srand(${1})${0}",
+        "insertTextFormat": 2
+      },
+      {
         "label": "state",
         "kind": 3,
         "detail": "String",
@@ -9967,6 +9999,14 @@
         "detail": "List",
         "sortText": "00004",
         "insertText": "str2list(${1:expr})${0}",
+        "insertTextFormat": 2
+      },
+      {
+        "label": "strptime",
+        "kind": 3,
+        "detail": "Number",
+        "sortText": "00004",
+        "insertText": "strptime(${1:format}, ${2:timestring})${0}",
         "insertTextFormat": 2
       },
       {
@@ -12258,6 +12298,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "jumpoptions",
+        "kind": 10,
+        "detail": "string",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "jumpoptions",
+        "insertTextFormat": 1
+      },
+      {
         "label": "joinspaces",
         "kind": 10,
         "detail": "boolean",
@@ -14391,6 +14440,15 @@
         "insertTextFormat": 1
       },
       {
+        "label": "scrollfocus",
+        "kind": 10,
+        "detail": "boolean",
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "scrollfocus",
+        "insertTextFormat": 1
+      },
+      {
         "label": "shelltype",
         "kind": 10,
         "detail": "number",
@@ -14626,6 +14684,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "bsd",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "bsd",
+        "insertTextFormat": 1
+      },
+      {
         "label": "iconv",
         "kind": 20,
         "documentation": "",
@@ -14647,6 +14713,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "clipboard",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "mac",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "mac",
         "insertTextFormat": 1
       },
       {
@@ -14719,6 +14793,14 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "win32",
+        "insertTextFormat": 1
+      },
+      {
+        "label": "win64",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "win64",
         "insertTextFormat": 1
       },
       {
@@ -14823,14 +14905,6 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "browsefilter",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "bsd",
-        "kind": 20,
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "bsd",
         "insertTextFormat": 1
       },
       {
@@ -15375,14 +15449,6 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "lua",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "mac",
-        "kind": 20,
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "mac",
         "insertTextFormat": 1
       },
       {
@@ -15978,6 +16044,14 @@
         "insertTextFormat": 1
       },
       {
+        "label": "vartabs",
+        "kind": 20,
+        "documentation": "",
+        "sortText": "00004",
+        "insertText": "vartabs",
+        "insertTextFormat": 1
+      },
+      {
         "label": "vcon",
         "kind": 20,
         "documentation": "",
@@ -16135,14 +16209,6 @@
         "documentation": "",
         "sortText": "00004",
         "insertText": "win32unix",
-        "insertTextFormat": 1
-      },
-      {
-        "label": "win64",
-        "kind": 20,
-        "documentation": "",
-        "sortText": "00004",
-        "insertText": "win64",
         "insertTextFormat": 1
       },
       {
@@ -17860,6 +17926,10 @@
       "",
       "List"
     ],
+    "getmousepos": [
+      "",
+      "Dict"
+    ],
     "getpid": [
       "",
       "Number"
@@ -18011,6 +18081,10 @@
     "insert": [
       "{list}, {item} [, {idx}]",
       "List"
+    ],
+    "interrupt": [
+      "",
+      "none"
     ],
     "invert": [
       "{expr}",
@@ -18388,6 +18462,10 @@
       "{expr}",
       "any"
     ],
+    "rand": [
+      "[{expr}]",
+      "Number"
+    ],
     "range": [
       "{expr} [, {max} [, {stride}]]",
       "List"
@@ -18692,6 +18770,10 @@
       "{expr}",
       "Float"
     ],
+    "srand": [
+      "[{expr}]",
+      "List"
+    ],
     "state": [
       "[{what}]",
       "String"
@@ -18743,6 +18825,10 @@
     "strpart": [
       "{str}, {start} [, {len}]",
       "String"
+    ],
+    "strptime": [
+      "{format}, {timestring}",
+      "Number"
     ],
     "strridx": [
       "{haystack}, {needle} [, {start}]",
@@ -19260,6 +19346,10 @@
       "{timeout}, {condition}[, {interval}]",
       "Number"
     ],
+    "nvim_exec": [
+      "{src}, {output}",
+      ""
+    ],
     "nvim_command": [
       "{command}",
       ""
@@ -19288,15 +19378,11 @@
       "{str}, {from_part}, {do_lt}, {special}",
       ""
     ],
-    "nvim_command_output": [
-      "{command}",
-      ""
-    ],
     "nvim_eval": [
       "{expr}",
       ""
     ],
-    "nvim_execute_lua": [
+    "nvim_exec_lua": [
       "{code}, {args}",
       ""
     ],
@@ -22179,6 +22265,9 @@
         "\t\tthe items listed in {what} are returned.  Unsupported items in",
         "\t\t{what} are silently ignored.",
         "",
+        "\t\tTo get the position of the popup menu, see |pum_getpos()|. It's",
+        " \t\talso available in |v:event| during the |CompleteChanged| event.",
+        "",
         "\t\tExamples: >",
         "\t\t\t\" Get all items",
         "\t\t\tcall complete_info()",
@@ -23187,6 +23276,8 @@
         "\t\t\thidden\t\tTRUE if the buffer is hidden.",
         "\t\t\tlisted\t\tTRUE if the buffer is listed.",
         "\t\t\tlnum\t\tcurrent line number in buffer.",
+        "\t\t\tlinecount\tnumber of lines in the buffer (only",
+        "\t\t\t\t\tvalid when loaded)",
         "\t\t\tloaded\t\tTRUE if the buffer is loaded.",
         "\t\t\tname\t\tfull path to the file in the buffer.",
         "\t\t\tsigns\t\tlist of signs placed in the buffer.",
@@ -23780,7 +23871,7 @@
       "getregtype": [
         "\t\tThe result is a String, which is type of register {regname}.",
         "\t\tThe value will be one of:",
-        "\t\t    \"v\"\t\t\tfor |characterwise| text",
+        "\t\t    \"v\"\t\t\tfor |charwise| text",
         "\t\t    \"V\"\t\t\tfor |linewise| text",
         "\t\t    \"<CTRL-V>{width}\"\tfor |blockwise-visual| text",
         "\t\t    \"\"\t\t\tfor an empty or unknown register",
@@ -24022,9 +24113,11 @@
         "<\t\t\t\t\t\t\t*feature-list*",
         "\t\t    List of supported pseudo-feature names:",
         "\t\t        acl\t\t|ACL| support",
+        "\t\t\tbsd\t\tBSD system (not macOS, use \"mac\" for that).",
         "\t\t        iconv\t\tCan use |iconv()| for conversion.",
         "\t\t        +shellslash\tCan use backslashes in filenames (Windows)",
         "\t\t\tclipboard\t|clipboard| provider is available.",
+        "\t\t\tmac\t\tMacOS system.",
         "\t\t\tnvim\t\tThis is Nvim.",
         "\t\t\tpython2\t\tLegacy Vim |python2| interface. |has-python|",
         "\t\t\tpython3\t\tLegacy Vim |python3| interface. |has-python|",
@@ -24034,6 +24127,7 @@
         "\t\t\tunix\t\tUnix system.",
         "\t\t\t*vim_starting*\tTrue during |startup|. ",
         "\t\t\twin32\t\tWindows system (32 or 64 bit).",
+        "\t\t\twin64\t\tWindows system (64 bit).",
         "\t\t\twsl\t\tWSL (Windows Subsystem for Linux) system",
         "",
         "\t\t\t\t\t\t\t*has-patch*",
@@ -24500,6 +24594,9 @@
         "\t\t  |on_exit|  : exit event handler (function name or |Funcref|)",
         "\t\t  cwd      : Working directory of the job; defaults to",
         "\t\t             |current-directory|.",
+        "\t\t  env      : A dict of strings to append (or replace see",
+        "\t\t             |clear_env|) to the current environment.",
+        "\t\t  clear_env: If set, use the exact values passed in |env|",
         "\t\t  rpc      : If set, |msgpack-rpc| will be used to communicate",
         "\t\t\t     with the job over stdin and stdout. \"on_stdout\" is",
         "\t\t\t     then ignored, but \"on_stderr\" can still be used.",
@@ -25183,7 +25280,7 @@
         "",
         "\t\t   n\t    Normal",
         "\t\t   no\t    Operator-pending",
-        "\t\t   nov\t    Operator-pending (forced characterwise |o_v|)",
+        "\t\t   nov\t    Operator-pending (forced charwise |o_v|)",
         "\t\t   noV\t    Operator-pending (forced linewise |o_V|)",
         "\t\t   noCTRL-V Operator-pending (forced blockwise |o_CTRL-V|)",
         "\t\t   niI\t    Normal using |i_CTRL-O| in |Insert-mode|",
@@ -25566,6 +25663,19 @@
         "\t\tof \"%\" items.  If there are not sufficient or too many",
         "\t\targuments an error is given.  Up to 18 arguments can be used.",
         ""
+      ],
+      "pum_getpos": [
+        " \t\tIf the popup menu (see |ins-completion-menu|) is not visible,",
+        " \t\treturns an empty |Dictionary|, otherwise, returns a",
+        " \t\t|Dictionary| with the following keys:",
+        " \t\t\theight\t\tnr of items visible",
+        " \t\t\twidth\t\tscreen cells",
+        " \t\t\trow\t\ttop screen row (0 first row)",
+        " \t\t\tcol\t\tleftmost screen column (0 first col)",
+        " \t\t\tsize\t\ttotal nr of items",
+        " \t\t\tscrollbar\t|TRUE| if visible",
+        "",
+        "  \t\tThe values are the same as in |v:event| during |CompleteChanged|."
       ],
       "pumvisible": [
         "\t\tReturns non-zero when the popup menu is visible, zero",
@@ -26491,7 +26601,7 @@
         "\t\tIf {options} contains \"a\" or {regname} is upper case,",
         "\t\tthen the value is appended.",
         "\t\t{options} can also contain a register type specification:",
-        "\t\t    \"c\" or \"v\"\t      |characterwise| mode",
+        "\t\t    \"c\" or \"v\"\t      |charwise| mode",
         "\t\t    \"l\" or \"V\"\t      |linewise| mode",
         "\t\t    \"b\" or \"<CTRL-V>\" |blockwise-visual| mode",
         "\t\tIf a number immediately follows \"b\" or \"<CTRL-V>\" then this is",
@@ -28278,6 +28388,29 @@
         "<",
         ""
       ],
+      "nvim_exec": [
+        "                Executes Vimscript (multiline block of Ex-commands), like",
+        "                anonymous |:source|.",
+        "",
+        "                Unlike |nvim_command()| this function supports heredocs,",
+        "                script-scope (s:), etc.",
+        "",
+        "                On execution error: fails with VimL error, does not update",
+        "                v:errmsg.",
+        "",
+        "                Parameters: ~",
+        "                    {src}     Vimscript code",
+        "                    {output}  Capture and return all (non-error, non-shell",
+        "                              |:!|) output",
+        "",
+        "                Return: ~",
+        "                    Output (non-error, non-shell |:!|) if `output` is true,",
+        "                    else empty string.",
+        "",
+        "                See also: ~",
+        "                    |execute()|",
+        "                    |nvim_command()|"
+      ],
       "nvim_command": [
         "                Executes an ex-command.",
         "",
@@ -28285,7 +28418,10 @@
         "                v:errmsg.",
         "",
         "                Parameters: ~",
-        "                    {command}  Ex-command string"
+        "                    {command}  Ex-command string",
+        "",
+        "                See also: ~",
+        "                    |nvim_exec()|"
       ],
       "nvim_get_hl_by_name": [
         "                Gets a highlight definition by name.",
@@ -28408,19 +28544,9 @@
         "                    replace_termcodes",
         "                    cpoptions"
       ],
-      "nvim_command_output": [
-        "                Executes an ex-command and returns its (non-error) output.",
-        "                Shell |:!| output is not captured.",
-        "",
-        "                On execution error: fails with VimL error, does not update",
-        "                v:errmsg.",
-        "",
-        "                Parameters: ~",
-        "                    {command}  Ex-command string"
-      ],
       "nvim_eval": [
-        "                Evaluates a VimL expression (:help expression). Dictionaries",
-        "                and Lists are recursively expanded.",
+        "                Evaluates a VimL |expression|. Dictionaries and Lists are",
+        "                recursively expanded.",
         "",
         "                On execution error: fails with VimL error, does not update",
         "                v:errmsg.",
@@ -28431,7 +28557,7 @@
         "                Return: ~",
         "                    Evaluation result or expanded object"
       ],
-      "nvim_execute_lua": [
+      "nvim_exec_lua": [
         "                Execute Lua code. Parameters (if any) are available as `...`",
         "                inside the chunk. The chunk can return a value.",
         "",
@@ -28733,10 +28859,11 @@
         "                                  'number', 'relativenumber', 'cursorline',",
         "                                  'cursorcolumn', 'foldcolumn', 'spell' and",
         "                                  'list' options. 'signcolumn' is changed to",
-        "                                  `auto` . The end-of-buffer region is hidden",
-        "                                  by setting `eob` flag of 'fillchars' to a",
-        "                                  space char, and clearing the |EndOfBuffer|",
-        "                                  region in 'winhighlight'.",
+        "                                  `auto` and 'colorcolumn' is cleared. The",
+        "                                  end-of-buffer region is hidden by setting",
+        "                                  `eob` flag of 'fillchars' to a space char,",
+        "                                  and clearing the |EndOfBuffer| region in",
+        "                                  'winhighlight'.",
         "",
         "                Return: ~",
         "                    Window handle, or 0 on error"
@@ -28821,7 +28948,7 @@
         "                    {type}    Edit behavior: any |getregtype()| result, or:",
         "                              • \"b\" |blockwise-visual| mode (may include",
         "                                width, e.g. \"b3\")",
-        "                              • \"c\" |characterwise| mode",
+        "                              • \"c\" |charwise| mode",
         "                              • \"l\" |linewise| mode",
         "                              • \"\" guess by contents, see |setreg()|",
         "                    {after}   Insert after cursor (like |p|), or before (like",
@@ -29299,6 +29426,13 @@
         "                Activates buffer-update events on a channel, or as Lua",
         "                callbacks.",
         "",
+        "                Example (Lua): capture buffer updates in a global `events` variable (use \"print(vim.inspect(events))\" to see its",
+        "                contents): >",
+        "                  events = {}",
+        "                  vim.api.nvim_buf_attach(0, false, {",
+        "                    on_lines=function(...) table.insert(events, {...}) end})",
+        "<",
+        "",
         "                Parameters: ~",
         "                    {buffer}       Buffer handle, or 0 for current buffer",
         "                    {send_buffer}  True if the initial notification should",
@@ -29571,80 +29705,93 @@
         "                Returns position for a given extmark id",
         "",
         "                Parameters: ~",
-        "                    {buffer}     The buffer handle",
-        "                    {namespace}  a identifier returned previously with",
-        "                                 nvim_create_namespace",
-        "                    {id}         the extmark id",
+        "                    {buffer}  Buffer handle, or 0 for current buffer",
+        "                    {ns_id}   Namespace id from |nvim_create_namespace()|",
+        "                    {id}      Extmark id",
         "",
         "                Return: ~",
         "                    (row, col) tuple or empty list () if extmark id was absent",
         ""
       ],
       "nvim_buf_get_extmarks": [
-        "                List extmarks in a range (inclusive)",
+        "                Gets extmarks in \"traversal order\" from a |charwise| region",
+        "                defined by buffer positions (inclusive, 0-indexed",
+        "                |api-indexing|).",
         "",
-        "                range ends can be specified as (row, col) tuples, as well as",
-        "                extmark ids in the same namespace. In addition, 0 and -1 works",
-        "                as shorthands for (0,0) and (-1,-1) respectively, so that all",
-        "                marks in the buffer can be quieried as:",
+        "                Region can be given as (row,col) tuples, or valid extmark ids",
+        "                (whose positions define the bounds). 0 and -1 are understood",
+        "                as (0,0) and (-1,-1) respectively, thus the following are",
+        "                equivalent:",
+        ">",
+        "                  nvim_buf_get_extmarks(0, my_ns, 0, -1, {})",
+        "                  nvim_buf_get_extmarks(0, my_ns, [0,0], [-1,-1], {})",
+        "<",
         "",
-        "                all_marks = nvim_buf_get_extmarks(0, my_ns, 0, -1, -1)",
+        "                If `end` is less than `start` , traversal works backwards.",
+        "                (Useful with `limit` , to get the first marks prior to a given",
+        "                position.)",
         "",
-        "                If end is a lower position than start, then the range will be",
-        "                traversed backwards. This is mostly used with limited amount,",
-        "                to be able to get the first marks prior to a given position.",
+        "                Example:",
+        ">",
+        "                  local a   = vim.api",
+        "                  local pos = a.nvim_win_get_cursor(0)",
+        "                  local ns  = a.nvim_create_namespace('my-plugin')",
+        "                  -- Create new extmark at line 1, column 1.",
+        "                  local m1  = a.nvim_buf_set_extmark(0, ns, 0, 0, 0, {})",
+        "                  -- Create new extmark at line 3, column 1.",
+        "                  local m2  = a.nvim_buf_set_extmark(0, ns, 0, 2, 0, {})",
+        "                  -- Get extmarks only from line 3.",
+        "                  local ms  = a.nvim_buf_get_extmarks(0, ns, {2,0}, {2,0}, {})",
+        "                  -- Get all marks in this buffer + namespace.",
+        "                  local all = a.nvim_buf_get_extmarks(0, ns, 0, -1, {})",
+        "                  print(vim.inspect(ms))",
+        "<",
         "",
         "                Parameters: ~",
-        "                    {buffer}  The buffer handle",
-        "                    {ns_id}   An id returned previously from",
-        "                              nvim_create_namespace",
-        "                    {lower}   One of: extmark id, (row, col) or 0, -1 for",
-        "                              buffer ends",
-        "                    {upper}   One of: extmark id, (row, col) or 0, -1 for",
-        "                              buffer ends",
-        "                    {opts}    additional options. Supports the keys:",
-        "                              • amount: Maximum number of marks to return",
+        "                    {buffer}  Buffer handle, or 0 for current buffer",
+        "                    {ns_id}   Namespace id from |nvim_create_namespace()|",
+        "                    {start}   Start of range, given as (row, col) or valid",
+        "                              extmark id (whose position defines the bound)",
+        "                    {end}     End of range, given as (row, col) or valid",
+        "                              extmark id (whose position defines the bound)",
+        "                    {opts}    Optional parameters. Keys:",
+        "                              • limit: Maximum number of marks to return",
         "",
         "                Return: ~",
-        "                    [[extmark_id, row, col], ...]",
+        "                    List of [extmark_id, row, col] tuples in \"traversal",
+        "                    order\".",
         ""
       ],
       "nvim_buf_set_extmark": [
-        "                Create or update an extmark at a position",
+        "                Creates or updates an extmark.",
         "",
-        "                If an invalid namespace is given, an error will be raised.",
-        "",
-        "                To create a new extmark, pass in id=0. The new extmark id will",
-        "                be returned. To move an existing mark, pass in its id.",
-        "",
-        "                It is also allowed to create a new mark by passing in a",
-        "                previously unused id, but the caller must then keep track of",
-        "                existing and unused ids itself. This is mainly useful over",
-        "                RPC, to avoid needing to wait for the return value.",
+        "                To create a new extmark, pass id=0. The extmark id will be",
+        "                returned. It is also allowed to create a new mark by passing",
+        "                in a previously unused id, but the caller must then keep track",
+        "                of existing and unused ids itself. (Useful over RPC, to avoid",
+        "                waiting for the return value.)",
         "",
         "                Parameters: ~",
-        "                    {buffer}  The buffer handle",
-        "                    {ns_id}   a identifier returned previously with",
-        "                              nvim_create_namespace",
-        "                    {id}      The extmark's id or 0 to create a new mark.",
-        "                    {row}     The row to set the extmark to.",
-        "                    {col}     The column to set the extmark to.",
+        "                    {buffer}  Buffer handle, or 0 for current buffer",
+        "                    {ns_id}   Namespace id from |nvim_create_namespace()|",
+        "                    {id}      Extmark id, or 0 to create new",
+        "                    {line}    Line number where to place the mark",
+        "                    {col}     Column where to place the mark",
         "                    {opts}    Optional parameters. Currently not used.",
         "",
         "                Return: ~",
-        "                    the id of the extmark."
+        "                    Id of the created/updated extmark"
       ],
       "nvim_buf_del_extmark": [
-        "                Remove an extmark",
+        "                Removes an extmark.",
         "",
         "                Parameters: ~",
-        "                    {buffer}  The buffer handle",
-        "                    {ns_id}   a identifier returned previously with",
-        "                              nvim_create_namespace",
-        "                    {id}      The extmarks's id",
+        "                    {buffer}  Buffer handle, or 0 for current buffer",
+        "                    {ns_id}   Namespace id from |nvim_create_namespace()|",
+        "                    {id}      Extmark id",
         "",
         "                Return: ~",
-        "                    true on success, false if the extmark was not found.",
+        "                    true if the extmark was found, else false",
         ""
       ],
       "nvim_buf_add_highlight": [
@@ -29688,8 +29835,8 @@
         ""
       ],
       "nvim_buf_clear_namespace": [
-        "                Clears namespaced objects, highlights and virtual text, from a",
-        "                line range",
+        "                Clears namespaced objects (highlights, extmarks, virtual text)",
+        "                from a region.",
         "",
         "                Lines are 0-indexed. |api-indexing| To clear the namespace in",
         "                the entire buffer, specify line_start=0 and line_end=-1.",
@@ -30416,6 +30563,36 @@
         "\t\tactive.",
         "\t\tSee 'imstatusfunc'."
       ],
+      "getmousepos": [
+        "\t\tReturns a Dictionary with the last known position of the",
+        "\t\tmouse.  This can be used in a mapping for a mouse click or in",
+        "\t\ta filter of a popup window.  The items are:",
+        "\t\t\tscreenrow\tscreen row",
+        "\t\t\tscreencol\tscreen column",
+        "\t\t\twinid\t\tWindow ID of the click",
+        "\t\t\twinrow\t\trow inside \"winid\"",
+        "\t\t\twincol\t\tcolumn inside \"winid\"",
+        "\t\t\tline\t\ttext line inside \"winid\"",
+        "\t\t\tcolumn\t\ttext column inside \"winid\"",
+        "\t\tAll numbers are 1-based.",
+        "",
+        "\t\tIf not over a window, e.g. when in the command line, then only",
+        "\t\t\"screenrow\" and \"screencol\" are valid, the others are zero.",
+        "",
+        "\t\tWhen on the status line below a window or the vertical",
+        "\t\tseparater right of a window, the \"line\" and \"column\" values",
+        "\t\tare zero.",
+        "",
+        "\t\tWhen the position is after the text then \"column\" is the",
+        "\t\tlength of the text in bytes.",
+        "",
+        "\t\tIf the mouse is over a popup window then that window is used.",
+        "",
+        "",
+        "\t\tWhen using |getchar()| the Vim variables |v:mouse_lnum|,",
+        "\t\t|v:mouse_col| and |v:mouse_winid| also provide these values.",
+        ""
+      ],
       "inputdialog": [
         "\t\tLike |input()|, but when the GUI is running and text dialogs",
         "\t\tare supported, a dialog window pops up to input the text.",
@@ -30432,6 +30609,19 @@
         "",
         "\t\tCan also be used as a |method|: >",
         "\t\t\tGetPrompt()->inputdialog()"
+      ],
+      "interrupt": [
+        "\t\tInterrupt script execution.  It works more or less like the",
+        "\t\tuser typing CTRL-C, most commands won't execute and control",
+        "\t\treturns to the user.  This is useful to abort execution",
+        "\t\tfrom lower down, e.g. in an autocommand.  Example: >",
+        "\t\t:function s:check_typoname(file)",
+        "\t\t:   if fnamemodify(a:file, ':t') == '['",
+        "\t\t:       echomsg 'Maybe typo'",
+        "\t\t:       call interrupt()",
+        "\t\t:   endif",
+        "\t\t:endfunction",
+        "\t\t:au BufWritePre * call s:check_typoname(expand('<amatch>'))"
       ],
       "job_getchannel": [
         "\t\tGet the channel handle that {job} is using.",
@@ -30789,6 +30979,8 @@
         "\t\t\t\t\\ moved: 'WORD',",
         "\t\t\t\t\\ })",
         "<\t\tUse {options} to change the properties.",
+        "\t\tIf \"pos\" is passed as \"topleft\" then the default for \"line\"",
+        "\t\tbecomes \"cursor+1\".",
         "",
         "\t\tCan also be used as a |method|: >",
         "\t\t\tGetText()->popup_atcursor({})",
@@ -30965,7 +31157,8 @@
         "\t\t    core_height\theight of the text box in screen cells",
         "\t\t    firstline\tline of the buffer at top (1 unless scrolled)",
         "\t\t\t\t(not the value of the \"firstline\" property)",
-        "\t\t    lastline\tline of the buffer at the bottom",
+        "\t\t    lastline\tline of the buffer at the bottom (updated when",
+        "\t\t\t\tthe popup is redrawn)",
         "\t\t    scrollbar\tnon-zero if a scrollbar is displayed",
         "\t\t    visible\tone if the popup is displayed, zero if hidden",
         "\t\tNote that these are the actual screen positions.  They differ",
@@ -31389,19 +31582,20 @@
         "\t\tSee |text-properties| for information about text properties.",
         ""
       ],
-      "pum_getpos": [
-        "\t\tIf the popup menu (see |ins-completion-menu|) is not visible,",
-        "\t\treturns an empty |Dictionary|, otherwise, returns a",
-        "\t\t|Dictionary| with the following keys:",
-        "\t\t\theight\t\tnr of items visible",
-        "\t\t\twidth\t\tscreen cells",
-        "\t\t\trow\t\ttop screen row (0 first row)",
-        "\t\t\tcol\t\tleftmost screen column (0 first col)",
-        "\t\t\tsize\t\ttotal nr of items",
-        "\t\t\tscrollbar\t|TRUE| if scrollbar is visible",
+      "rand": [
+        "\t\tReturn a pseudo-random Number generated with an xoshiro128**",
+        "\t\talgorithm using seed {expr}.  The returned number is 32 bits,",
+        "\t\talso on 64 bits systems, for consistency.",
+        "\t\t{expr} can be initialized by |srand()| and will be updated by",
+        "\t\trand().  If {expr} is omitted, an internal seed value is used",
+        "\t\tand updated.",
         "",
-        "\t\tThe values are the same as in |v:event| during",
-        "\t\t|CompleteChanged|."
+        "\t\tExamples: >",
+        "\t\t\t:echo rand()",
+        "\t\t\t:let seed = srand()",
+        "\t\t\t:echo rand(seed)",
+        "\t\t\t:echo rand(seed) % 16  \" random number 0 - 15",
+        "<"
       ],
       "rubyeval": [
         "\t\tEvaluate Ruby expression {expr} and return its result",
@@ -31502,6 +31696,20 @@
         "<\t\t{only available when compiled with the |+sound| feature}",
         ""
       ],
+      "srand": [
+        "\t\tInitialize seed used by |rand()|:",
+        "\t\t- If {expr} is not given, seed values are initialized by",
+        "\t\t  reading from /dev/urandom, if possible, or using time(NULL)",
+        "\t\t  a.k.a. epoch time otherwise; this only has second accuracy.",
+        "\t\t- If {expr} is given it must be a Number.  It is used to",
+        "\t\t  initialize the seed values.  This is useful for testing or",
+        "\t\t  when a predictable sequence is intended.",
+        "",
+        "\t\tExamples: >",
+        "\t\t\t:let seed = srand()",
+        "\t\t\t:let seed = srand(userinput)",
+        "\t\t\t:echo rand(seed)"
+      ],
       "state": [
         "\t\tReturn a string which contains characters indicating the",
         "\t\tcurrent state.  Mostly useful in callbacks that want to do",
@@ -31553,6 +31761,34 @@
         "",
         "<\t\tCan also be used as a |method|: >",
         "\t\t\tGetString()->str2list()",
+        ""
+      ],
+      "strptime": [
+        "\t\tThe result is a Number, which is a unix timestamp representing",
+        "\t\tthe date and time in {timestring}, which is expected to match",
+        "\t\tthe format specified in {format}.",
+        "",
+        "\t\tThe accepted {format} depends on your system, thus this is not",
+        "\t\tportable!  See the manual page of the C function strptime()",
+        "\t\tfor the format.  Especially avoid \"%c\".  The value of $TZ also",
+        "\t\tmatters.",
+        "",
+        "\t\tIf the {timestring} cannot be parsed with {format} zero is",
+        "\t\treturned.  If you do not know the format of {timestring} you",
+        "\t\tcan try different {format} values until you get a non-zero",
+        "\t\tresult.",
+        "",
+        "\t\tSee also |strftime()|.",
+        "\t\tExamples: >",
+        "\t\t  :echo strptime(\"%Y %b %d %X\", \"1997 Apr 27 11:49:23\")",
+        "<\t\t  862156163 >",
+        "\t\t  :echo strftime(\"%c\", strptime(\"%y%m%d %T\", \"970427 11:53:55\"))",
+        "<\t\t  Sun Apr 27 11:53:55 1997 >",
+        "\t\t  :echo strftime(\"%c\", strptime(\"%Y%m%d%H%M%S\", \"19970427115355\") + 3600)",
+        "<\t\t  Sun Apr 27 12:53:55 1997",
+        "",
+        "\t\tNot available on all systems.  To check use: >",
+        "\t\t\t:if exists(\"*strptime\")",
         ""
       ],
       "term_dumpdiff": [
@@ -32508,7 +32744,7 @@
         "\t\t|sandbox|."
       ],
       "v:lua": [
-        "Prefix for calling lua functions from expressions.",
+        "Prefix for calling Lua functions from expressions.",
         "\t\tSee |v:lua-call| for more information."
       ],
       "v:mouse_win": [
@@ -33008,6 +33244,14 @@
         "\t  name, precede it with a backslash.",
         "\t- To include a comma in a directory name precede it with a backslash.",
         "\t- A directory name may end in an '/'.",
+        "\t- For Unix and Win32, if a directory ends in two path separators \"//\",",
+        "\t  the swap file name will be built from the complete path to the file",
+        "\t  with all path separators changed to percent '%' signs. This will",
+        "\t  ensure file name uniqueness in the backup directory.",
+        "\t  On Win32, it is also possible to end with \"\\\\\".  However, When a",
+        "\t  separating comma is following, you must use \"//\", since \"\\\\\" will",
+        "\t  include the comma in the file name. Therefore it is recommended to",
+        "\t  use '//', instead of '\\\\'.",
         "\t- Environment variables are expanded |:set_env|.",
         "\t- Careful with '\\' characters, type one before a space, type two to",
         "\t  get one in the option (see |option-backslash|), for example: >",
@@ -33466,7 +33710,7 @@
         "\tSee 'preserveindent'."
       ],
       "cpoptions": [
-        "string\t(Vim default: \"aABceFs\",",
+        "string\t(Vim default: \"aABceFs_\",",
         "\t\t\t\t Vi default: all flags)",
         "\t\t\tglobal",
         "\tA sequence of single character flags.  When a character is present",
@@ -33644,12 +33888,14 @@
         "\t- A directory starting with \"./\" (or \".\\\" for Windows) means to",
         "\t  put the swap file relative to where the edited file is.  The leading",
         "\t  \".\" is replaced with the path name of the edited file.",
-        "\t- For Unix and Win32, if a directory ends in two path separators \"//\"",
-        "\t  or \"\\\\\", the swap file name will be built from the complete path to",
-        "\t  the file with all path separators substituted to percent '%' signs.",
-        "\t  This will ensure file name uniqueness in the preserve directory.",
-        "\t  On Win32, when a separating comma is following, you must use \"//\",",
-        "\t  since \"\\\\\" will include the comma in the file name.",
+        "\t- For Unix and Win32, if a directory ends in two path separators \"//\",",
+        "\t  the swap file name will be built from the complete path to the file",
+        "\t  with all path separators substituted to percent '%' signs. This will",
+        "\t  ensure file name uniqueness in the preserve directory.",
+        "\t  On Win32, it is also possible to end with \"\\\\\".  However, When a",
+        "\t  separating comma is following, you must use \"//\", since \"\\\\\" will",
+        "\t  include the comma in the file name. Therefore it is recommended to",
+        "\t  use '//', instead of '\\\\'.",
         "\t- Spaces after the comma are ignored, other spaces are considered part",
         "\t  of the directory name.  To have a space at the start of a directory",
         "\t  name, precede it with a backslash.",
@@ -33946,7 +34192,7 @@
       ],
       "fillchars": [
         "string\t(default \"\")",
-        "\t\t\tlocal to window",
+        "\t\t\tglobal or local to window |global-local|",
         "\tCharacters to fill the statuslines and vertical separators.",
         "\tIt is a comma separated list of items:"
       ],
@@ -34590,6 +34836,17 @@
         "\teven when they are not included in 'isprint' or excluded.  See",
         "\t'isfname' for a description of the format of this option."
       ],
+      "jumpoptions": [
+        "string\t(default \"\")",
+        "\t\t\tglobal",
+        "\tList of words that change the behavior of the |jumplist|.",
+        "\t  stack         Make the jumplist behave like the tagstack or like a",
+        "\t                web browser.  Relative location of entries in the",
+        "\t\t\tjumplist is preserved at the cost of discarding",
+        "\t\t\tsubsequent entries when navigating backwards in the",
+        "\t\t\tjumplist and then jumping to a location.",
+        "\t\t\t|jumplist-stack|"
+      ],
       "joinspaces": [
         "boolean\t(default on)",
         "\t\t\tglobal",
@@ -34768,7 +35025,7 @@
       "listchars": [
         "string\t(default: \"tab:> ,trail:-,nbsp:+\"",
         "\t\t\t\t Vi default: \"eol:$\")",
-        "\t\t\tlocal to window",
+        "\t\t\tglobal or local to window |global-local|",
         "\tStrings to use in 'list' mode and for the |:list| command.  It is a",
         "\tcomma separated list of string settings."
       ],
@@ -36333,7 +36590,7 @@
         "\tcurrent one. |:vsplit|"
       ],
       "startofline": [
-        "boolean\t(default on)",
+        "boolean\t(default off)",
         "\t\t\tglobal",
         "\tWhen \"on\" the commands listed below move the cursor to the first",
         "\tnon-blank of the line.  When off the cursor is kept in the same column",
@@ -36414,7 +36671,9 @@
         "\t\t\tsplit if there is no other window).",
         "\t   vsplit\tJust like \"split\" but split vertically.",
         "\t   newtab\tLike \"split\", but open a new tab page.  Overrules",
-        "\t\t\t\"split\" when both are present."
+        "\t\t\t\"split\" when both are present.",
+        "\t   uselast\tIf included, jump to the previously used window when",
+        "\t\t\tjumping to errors with |quickfix| commands."
       ],
       "synmaxcol": [
         "number\t(default 3000)",
@@ -36899,22 +37158,16 @@
       "wildmenu": [
         "boolean\t(default on)",
         "\t\t\tglobal",
-        "\tWhen 'wildmenu' is on, command-line completion operates in an enhanced",
-        "\tmode.  On pressing 'wildchar' (usually <Tab>) to invoke completion,",
-        "\tthe possible matches are shown just above the command line, with the",
-        "\tfirst match highlighted (overwriting the status line, if there is",
-        "\tone).  Keys that show the previous/next match, such as <Tab> or",
-        "\tCTRL-P/CTRL-N, cause the highlight to move to the appropriate match.",
-        "\tWhen 'wildmode' is used, \"wildmenu\" mode is used where \"full\" is",
-        "\tspecified.  \"longest\" and \"list\" do not start \"wildmenu\" mode.",
-        "\tYou can check the current mode with |wildmenumode()|.",
-        "\tIf there are more matches than can fit in the line, a \">\" is shown on",
-        "\tthe right and/or a \"<\" is shown on the left.  The status line scrolls",
-        "\tas needed.",
-        "\tThe \"wildmenu\" mode is abandoned when a key is hit that is not used",
-        "\tfor selecting a completion.",
-        "\tWhile the \"wildmenu\" is active the following keys have special",
-        "\tmeanings:"
+        "\tEnables \"enhanced mode\" of command-line completion. When user hits",
+        "\t<Tab> (or 'wildchar') to invoke completion, the possible matches are",
+        "\tshown in a menu just above the command-line (see 'wildoptions'), with",
+        "\tthe first match highlighted (overwriting the statusline).  Keys that",
+        "\tshow the previous/next match (<Tab>/CTRL-P/CTRL-N) highlight the",
+        "\tmatch.",
+        "\t'wildmode' must specify \"full\": \"longest\" and \"list\" do not start",
+        "\t'wildmenu' mode. You can check the current mode with |wildmenumode()|.",
+        "\tThe menu is canceled when a key is hit that is not used for selecting",
+        "\ta completion."
       ],
       "wildmode": [
         "string\t(default: \"full\")",
@@ -37288,7 +37541,10 @@
         "\twhen 'esckeys' is off, you can still map anything, but the cursor keys",
         "\twon't work by default.",
         "\tNOTE: This option is set to the Vi default value when 'compatible' is",
-        "\tset and to the Vim default value when 'compatible' is reset."
+        "\tset and to the Vim default value when 'compatible' is reset.",
+        "\tNOTE: when this option is off then the |modifyOtherKeys| functionality",
+        "\tis disabled while in Insert mode to avoid ending Insert mode with any",
+        "\tkey that has a modifier."
       ],
       "exrc": [
         "boolean (default off)",
@@ -37632,6 +37888,15 @@
         "\tEnvironment variables are expanded |:set_env|.",
         "\tThis option cannot be set from a |modeline| or in the |sandbox|, for",
         "\tsecurity reasons."
+      ],
+      "scrollfocus": [
+        "boolean  (default off)",
+        "\t\t\tglobal",
+        "\t\t\t{only for MS-Windows GUI}",
+        "\tWhen using the scroll wheel and this option is set, the window under",
+        "\tthe mouse pointer is scrolled.  With this option off the current",
+        "\twindow is scrolled.",
+        "\tSystems other than MS-Windows always behave like this option is on."
       ],
       "shelltype": [
         "number\t(default 0)",
@@ -38061,6 +38326,9 @@
       "acl": [
         "|ACL| support"
       ],
+      "bsd": [
+        "BSD system (not macOS, use \"mac\" for that)."
+      ],
       "iconv": [
         "Can use |iconv()| for conversion."
       ],
@@ -38069,6 +38337,9 @@
       ],
       "clipboard": [
         "|clipboard| provider is available."
+      ],
+      "mac": [
+        "MacOS system."
       ],
       "nvim": [
         "This is Nvim."
@@ -38096,6 +38367,9 @@
       ],
       "win32": [
         "Windows system (32 or 64 bit)."
+      ],
+      "win64": [
+        "Windows system (64 bit)."
       ],
       "wsl": [
         "WSL (Windows Subsystem for Linux) system"
@@ -38136,9 +38410,6 @@
       ],
       "browsefilter": [
         "Compiled with support for |browsefilter|."
-      ],
-      "bsd": [
-        "Compiled on an OS in the BSD family (excluding macOS)."
       ],
       "builtin_terms": [
         "Compiled with some builtin terminals."
@@ -38223,7 +38494,7 @@
         "\t\t\t|'hlsearch'|"
       ],
       "farsi": [
-        "Compiled with Farsi support |farsi|."
+        "Support for Farsi was removed |farsi|."
       ],
       "file_in_path": [
         "Compiled with support for |gf| and |<cfile>|"
@@ -38346,9 +38617,6 @@
       ],
       "lua": [
         "Compiled with Lua interface |Lua|."
-      ],
-      "mac": [
-        "Any Macintosh version of Vim  cf. osx"
       ],
       "macunix": [
         "Synonym for osxdarwin"
@@ -38576,6 +38844,9 @@
       "user_commands": [
         "User-defined commands. (always true)"
       ],
+      "vartabs": [
+        "Compiled with variable tabstop support |'vartabstop'|."
+      ],
       "vcon": [
         "Win32: Virtual console support is working, can use"
       ],
@@ -38632,9 +38903,6 @@
       ],
       "win32unix": [
         "Win32 version of Vim, using Unix files (Cygwin)"
-      ],
-      "win64": [
-        "Win64 version of Vim (MS-Windows 64 bit)."
       ],
       "win95": [
         "Win32 version for MS-Windows 95/98/ME (always false)"
