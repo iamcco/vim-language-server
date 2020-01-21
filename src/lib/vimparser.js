@@ -2781,15 +2781,16 @@ ExprTokenizer.prototype.get_dstring = function() {
     return s;
 }
 
-ExprTokenizer.prototype.get_dict_literal_key = function() {
+ExprTokenizer.prototype.parse_dict_literal_key = function() {
     this.reader.skip_white();
-    var r = this.reader;
-    var c = r.peek();
+    var c = this.reader.peek();
     if (!isalnum(c) && c != "_" && c != "-") {
         throw Err(viml_printf("unexpected character: %s", c), this.reader.getpos());
     }
+    var node = Node(NODE_STRING);
     var s = c;
     this.reader.seek_cur(1);
+    node.pos = this.reader.getpos();
     while (TRUE) {
         var c = this.reader.p(0);
         if (c == "<EOF>" || c == "<EOL>") {
@@ -2801,7 +2802,8 @@ ExprTokenizer.prototype.get_dict_literal_key = function() {
         this.reader.seek_cur(1);
         s += c;
     }
-    return s;
+    node.value = "'" + s + "'";
+    return node;
 }
 
 function ExprParser() { this.__init__.apply(this, arguments); }
@@ -3507,7 +3509,7 @@ ExprParser.prototype.parse_expr9 = function() {
             return node;
         }
         while (1) {
-            var key = is_litdict ? this.parse_dict_literal_key() : this.parse_expr1();
+            var key = is_litdict ? this.tokenizer.parse_dict_literal_key() : this.parse_expr1();
             var token = this.tokenizer.get();
             if (token.type == TOKEN_CCLOSE) {
                 if (!viml_empty(node.value)) {
@@ -3580,13 +3582,6 @@ ExprParser.prototype.parse_expr9 = function() {
     else {
         throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
     }
-    return node;
-}
-
-ExprParser.prototype.parse_dict_literal_key = function() {
-    var node = Node(NODE_STRING);
-    node.pos = this.reader.tell();
-    node.value = "'" + this.tokenizer.get_dict_literal_key() + "'";
     return node;
 }
 
