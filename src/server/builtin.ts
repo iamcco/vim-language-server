@@ -204,9 +204,12 @@ class Builtin {
         contents: this.formatVimDocument(this.vimPredefinedVariableDocuments[name]),
       };
     // options
-    } else if (isSomeMatchPattern(optionPattern, pre) && this.vimOptionDocuments[name.slice(1)]) {
+    } else if (
+      isSomeMatchPattern(optionPattern, pre)
+      && (this.vimOptionDocuments[name] || this.vimOptionDocuments[name.slice(1)])
+    ) {
       return {
-        contents: this.formatVimDocument(this.vimOptionDocuments[name.slice(1)]),
+        contents: this.formatVimDocument(this.vimOptionDocuments[name] || this.vimOptionDocuments[name.slice(1)]),
       };
     // builtin functions
     } else if (builtinFunctionPattern.test(next) && this.vimBuiltFunctionDocuments[name]) {
