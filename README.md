@@ -17,8 +17,16 @@
 
 ## Install
 
+**For yarn**
+
 ``` sh
 yarn global add vim-language-server
+```
+
+**For npm**
+
+```sh
+npm install -g vim-language-server
 ```
 
 **For coc.nvim user** install coc extension:
