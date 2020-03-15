@@ -1,5 +1,7 @@
 # vim language server
 
+[![CI](https://github.com/iamcco/vim-language-server/workflows/CI/badge.svg?branch=master)](https://github.com/iamcco/vim-language-server/actions?query=workflow%3ACI)
+
 > language server for viml
 
 **Features:**
