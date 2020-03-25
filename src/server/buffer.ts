@@ -87,6 +87,9 @@ const NODE_CURLYNAMEPART = 90;          // TODO
 const NODE_CURLYNAMEEXPR = 91;          // TODO
 const NODE_LAMBDA = 92;
 const NODE_CONST = 94;
+const NODE_EVAL = 95;
+const NODE_HEREDOC = 96;
+const NODE_METHOD = 97;
 
 /*
  * buffer's completion items
@@ -411,6 +414,7 @@ export class Buffer {
         case NODE_RETURN:
         case NODE_DELFUNCTION:
         case NODE_THROW:
+        case NODE_EVAL:
           nodeList = nodeList.concat(node.left);
           break;
         case NODE_DOT:
@@ -483,6 +487,7 @@ export class Buffer {
         case NODE_ADD:
         case NODE_SUBTRACT:
         case NODE_SUBSCRIPT:
+        case NODE_METHOD:
           nodeList = nodeList.concat(node.left || []);
           nodeList = nodeList.concat(node.right || []);
           break;

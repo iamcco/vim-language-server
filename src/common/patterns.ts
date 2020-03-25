@@ -38,7 +38,7 @@ export const notFunctionPattern = [
   /^[ \t]*\w+$/,
   /^[ \t]*"/,
   /(let|set|colorscheme)[ \t][^ \t]*$/,
-  /[^([,\\ \t\w#]\w*$/,
+  /[^([,\\ \t\w#>]\w*$/,
   /^[ \t]*(hi|highlight)([ \t]+link)?([ \t]+[^ \t]+)*[ \t]*$/,
   autocmdPattern,
 ];

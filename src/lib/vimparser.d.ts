@@ -34,7 +34,7 @@ export declare interface INode {
 export declare class StringReader {
   public buf: string[];
   public pos: Array<[number, number, number]>;
-  constructor(str: string)
+  constructor(lines: string[])
 }
 
 // tslint:disable-next-line

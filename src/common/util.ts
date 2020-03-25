@@ -164,7 +164,7 @@ export function getWordFromPosition(
 // parse vim buffer
 export async function handleParse(textDoc: TextDocument | string): Promise<[INode | null, string]> {
   const text = textDoc instanceof Object ? textDoc.getText() : textDoc;
-  const tokens = new StringReader(text);
+  const tokens = new StringReader(text.split(/\r\n|\r|\n/));
   try {
     const node: INode = new VimLParser(true).parse(tokens);
     return [node, ""];
