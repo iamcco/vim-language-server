@@ -1,10 +1,12 @@
-import { spawn, SpawnOptions } from "child_process";
+import {ErrnoException} from "@nodelib/fs.stat/out/types";
+import {spawn, SpawnOptions} from "child_process";
 import findup from "findup";
+import fs, {Stats} from "fs";
 import path from "path";
-import { Readable } from "stream";
-import { CompletionItem, InsertTextFormat, Position, Range, TextDocument } from "vscode-languageserver";
-import { INode, StringReader, VimLParser } from "../lib/vimparser";
-import { commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern } from "./patterns";
+import {Readable} from "stream";
+import {CompletionItem, InsertTextFormat, Position, Range, TextDocument} from "vscode-languageserver";
+import {INode, StringReader, VimLParser} from "../lib/vimparser";
+import {commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern} from "./patterns";
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
   return patterns.some((p) => p.test(line));
@@ -186,3 +188,29 @@ export function removeSnippets(completionItems: CompletionItem[] = []): Completi
     return item;
   });
 }
+
+export const isSymbolLink = async (filePath: string): Promise<{ err: ErrnoException | null; stats: boolean }> => {
+  return new Promise((resolve) => {
+    fs.lstat(filePath, (err: ErrnoException | null, stats: Stats) => {
+      resolve({
+        err,
+        stats: stats && stats.isSymbolicLink(),
+      });
+    });
+  });
+};
+
+export const getRealPath = async (filePath: string): Promise<string> => {
+  const { err, stats } = await isSymbolLink(filePath);
+  if (!err && stats) {
+    return new Promise((resolve) => {
+      fs.realpath(filePath, (error: ErrnoException | null, realPath: string) => {
+        if (error) {
+          return resolve(filePath);
+        }
+        resolve(realPath);
+      });
+    });
+  }
+  return filePath;
+};

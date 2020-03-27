@@ -2,12 +2,12 @@ import fg from "fast-glob";
 import os from "os";
 import { join } from "path";
 import { from, Observable, of, Subject, timer } from "rxjs";
-import { catchError, concatMap, filter, map, mergeMap } from "rxjs/operators";
+import { catchError, concatMap, filter, map, mergeMap, switchMap } from "rxjs/operators";
 import vscUri from "vscode-uri";
 
 import { readFileSync } from "fs";
 import { projectRootPatterns } from "../common/constant";
-import { findProjectRoot, handleParse } from "../common/util";
+import { findProjectRoot, getRealPath, handleParse } from "../common/util";
 
 const indexes: Record<string, boolean> = {};
 const indexesFiles: Record<string, boolean> = {};
@@ -28,6 +28,9 @@ function initSource() {
         vscUri.parse(uri).fsPath,
         customProjectRootPatterns,
       )).pipe(
+        switchMap((projectRoot) => {
+          return from(getRealPath(projectRoot));
+        }),
         filter((projectRoot) => projectRoot && projectRoot !== os.homedir()),
         map((projectRoot) => ({
           uri,
