@@ -284,7 +284,7 @@ class Builtin {
     return {
       kind: MarkupKind.Markdown,
       value: [
-        "``` help",
+        "```help",
         ...document.map((line) => {
           if (indent === 0) {
             const m = line.match(/^([ \t]+)/);
