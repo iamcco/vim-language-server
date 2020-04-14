@@ -144,7 +144,7 @@ class Builtin {
     switch (kind) {
       case CompletionItemKind.Variable:
         if (!this.vimPredefinedVariableDocuments[params.label]) {
-          return;
+          return params;
         }
         return {
           ...params,
@@ -154,7 +154,7 @@ class Builtin {
         };
       case CompletionItemKind.Property:
         if (!this.vimOptionDocuments[params.label]) {
-          return;
+          return params;
         }
         return {
           ...params,
@@ -164,7 +164,7 @@ class Builtin {
         };
       case CompletionItemKind.Function:
         if (!this.vimBuiltFunctionDocuments[params.label]) {
-          return;
+          return params;
         }
         return {
           ...params,
@@ -174,7 +174,7 @@ class Builtin {
         };
       case CompletionItemKind.EnumMember:
         if (!this.vimFeatureDocuments[params.label]) {
-          return;
+          return params;
         }
         return {
           ...params,
@@ -184,7 +184,7 @@ class Builtin {
         };
       case CompletionItemKind.Operator:
         if (!this.vimCommandDocuments[params.label]) {
-          return;
+          return params;
         }
         return {
           ...params,
