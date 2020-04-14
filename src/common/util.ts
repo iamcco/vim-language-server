@@ -100,7 +100,7 @@ export async function findProjectRoot(
 
 export function markupSnippets(snippets: string): string {
   return [
-    "``` vim",
+    "```vim",
     snippets.replace(/\$\{[0-9]+(:([^}]+))?\}/g, "$2"),
     "```",
   ].join("\n");

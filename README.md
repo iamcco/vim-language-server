@@ -21,7 +21,7 @@
 
 **For yarn**
 
-``` sh
+```sh
 yarn global add vim-language-server
 ```
 
@@ -33,7 +33,7 @@ npm install -g vim-language-server
 
 **For coc.nvim user** install coc extension:
 
-``` vim
+```vim
 :CocInstall coc-vimlsp
 ```
 
@@ -41,7 +41,7 @@ npm install -g vim-language-server
 
 for document highlight
 
-``` vim
+```vim
 let g:markdown_fenced_languages = [
       \ 'vim',
       \ 'help'
@@ -52,7 +52,7 @@ lsp client config example with coc.nvim
 
 - Using node ipc
 
-``` jsonc
+```jsonc
 "languageserver": {
   "vimls": {
     "module": "/path/to/vim-language-server/bin/index.js",
@@ -82,7 +82,7 @@ lsp client config example with coc.nvim
 
 - Using stdio
 
-``` jsonc
+```jsonc
 "languageserver": {
   "vimls": {
     "command": "vim-language-server",
