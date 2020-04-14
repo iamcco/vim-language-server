@@ -139,7 +139,7 @@ class Builtin {
 
   public getDocumentByCompletionItem(
     params: { label: string, kind: CompletionItemKind } | CompletionItem,
-  ): CompletionItem | undefined {
+  ): CompletionItem {
     const { kind } = params;
     switch (kind) {
       case CompletionItemKind.Variable:
@@ -193,7 +193,7 @@ class Builtin {
           ),
         };
       default:
-        break;
+        return params;
     }
   }
 
