@@ -7,7 +7,7 @@ import {
 import { errorLinePattern } from "../common/patterns";
 import { connection } from "../server/connection";
 
-const fixNegtiveNum = (num: number): number => {
+const fixNegativeNum = (num: number): number => {
   if (num < 0) {
     return 0;
   }
@@ -20,15 +20,17 @@ export async function handleDiagnostic(
 ) {
   const m = (error || "").match(errorLinePattern);
   if (m) {
-    const line = fixNegtiveNum(parseFloat(m[2]) - 1);
-    const col = fixNegtiveNum(parseFloat(m[3]) - 1);
+    const lines = textDoc.lineCount;
+    const line = fixNegativeNum(parseFloat(m[2]) - 1);
+    const col = fixNegativeNum(parseFloat(m[3]) - 1);
     return connection.sendDiagnostics({
       uri: textDoc.uri,
       diagnostics: [{
+        source: "vimlsp",
         message: m[1],
         range: Range.create(
-          Position.create(line, col),
-          Position.create(line, col + 1),
+          Position.create(line > lines ? lines : line, col),
+          Position.create(line > lines ? lines : line, col + 1),
         ),
         severity: DiagnosticSeverity.Error,
       }],
