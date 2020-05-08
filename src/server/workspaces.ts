@@ -62,7 +62,7 @@ export class Workspace {
     let isFunArg: boolean = false;
     let res: Location[] = [];
     if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name)) {
-      res = this.getGlobalLocaltion(name, uri, position, locationType);
+      res = this.getGlobalLocation(name, uri, position, locationType);
     } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
       // get function args references first
       res = this.getFunArgLocation(name, uri, position, locationType);
@@ -71,7 +71,59 @@ export class Workspace {
       } else {
         res = this.getLocalLocation(name, uri, position, locationType);
         if (!res.length) {
-          res = this.getGlobalLocaltion(name, uri, position, locationType);
+          res = this.getGlobalLocation(name, uri, position, locationType);
+        }
+      }
+    } else if (/^((s:|<SID>)\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+      const names = [name];
+      if (/^<SID>/.test(name)) {
+        names.push(name.replace(/^<SID>/, "s:"));
+      } else {
+        names.push(name.replace(/^s:/, "<SID>"));
+      }
+      res = this.getScriptLocation(names, uri, position, locationType);
+    } else if (/^(l:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+      res = this.getLocalLocation(name, uri, position, locationType);
+    } else if (/^(a:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+      res = this.getAIdentifierLocation(name, uri, position, locationType);
+    }
+
+    if (res.length) {
+      res = res.sort((a, b) => {
+        if (a.range.start.line === b.range.start.line) {
+          return a.range.start.character - b.range.start.character;
+        }
+        return a.range.start.line - b.range.start.line;
+      });
+    }
+    return {
+      isFunArg,
+      locations: res,
+    };
+  }
+
+  public getLocationsByUri(
+    name: string,
+    uri: string,
+    position: Position,
+    locationType: "definition" | "references",
+  ): {
+    locations: Location[]
+    isFunArg: boolean,
+  } {
+    let isFunArg: boolean = false;
+    let res: Location[] = [];
+    if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name)) {
+      res = this.getGlobalLocationByUri(name, uri, position, locationType);
+    } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
+      // get function args references first
+      res = this.getFunArgLocation(name, uri, position, locationType);
+      if (res.length) {
+        isFunArg = true;
+      } else {
+        res = this.getLocalLocation(name, uri, position, locationType);
+        if (!res.length) {
+          res = this.getGlobalLocationByUri(name, uri, position, locationType);
         }
       }
     } else if (/^((s:|<SID>)\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
@@ -183,57 +235,68 @@ export class Workspace {
     };
   }
 
-  private getGlobalLocaltion(
+  private getGlobalLocation(
     name: string,
     // tslint:disable-next-line: variable-name
     _uri: string,
+    // tslint:disable-next-line: variable-name
+    position: Position,
+    locationType: "definition" | "references",
+  ): Location[] {
+    return Object.keys(this.buffers).reduce((pre, uri) => {
+      return pre.concat(this.getGlobalLocationByUri(name, uri, position, locationType));
+    }, [] as Location[]);
+  }
+
+  private getGlobalLocationByUri(
+    name: string,
+    // tslint:disable-next-line: variable-name
+    uri: string,
     // tslint:disable-next-line: variable-name
     _position: Position,
     locationType: "definition" | "references",
   ): Location[] {
     let res: Location[] = [];
-    Object.keys(this.buffers).forEach((uri) => {
-      const gloalFunctions = locationType === "definition"
-        ? this.buffers[uri].getGlobalFunctions()
-        : this.buffers[uri].getGlobalFunctionRefs();
-      Object.keys(gloalFunctions).forEach((fname) => {
-        if (fname === name) {
-          res = res.concat(
-            gloalFunctions[fname].map((item) => this.getLocation(uri, item)),
-          );
-        }
-      });
-      let tmp: Location[] = [];
-      let list: Location[] = [];
-      const identifiers = locationType === "definition"
-        ? this.buffers[uri].getGlobalIdentifiers()
-        : this.buffers[uri].getGlobalIdentifierRefs();
-      Object.keys(identifiers).forEach((fname) => {
-        if (fname === name) {
-          tmp = tmp.concat(
-            identifiers[fname].map((item) => this.getLocation(uri, item)),
-          );
-        }
-      });
-      // filter function local variables
-      if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
-        const glFunctions = this.buffers[uri].getGlobalFunctions();
-        const scriptFunctions = this.buffers[uri].getScriptFunctions();
-        const funList = Object.values(glFunctions).concat(
-          Object.values(scriptFunctions),
-        ).reduce((aur, fs) => aur.concat(fs), []);
-        tmp.forEach((l) => {
-          if (!funList.some((fun) => {
-            return fun.startLine - 1 < l.range.start.line && l.range.start.line < fun.endLine - 1;
-          })) {
-            list.push(l);
-          }
-        });
-      } else {
-        list = tmp;
+    let tmp: Location[] = [];
+    let list: Location[] = [];
+    const gloalFunctions = locationType === "definition"
+      ? this.buffers[uri].getGlobalFunctions()
+      : this.buffers[uri].getGlobalFunctionRefs();
+    Object.keys(gloalFunctions).forEach((fname) => {
+      if (fname === name) {
+        res = res.concat(
+          gloalFunctions[fname].map((item) => this.getLocation(uri, item)),
+        );
       }
-      res = res.concat(list);
     });
+    const identifiers = locationType === "definition"
+      ? this.buffers[uri].getGlobalIdentifiers()
+      : this.buffers[uri].getGlobalIdentifierRefs();
+    Object.keys(identifiers).forEach((fname) => {
+      if (fname === name) {
+        tmp = tmp.concat(
+          identifiers[fname].map((item) => this.getLocation(uri, item)),
+        );
+      }
+    });
+    // filter function local variables
+    if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
+      const glFunctions = this.buffers[uri].getGlobalFunctions();
+      const scriptFunctions = this.buffers[uri].getScriptFunctions();
+      const funList = Object.values(glFunctions).concat(
+        Object.values(scriptFunctions),
+      ).reduce((aur, fs) => aur.concat(fs), []);
+      tmp.forEach((l) => {
+        if (!funList.some((fun) => {
+          return fun.startLine - 1 < l.range.start.line && l.range.start.line < fun.endLine - 1;
+        })) {
+          list.push(l);
+        }
+      });
+    } else {
+      list = tmp;
+    }
+    res = res.concat(list);
     return res;
   }
 

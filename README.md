@@ -1,8 +1,11 @@
-# vim language server
+# VimScript Language Server
 
 [![CI](https://github.com/iamcco/vim-language-server/workflows/CI/badge.svg?branch=master)](https://github.com/iamcco/vim-language-server/actions?query=workflow%3ACI)
+[![Npm](https://img.shields.io/github/package-json/v/iamcco/vim-language-server)](https://www.npmjs.com/package/vim-language-server)
+![Type](https://img.shields.io/npm/types/vim-language-server)
+![download](https://img.shields.io/npm/dm/vim-language-server)
 
-> language server for viml
+> language server for VimScript
 
 **Features:**
 
@@ -11,6 +14,7 @@
 - hover document
 - go to definition
 - go to references
+- document highlight
 - rename
 - snippets
 - diagnostic

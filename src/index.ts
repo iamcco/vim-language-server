@@ -10,6 +10,7 @@ import { hoverProvider } from "./handles/hover";
 import { referencesProvider } from "./handles/references";
 import { prepareProvider, renameProvider } from "./handles/rename";
 import { signatureHelpProvider } from "./handles/signatureHelp";
+import {documentHighlightProvider} from "./handles/symbols";
 import { builtinDocs } from "./server/builtin";
 import config from "./server/config";
 import { connection } from "./server/connection";
@@ -70,6 +71,7 @@ connection.onInitialize((param: InitializeParams) => {
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
+      documentHighlightProvider: true,
       hoverProvider: true,
       completionProvider: {
         triggerCharacters: [".", ":", "#", "[", "&", "$", "<", '"', "'"],
@@ -105,7 +107,7 @@ connection.onCompletion(completionProvider);
 // handle completion resolve
 connection.onCompletionResolve(completionResolveProvider);
 
-// handle signaturehelp
+// handle signature help
 connection.onSignatureHelp(signatureHelpProvider);
 
 // handle hover
@@ -120,6 +122,9 @@ connection.onReferences(referencesProvider);
 // handle rename
 connection.onPrepareRename(prepareProvider);
 connection.onRenameRequest(renameProvider);
+
+// document highlight
+connection.onDocumentHighlight(documentHighlightProvider);
 
 // lsp start
 connection.listen();
