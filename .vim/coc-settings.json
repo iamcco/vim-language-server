@@ -2,13 +2,23 @@
   "cSpell.words": [
     "Runtimepath",
     "Vimruntime",
+    "Workdir",
+    "fitem",
+    "fitems",
+    "flist",
+    "fname",
+    "fpath",
     "iskeyword",
+    "lnum",
+    "msglog",
     "neco",
     "runtimepath's",
     "runtimepaths",
     "shvl",
+    "textdocument",
     "vimlparser",
     "vimls",
+    "vimparser",
     "vimruntime's",
     "vimscript"
   ]

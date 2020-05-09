@@ -1,5 +1,5 @@
 import * as shvl from "shvl";
-import { InitializeParams } from "vscode-languageserver";
+import { InitializeParams, TextDocumentSyncKind } from "vscode-languageserver";
 
 import { projectRootPatterns } from "./common/constant";
 import { IConfig, IDiagnostic, IIndexes, ISuggest } from "./common/types";
@@ -71,7 +71,7 @@ connection.onInitialize((param: InitializeParams) => {
 
   return {
     capabilities: {
-      textDocumentSync: documents.syncKind,
+      textDocumentSync: TextDocumentSyncKind.Incremental,
       documentHighlightProvider: true,
       foldingRangeProvider: true,
       hoverProvider: true,

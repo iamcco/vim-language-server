@@ -1,4 +1,4 @@
-import URIParser from "vscode-uri";
+import { URI } from "vscode-uri";
 
 import { CompletionItem, Location, Position, Range } from "vscode-languageserver";
 import { findProjectRoot } from "../common/util";
@@ -27,7 +27,7 @@ export class Workspace {
       this.buffers[uri].updateBufferByNode(node);
     } else {
       let projectRoot = await findProjectRoot(
-        URIParser.parse(uri).fsPath,
+        URI.parse(uri).fsPath,
         config.indexes.projectRootPatterns,
       );
       if (projectRoot.indexOf(config.vimruntime) === 0) {
@@ -263,13 +263,13 @@ export class Workspace {
     let res: Location[] = [];
     let tmp: Location[] = [];
     let list: Location[] = [];
-    const gloalFunctions = locationType === "definition"
+    const globalFunctions = locationType === "definition"
       ? this.buffers[uri].getGlobalFunctions()
       : this.buffers[uri].getGlobalFunctionRefs();
-    Object.keys(gloalFunctions).forEach((fname) => {
+    Object.keys(globalFunctions).forEach((fname) => {
       if (fname === name) {
         res = res.concat(
-          gloalFunctions[fname].map((item) => this.getLocation(uri, item)),
+          globalFunctions[fname].map((item) => this.getLocation(uri, item)),
         );
       }
     });

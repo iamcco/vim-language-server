@@ -1,11 +1,10 @@
 import childProcess, {ChildProcess} from "child_process";
-import { homedir } from "os";
 import { join } from "path";
 import { from, Subject, timer } from "rxjs";
 import { waitMap } from "rxjs-operators/lib/waitMap";
 import { filter, map, switchMap } from "rxjs/operators";
 import { TextDocument } from "vscode-languageserver";
-import vscUri from "vscode-uri";
+import { URI } from "vscode-uri";
 
 import logger from "../common/logger";
 import { IParserHandles} from "../common/types";
@@ -130,7 +129,7 @@ export function scan(paths: string | string[]) {
         continue;
       }
       scanProcess.send({
-        uri: vscUri.file(join(p, "f")).toString(),
+        uri: URI.file(join(p, "f")).toString(),
       });
     }
   }

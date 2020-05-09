@@ -1,5 +1,5 @@
 import { TextDocuments } from "vscode-languageserver";
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
-// sync text document manager
-// TODO: increment
-export const documents: TextDocuments = new TextDocuments();
+// text document manager
+export const documents = new TextDocuments(TextDocument);

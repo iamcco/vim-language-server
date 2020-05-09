@@ -3,7 +3,7 @@ import os from "os";
 import { join } from "path";
 import { from, Observable, of, Subject, timer } from "rxjs";
 import { catchError, concatMap, filter, map, mergeMap, switchMap } from "rxjs/operators";
-import vscUri from "vscode-uri";
+import { URI } from "vscode-uri";
 
 import { readFileSync } from "fs";
 import { projectRootPatterns } from "../common/constant";
@@ -25,7 +25,7 @@ function initSource() {
   source$.pipe(
     concatMap((uri) => {
       return from(findProjectRoot(
-        vscUri.parse(uri).fsPath,
+        URI.parse(uri).fsPath,
         customProjectRootPatterns,
       )).pipe(
         switchMap((projectRoot) => {
@@ -75,7 +75,7 @@ function initSource() {
                     filter((res) => res[0] !== null),
                     map((res) => ({
                       node: res[0],
-                      uri: vscUri.file(fpath).toString(),
+                      uri: URI.file(fpath).toString(),
                     })),
                     catchError((error) => {
                       process.send({
