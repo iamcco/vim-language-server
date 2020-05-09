@@ -37,6 +37,10 @@ export class Workspace {
     }
   }
 
+  public getBufferByUri(uri: string): Buffer | undefined {
+    return this.buffers[uri];
+  }
+
   public getFunctionItems(uri: string) {
     return this.getScriptFunctionItems(uri).concat(
       this.getGlobalFunctionItems(uri),

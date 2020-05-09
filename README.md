@@ -15,6 +15,7 @@
 - go to definition
 - go to references
 - document highlight
+- folding range
 - rename
 - snippets
 - diagnostic

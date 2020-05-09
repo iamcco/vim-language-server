@@ -6,11 +6,12 @@ import { IConfig, IDiagnostic, IIndexes, ISuggest } from "./common/types";
 import { completionProvider } from "./handles/completion";
 import { completionResolveProvider } from "./handles/completionResolve";
 import { definitionProvider } from "./handles/definition";
+import { documentHighlightProvider } from "./handles/documentHighlight";
+import {foldingRangeProvider} from "./handles/foldingRange";
 import { hoverProvider } from "./handles/hover";
 import { referencesProvider } from "./handles/references";
 import { prepareProvider, renameProvider } from "./handles/rename";
 import { signatureHelpProvider } from "./handles/signatureHelp";
-import {documentHighlightProvider} from "./handles/symbols";
 import { builtinDocs } from "./server/builtin";
 import config from "./server/config";
 import { connection } from "./server/connection";
@@ -72,6 +73,7 @@ connection.onInitialize((param: InitializeParams) => {
     capabilities: {
       textDocumentSync: documents.syncKind,
       documentHighlightProvider: true,
+      foldingRangeProvider: true,
       hoverProvider: true,
       completionProvider: {
         triggerCharacters: [".", ":", "#", "[", "&", "$", "<", '"', "'"],
@@ -125,6 +127,9 @@ connection.onRenameRequest(renameProvider);
 
 // document highlight
 connection.onDocumentHighlight(documentHighlightProvider);
+
+// folding range
+connection.onFoldingRanges(foldingRangeProvider);
 
 // lsp start
 connection.listen();
