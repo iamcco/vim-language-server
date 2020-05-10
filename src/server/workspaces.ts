@@ -30,7 +30,7 @@ export class Workspace {
         URI.parse(uri).fsPath,
         config.indexes.projectRootPatterns,
       );
-      if (projectRoot.indexOf(config.vimruntime) === 0) {
+      if (config.vimruntime.trim() !== '' && projectRoot.indexOf(config.vimruntime) === 0) {
         projectRoot = config.vimruntime;
       }
       this.buffers[uri] = new Buffer(uri, projectRoot, node);
