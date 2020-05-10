@@ -33,7 +33,7 @@ export declare interface INode {
 
 export declare class StringReader {
   public buf: string[];
-  public pos: Array<[number, number, number]>;
+  public pos: [number, number, number][];
   constructor(lines: string[])
 }
 

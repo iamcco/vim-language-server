@@ -111,6 +111,12 @@ export interface IFunction {
   startCol: number;
   endLine: number;
   endCol: number;
+  range: {
+    startLine: number;
+    startCol: number;
+    endLine: number;
+    endCol: number;
+  }
 }
 
 export interface IFunRef {
@@ -570,6 +576,12 @@ export class Buffer {
       startCol: pos.col,
       endLine: endfunction!.pos.lnum,
       endCol: endfunction!.pos.col,
+      range: {
+        startLine: node.pos.lnum,
+        startCol: node.pos.col,
+        endLine: endfunction!.pos.lnum,
+        endCol: endfunction!.pos.col,
+      }
     };
     if (globalFuncPattern.test(name)) {
       if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {
@@ -618,6 +630,12 @@ export class Buffer {
       startCol: pos.col,
       endLine: pos.lnum,
       endCol: pos.col,
+      range: {
+        startLine: pos.lnum,
+        startCol: pos.col,
+        endLine: pos.lnum,
+        endCol: pos.col,
+      }
     };
     if (globalFuncPattern.test(name)) {
       if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {

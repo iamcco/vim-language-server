@@ -17,6 +17,7 @@ import config from "./server/config";
 import { connection } from "./server/connection";
 import { documents } from "./server/documents";
 import { next, unsubscribe } from "./server/parser";
+import {selectionRangeProvider} from "./handles/selectionRange";
 
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
@@ -74,6 +75,7 @@ connection.onInitialize((param: InitializeParams) => {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       documentHighlightProvider: true,
       foldingRangeProvider: true,
+      selectionRangeProvider: true,
       hoverProvider: true,
       completionProvider: {
         triggerCharacters: [".", ":", "#", "[", "&", "$", "<", '"', "'"],
@@ -130,6 +132,9 @@ connection.onDocumentHighlight(documentHighlightProvider);
 
 // folding range
 connection.onFoldingRanges(foldingRangeProvider);
+
+// select range
+connection.onSelectionRanges(selectionRangeProvider)
 
 // lsp start
 connection.listen();
