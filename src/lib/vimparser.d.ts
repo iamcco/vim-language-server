@@ -28,6 +28,9 @@ export declare interface INode {
   str: string;
   value?: any;
   endfunction?: INode;
+  endif?: INode;
+  endfor?: INode;
+  endwhile?: INode;
   list?: INode[];
 }
 

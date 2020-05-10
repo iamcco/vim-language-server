@@ -132,6 +132,18 @@ export interface IIdentifier {
   startCol: number;
 }
 
+/*
+ * xxxx
+ * endxxx
+ *
+ */
+export interface IRange {
+  startLine: number
+  startCol: number
+  endLine: number
+  endCol: number
+}
+
 const globalFuncPattern = /^(g:\w+(\.\w+)*|[a-zA-Z_]\w*(\.\w+)*|\w+(#\w+)+)$/;
 const scriptFuncPattern = /^(s:\w+(\.\w+)*|<SID>\w+(\.\w+)*)$/i;
 const globalVariablePattern = /^(g:\w+(\.\w+)*|b:\w+(\.\w+)*|\w{1,}(\.\w+)*|\w+(#\w+)+)$/;
@@ -152,6 +164,8 @@ export class Buffer {
 
   private envs: Record<string, IIdentifier[]> = {};
   private envRefs: Record<string, IIdentifier[]> = {};
+
+  private ranges: IRange[] = []
 
   constructor(
     private uri: string,
@@ -191,6 +205,10 @@ export class Buffer {
 
   public getLocalIdentifierRefs() {
     return this.localVariableRefs;
+  }
+
+  public getRanges() {
+    return this.ranges
   }
 
   public getProjectRoot() {
@@ -402,6 +420,7 @@ export class Buffer {
     this.localVariableRefs = {};
     this.envs = {};
     this.envRefs = {};
+    this.ranges = []
   }
 
   private resolveCompletionItems(nodes: INode | INode[]) {
@@ -446,6 +465,7 @@ export class Buffer {
         case NODE_ELSEIF:
         case NODE_ELSE:
         case NODE_WHILE:
+          this.takeRange(node, ['endif', 'endwhile'])
           nodeList = nodeList.concat(node.body || []);
           nodeList = nodeList.concat(node.cond || []);
           nodeList = nodeList.concat(node.elseif || []);
@@ -501,10 +521,12 @@ export class Buffer {
           nodeList = nodeList.concat(node.body || []);
           nodeList = nodeList.concat(node.right || []);
           this.takeFor([].concat(node.left || []).concat(node.list || []));
+          this.takeRange(node, 'endfor')
           break;
         case NODE_TRY:
         case NODE_CATCH:
         case NODE_FINALLY:
+          this.takeRange(node, 'endtry')
           nodeList = nodeList.concat(node.body || []);
           nodeList = nodeList.concat(node.catch || []);
           nodeList = nodeList.concat(node._finally || []);
@@ -515,6 +537,7 @@ export class Buffer {
             nodeList = nodeList.concat(node.left.left);
           }
           this.takeFunction(node);
+          this.takeRange(node, 'endfunction')
           break;
         case NODE_LIST:
           nodeList = nodeList.concat(node.value || []);
@@ -808,6 +831,19 @@ export class Buffer {
       }
       this.envs[name].push(identifier);
     }
+  }
+
+  private takeRange(node: INode, keys: string | string[]) {
+    [].concat(keys).forEach(key => {
+      if (node.pos && node[key] && node[key].pos) {
+        this.ranges.push({
+          startLine: node.pos.lnum,
+          startCol: node.pos.col,
+          endLine: node[key].pos.lnum,
+          endCol: node[key].pos.col
+        })
+      }
+    })
   }
 
   private takeFor(nodes: INode[]) {

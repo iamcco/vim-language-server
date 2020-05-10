@@ -14,31 +14,26 @@ export const selectionRangeProvider = (params: SelectionRangeParams): SelectionR
   if (!buffer || !document) {
     return selectRanges;
   }
-  const globalFunctions = buffer.getGlobalFunctions();
-  const scriptFunctions = buffer.getScriptFunctions();
+  const vimRanges = buffer.getRanges()
+  if (vimRanges.length === 0) {
+    return selectRanges
+  }
 
-  const funcs = Object.values(globalFunctions).concat(Object.values(scriptFunctions))
-    .reduce((pre, cur) => {
-      return pre.concat(cur);
-    }, [])
   let range = Range.create(positions[0], positions[0])
   if (positions.length > 1) {
     range = Range.create(positions[0], positions[positions.length - 1])
   }
-  const ranges: Range[] = []
-  funcs.forEach(item => {
-    const p = item.range
+  let ranges: Range[] = []
+  vimRanges.forEach(vimRange => {
     const line = document.getText(Range.create(
-      Position.create(p.endLine - 1, 0),
-      Position.create(p.endLine, 0)
+      Position.create(vimRange.endLine - 1, 0),
+      Position.create(vimRange.endLine, 0)
     ))
     const newRange = Range.create(
-      Position.create(p.startLine - 1, p.startCol - 1),
-      Position.create(p.endLine - 1, p.endCol - 1 + line.slice(p.endCol - 1).split(' ')[0].length)
+      Position.create(vimRange.startLine - 1, vimRange.startCol - 1),
+      Position.create(vimRange.endLine - 1, vimRange.endCol - 1 + line.slice(vimRange.endCol - 1).split(' ')[0].length)
     )
-    if (range.start.line >= newRange.start.line
-      && range.end.line <= newRange.end.line
-      && !(range.start.line === newRange.start.line && range.end.line === newRange.end.line)) {
+    if (range.start.line >= newRange.start.line && range.end.line <= newRange.end.line) {
       if (ranges.length === 0) {
         ranges.push(newRange)
       } else {
@@ -56,6 +51,11 @@ export const selectionRangeProvider = (params: SelectionRangeParams): SelectionR
     }
   })
   if (ranges.length) {
+    if (ranges.length > 1) {
+      ranges = ranges.filter(newRange => {
+        return range.start.line !== newRange.start.line || range.end.line !== newRange.end.line
+      })
+    }
     selectRanges.push(
       ranges.reverse().reduce((pre, cur, idx) => {
         if (idx === 0) {
