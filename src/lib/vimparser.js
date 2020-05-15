@@ -1796,7 +1796,7 @@ VimLParser.prototype.parse_cmd_call = function() {
     }
     node.left = this.parse_expr();
     if (node.left.type != NODE_CALL) {
-        throw Err("Not an function call", node.left.pos);
+        throw Err("Not a function call", node.left.pos);
     }
     this.add_node(node);
 }
@@ -5504,7 +5504,7 @@ RegexpParser.prototype.get_token_backslash_common = function() {
         else if (c == "[") {
             return this.get_token_sq("\\_[");
         }
-        throw Err("E63: invalid use of \\_", epos);
+        throw Err("E63: Invalid use of \\_", epos);
     }
     else if (viml_stridx("etrb", c) != -1) {
         return ["\\" + c, "\\" + c];
