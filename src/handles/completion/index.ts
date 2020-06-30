@@ -3,6 +3,7 @@ import {
   CompletionParams,
   Position,
   Range,
+  CompletionList,
 } from "vscode-languageserver";
 
 import fuzzy from "../../common/fuzzy";
@@ -25,7 +26,7 @@ import { getProvider } from "./provider";
 
 const provider = getProvider();
 
-export const completionProvider = (params: CompletionParams): CompletionItem[] => {
+export const completionProvider = (params: CompletionParams): CompletionList | CompletionItem[] => {
 
   const { textDocument, position } = params;
   const textDoc = documents.get(textDocument.uri);
@@ -34,10 +35,6 @@ export const completionProvider = (params: CompletionParams): CompletionItem[] =
       Position.create(position.line, 0),
       position,
     ));
-    const completionItems = provider(line, textDoc.uri, position, []);
-    if (!config.snippetSupport) {
-      return removeSnippets(completionItems);
-    }
     const words = getWordFromPosition(textDoc, { line: position.line, character: position.character - 1 });
     let word = words && words.word || "";
     if (word === "" && words && words.wordRight.trim() === ":") {
@@ -45,7 +42,17 @@ export const completionProvider = (params: CompletionParams): CompletionItem[] =
     }
     // options items start with &
     const invalidLength = word.replace(/^&/, "").length;
-    return completionItems.filter((item) => fuzzy(item.label, word) >= invalidLength);
+    const completionItems = provider(line, textDoc.uri, position, word, invalidLength, []);
+    if (!config.snippetSupport) {
+      return {
+        isIncomplete: true,
+        items: removeSnippets(completionItems)
+      }
+    }
+    return {
+      isIncomplete: true,
+      items: completionItems
+    }
   }
   return [];
 };
