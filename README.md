@@ -79,7 +79,7 @@ lsp client config example with coc.nvim
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
-        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
+        "fromRuntimepath": true  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ],
@@ -109,7 +109,7 @@ lsp client config example with coc.nvim
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
-        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
+        "fromRuntimepath": true  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ]
@@ -121,7 +121,6 @@ lsp client config example with coc.nvim
 
 - if you want to speed up index, change `gap` to smaller and `count` to greater, this will cause high CPU usage for some time
 - if you don't want to index vim's runtimepath files, set `runtimepath` to `false` and you will not get any suggest from those files.
-- while `fromRuntimepath` is true, if you have install too many plugins it will slow down the complete
 
 ## Usage
 
@@ -158,6 +157,10 @@ lsp client config example with coc.nvim
 **Snippets and diagnostic**:
 
 ![dia](https://user-images.githubusercontent.com/5492542/81494408-503eaf80-92db-11ea-96ac-641d46027623.gif)
+
+## Changelog
+
+- v2.0.0: autocomplete speedup, and `fromRuntimepath` default is change to `true`
 
 ## References
 

@@ -52,7 +52,7 @@ connection.onInitialize((param: InitializeParams) => {
     },
     snippetSupport: shvl.get(param, "capabilities.textDocument.completion.completionItem.snippetSupport"),
     suggest: {
-      fromRuntimepath: false,
+      fromRuntimepath: true,
       fromVimruntime: true,
       ...(suggest || {}),
     },
