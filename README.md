@@ -79,7 +79,7 @@ lsp client config example with coc.nvim
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
-        "fromRuntimepath": true  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
+        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ],
@@ -109,7 +109,7 @@ lsp client config example with coc.nvim
       },
       "suggest": {
         "fromVimruntime": true,   // completionItems from vimruntime's vim files
-        "fromRuntimepath": true  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
+        "fromRuntimepath": false  // completionItems from runtimepath's vim files, if this is true that fromVimruntime is true
       }
     },
     "filetypes": [ "vim" ]
@@ -157,10 +157,6 @@ lsp client config example with coc.nvim
 **Snippets and diagnostic**:
 
 ![dia](https://user-images.githubusercontent.com/5492542/81494408-503eaf80-92db-11ea-96ac-641d46027623.gif)
-
-## Changelog
-
-- v2.0.0: autocomplete speedup, and `fromRuntimepath` default is change to `true`
 
 ## References
 

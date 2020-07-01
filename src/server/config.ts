@@ -32,7 +32,7 @@ export default {
 
   get suggest(): ISuggest {
     return conf && conf.suggest || {
-      fromRuntimepath: true,
+      fromRuntimepath: false,
       fromVimruntime: true,
     };
   },
