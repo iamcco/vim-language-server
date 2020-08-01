@@ -19,6 +19,7 @@ import { documents } from "./server/documents";
 import { next, unsubscribe } from "./server/parser";
 import {selectionRangeProvider} from "./handles/selectionRange";
 import {documentSymbolProvider} from "./handles/documentSymbol";
+import logger from "./common/logger";
 
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
@@ -140,6 +141,10 @@ connection.onSelectionRanges(selectionRangeProvider);
 
 // document symbols
 connection.onDocumentSymbol(documentSymbolProvider);
+
+connection.onNotification('$/change/iskeyword', (iskeyword: string) => {
+  config.changeByKey('iskeyword', iskeyword)
+})
 
 // lsp start
 connection.listen();

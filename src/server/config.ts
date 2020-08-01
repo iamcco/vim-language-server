@@ -8,6 +8,12 @@ export default {
     conf = config;
   },
 
+  changeByKey(key: string, value: any) {
+    if (conf) {
+      conf[key] = value
+    }
+  },
+
   get iskeyword(): string {
     return conf && conf.iskeyword || "";
   },
