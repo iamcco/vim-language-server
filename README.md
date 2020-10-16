@@ -163,6 +163,10 @@ lsp client config example with coc.nvim
 - [vim-vimlparser](https://github.com/vim-jp/vim-vimlparser)
 - [neco-vim](https://github.com/Shougo/neco-vim)
 
+## Similar project
+
+- [vimscript-language-server](https://github.com/google/vimscript-language-server)
+
 ### Buy Me A Coffee ☕️
 
 ![btc](https://img.shields.io/keybase/btc/iamcco.svg?style=popout-square)
