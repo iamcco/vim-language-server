@@ -117,9 +117,9 @@ export class Workspace {
   } {
     let isFunArg: boolean = false;
     let res: Location[] = [];
-    if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name)) {
+    if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name) && this.buffers[uri]) {
       res = this.getGlobalLocationByUri(name, uri, position, locationType);
-    } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
+    } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name) && this.buffers[uri]) {
       // get function args references first
       res = this.getFunArgLocation(name, uri, position, locationType);
       if (res.length) {
