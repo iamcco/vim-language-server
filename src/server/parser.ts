@@ -3,7 +3,7 @@ import { join } from "path";
 import { from, Subject, timer } from "rxjs";
 import { waitMap } from "rxjs-operators/lib/waitMap";
 import { filter, map, switchMap } from "rxjs/operators";
-import { TextDocument } from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 
 import logger from "../common/logger";
@@ -23,6 +23,26 @@ const origin$: Subject<TextDocument> = new Subject<TextDocument>();
 
 let scanProcess: ChildProcess;
 let isScanRuntimepath: boolean = false;
+
+function send(params: any) {
+  if (!scanProcess) {
+    log.log('scan process do not exists')
+    return
+  }
+  if ((scanProcess as any).signalCode) {
+    log.log(`scan process signal code: ${(scanProcess as any).signalCode}`)
+    return
+  }
+  if (scanProcess.killed) {
+    log.log('scan process was killed')
+    return
+  }
+  scanProcess.send(params, (err) => {
+    if (err) {
+      log.warn(`Send error: ${err.stack || err.message || err.name}`)
+    }
+  })
+}
 
 function startIndex() {
   if (scanProcess) {
@@ -47,16 +67,32 @@ function startIndex() {
   });
 
   scanProcess.on("error", (err: Error) => {
-    log.error(`${err.stack || err.message || err}`);
+    log.warn(`${err.stack || err.message || err}`);
   });
 
-  scanProcess.send({
+  scanProcess.on('exit', (code, signal) => {
+    log.log(`exit: ${code}, signal: ${signal}`);
+  });
+
+  scanProcess.on('close', (code, signal) => {
+    log.log(`close: ${code}, signal: ${signal}`);
+  });
+
+  scanProcess.on('uncaughtException', (err) => {
+    log.log(`Uncaught exception: ${err.stack || err.message || err.name || err}`);
+  })
+
+  scanProcess.on('disconnect', () => {
+    log.log(`disconnect`);
+  })
+
+  send({
     config: {
       gap: config.indexes.gap,
       count: config.indexes.count,
       projectRootPatterns: config.indexes.projectRootPatterns,
     },
-  });
+  })
 }
 
 export function next(
@@ -85,9 +121,9 @@ export function next(
         // scan project
         if (!indexes[uri]) {
           indexes[uri] = true;
-          scanProcess.send({
+          send({
             uri,
-          });
+          })
           if (!isScanRuntimepath) {
             isScanRuntimepath = true;
             scan([config.vimruntime].concat(config.runtimepath));
@@ -95,7 +131,7 @@ export function next(
         }
       },
       (err: Error) => {
-        log.error(`${err.stack || err.message || err}`);
+        log.warn(`${err.stack || err.message || err}`);
       },
     );
   }
@@ -128,9 +164,9 @@ export function scan(paths: string | string[]) {
       if (!p || p === "/") {
         continue;
       }
-      scanProcess.send({
+      send({
         uri: URI.file(join(p, "f")).toString(),
-      });
+      })
     }
   }
 }

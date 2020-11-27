@@ -225,7 +225,7 @@ export class Buffer {
     try {
       this.resolveCompletionItems([node]);
     } catch (error) {
-      log.error(error.stack);
+      log.warn(`updateBufferByNode: ${error.stack}`);
     }
   }
 

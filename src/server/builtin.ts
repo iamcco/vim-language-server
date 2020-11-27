@@ -322,7 +322,7 @@ class Builtin {
     try {
       colorschemes = await fg(glob, { onlyFiles: false, deep: 0 });
     } catch (error) {
-      log.error(
+      log.warn(
         [
           `Index Colorschemes Error: ${JSON.stringify(glob)}`,
           `Error => ${error.stack || error.message || error}`,
