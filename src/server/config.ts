@@ -14,6 +14,10 @@ export default {
     }
   },
 
+  get isNeovim(): boolean {
+    return conf && conf.isNeovim || false;
+  },
+
   get iskeyword(): string {
     return conf && conf.iskeyword || "";
   },

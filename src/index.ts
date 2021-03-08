@@ -25,6 +25,7 @@ import logger from "./common/logger";
 connection.onInitialize((param: InitializeParams) => {
   const { initializationOptions = {} } = param;
   const {
+    isNeovim,
     iskeyword,
     runtimepath,
     vimruntime,
@@ -32,6 +33,7 @@ connection.onInitialize((param: InitializeParams) => {
     suggest,
     indexes,
   }: {
+    isNeovim: boolean
     iskeyword: string
     runtimepath: string
     vimruntime: string
@@ -44,6 +46,7 @@ connection.onInitialize((param: InitializeParams) => {
 
   // config by user's initializationOptions
   const conf: IConfig = {
+    isNeovim: isNeovim || false,
     iskeyword: iskeyword || "",
     runtimepath: runtimepaths,
     vimruntime: (vimruntime || "").trim(),

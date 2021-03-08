@@ -7,6 +7,7 @@ import {Readable} from "stream";
 import {CompletionItem, InsertTextFormat, Position, Range, TextDocument} from "vscode-languageserver";
 import {INode, StringReader, VimLParser} from "../lib/vimparser";
 import {commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern} from "./patterns";
+import config from '../server/config';
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
   return patterns.some((p) => p.test(line));
@@ -168,7 +169,7 @@ export async function handleParse(textDoc: TextDocument | string): Promise<[INod
   const text = textDoc instanceof Object ? textDoc.getText() : textDoc;
   const tokens = new StringReader(text.split(/\r\n|\r|\n/));
   try {
-    const node: INode = new VimLParser(true).parse(tokens);
+    const node: INode = new VimLParser(config.isNeovim).parse(tokens);
     return [node, ""];
   } catch (error) {
     return [null, error];

@@ -65,6 +65,7 @@ lsp client config example with coc.nvim
     "module": "/path/to/vim-language-server/bin/index.js",
     "args": ["--node-ipc"],
     "initializationOptions": {
+      "isNeovim": true, // is neovim, default false
       "iskeyword": "@,48-57,_,192-255,-#", // vim iskeyword option
       "vimruntime": "", // $VIMRUNTIME option
       "runtimepath": "",   // vim runtime path separate by `,`
@@ -95,6 +96,7 @@ lsp client config example with coc.nvim
     "command": "vim-language-server",
     "args": ["--stdio"],
     "initializationOptions": {
+      "isNeovim": true, // is neovim, default false
       "iskeyword": "@,48-57,_,192-255,-#", // vim iskeyword option
       "vimruntime": "",                    // $VIMRUNTIME option
       "runtimepath": "",                   // vim runtime path separate by `,`
@@ -119,6 +121,7 @@ lsp client config example with coc.nvim
 
 **Note**:
 
+- if you set `isNeovim: true`, command like `fixdel` in vimrc which neovim does not support will report error.
 - if you want to speed up index, change `gap` to smaller and `count` to greater, this will cause high CPU usage for some time
 - if you don't want to index vim's runtimepath files, set `runtimepath` to `false` and you will not get any suggest from those files.
 

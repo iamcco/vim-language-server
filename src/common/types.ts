@@ -23,6 +23,7 @@ export interface IIndexes {
 
 // initialization options
 export interface IConfig {
+  isNeovim: boolean;
   iskeyword: string;
   vimruntime: string;
   runtimepath: string[];
