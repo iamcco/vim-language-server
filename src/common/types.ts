@@ -1,5 +1,5 @@
 import { Subscription} from "rxjs";
-import { CompletionItem } from "vscode-languageserver";
+import { ClientCapabilities, CompletionItem } from "vscode-languageserver";
 
 export interface IParserHandles {
   [uri: string]: Subscription | undefined;
@@ -31,6 +31,7 @@ export interface IConfig {
   snippetSupport: boolean;
   suggest: ISuggest;
   indexes: IIndexes;
+  capabilities: ClientCapabilities
 }
 
 // builtin-doc

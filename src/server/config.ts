@@ -74,4 +74,8 @@ export default {
 
     return defaults;
   },
+
+  get capabilities () {
+    return conf && conf.capabilities
+  }
 };

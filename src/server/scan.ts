@@ -1,20 +1,17 @@
 import fg from "fast-glob";
+import {readFileSync} from "fs";
 import os from "os";
 import { join } from "path";
-import { from, Observable, of, Subject, timer } from "rxjs";
-import { catchError, concatMap, filter, map, mergeMap, switchMap } from "rxjs/operators";
+import { from, of, Subject } from "rxjs";
+import { catchError, concatMap, filter, map, switchMap } from "rxjs/operators";
 import { URI } from "vscode-uri";
 
-import { readFileSync } from "fs";
 import { projectRootPatterns } from "../common/constant";
 import { findProjectRoot, getRealPath, handleParse } from "../common/util";
 
 const indexes: Record<string, boolean> = {};
-const indexesFiles: Record<string, boolean> = {};
 let queue: any[] = [];
 let source$: Subject<string>;
-let gap: number = 100;
-let count: number = 3;
 let customProjectRootPatterns = projectRootPatterns;
 
 function initSource() {
@@ -58,44 +55,13 @@ function initSource() {
           return of(undefined);
         }),
         filter((list) => list && list.length > 0),
-        concatMap<string[], Observable<string>>((list) => {
-          return of(...list.sort((a, b) => a.length - b.length)).pipe(
-            filter((fpath) => {
-              if (!indexesFiles[fpath]) {
-                indexesFiles[fpath] = true;
-                return true;
-              }
-              return false;
-            }),
-            mergeMap((fpath) => {
-              return timer(gap).pipe(
-                concatMap(() => {
-                  const content = readFileSync(fpath).toString();
-                  return from(handleParse(content)).pipe(
-                    filter((res) => res[0] !== null),
-                    map((res) => ({
-                      node: res[0],
-                      uri: URI.file(fpath).toString(),
-                    })),
-                    catchError((error) => {
-                      process.send({
-                        msglog: `${fpath}:\n${error.stack || error.message || error}`,
-                      });
-                      return of(undefined);
-                    }),
-                  );
-                }),
-              );
-            }, count),
-          );
-        }),
+        map(list => list.sort((a: string, b: string) => a.length - b.length))
       );
     }),
-    filter((res) => !!res),
   ).subscribe(
-    (res) => {
+    (fsPaths: string[]) => {
       process.send({
-        data: res,
+        fsPaths
       });
     },
     (error) => {
@@ -113,7 +79,7 @@ function initSource() {
 }
 
 process.on("message", (mess) => {
-  const { uri, config } = mess;
+  const { uri, config, id, text, fsPath } = mess;
   if (uri) {
     if (source$) {
       source$.next(uri);
@@ -122,15 +88,29 @@ process.on("message", (mess) => {
     }
   }
   if (config) {
-    if (config.gap !== undefined) {
-      gap = config.gap;
-    }
-    if (config.count !== undefined) {
-      count = config.count;
-    }
     if (config.projectRootPatterns !== undefined) {
       customProjectRootPatterns = config.projectRootPatterns;
     }
     initSource();
+  }
+  // parse string
+  if (id) {
+    let content = text
+    if (fsPath && content === undefined) {
+      content = readFileSync(fsPath).toString();
+    }
+    process.nextTick(() => {
+      handleParse(content).then(res => {
+        process.send({
+          id,
+          res
+        });
+      }).catch(error => {
+        process.send({
+          id,
+          error: `${error.stack || error.message || error}`
+        });
+      })
+    })
   }
 });

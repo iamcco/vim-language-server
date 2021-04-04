@@ -14,5 +14,8 @@ export default function(name: string) {
     error(message: string) {
       connection.console.error(`${name}: ${message}`);
     },
+    showErrorMessage(message: string) {
+      connection.window.showErrorMessage(message)
+    }
   };
 }

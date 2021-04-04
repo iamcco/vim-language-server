@@ -67,6 +67,7 @@ connection.onInitialize((param: InitializeParams) => {
       projectRootPatterns,
       ...(indexes || {}),
     },
+    capabilities: param.capabilities
   };
 
   // init config

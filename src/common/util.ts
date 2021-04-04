@@ -215,3 +215,11 @@ export const getRealPath = async (filePath: string): Promise<string> => {
   }
   return filePath;
 };
+
+export const delay = async (ms: number) => {
+  await new Promise<void>((res) => {
+    setTimeout(() => {
+      res()
+    }, ms);
+  })
+}

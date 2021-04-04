@@ -1,15 +1,16 @@
 import childProcess, {ChildProcess} from "child_process";
 import { join } from "path";
-import { from, Subject, timer } from "rxjs";
+import { from, of, Subject, timer } from "rxjs";
 import { waitMap } from "rxjs-operators/lib/waitMap";
-import { filter, map, switchMap } from "rxjs/operators";
+import { catchError, filter, map, switchMap, timeout } from "rxjs/operators";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 
 import logger from "../common/logger";
 import { IParserHandles} from "../common/types";
-import { handleParse } from "../common/util";
+import {delay} from "../common/util";
 import { handleDiagnostic } from "../handles/diagnostic";
+import {INode} from "../lib/vimparser";
 import config from "./config";
 import { workspace } from "./workspaces";
 
@@ -18,30 +19,36 @@ const log = logger("parser");
 const parserHandles: IParserHandles = {};
 
 const indexes: Record<string, boolean> = {};
+const indexesFsPaths: Record<string, boolean> = {};
 
 const origin$: Subject<TextDocument> = new Subject<TextDocument>();
 
+const parserCallbacks: Record<string, (param: any) => void> = {}
+const queueFsPaths: string[] = []
+
 let scanProcess: ChildProcess;
 let isScanRuntimepath: boolean = false;
+let isParsing = false
 
-function send(params: any) {
+function send(params: any): boolean {
   if (!scanProcess) {
     log.log('scan process do not exists')
-    return
+    return false
   }
   if ((scanProcess as any).signalCode) {
     log.log(`scan process signal code: ${(scanProcess as any).signalCode}`)
-    return
+    return false
   }
   if (scanProcess.killed) {
     log.log('scan process was killed')
-    return
+    return false
   }
   scanProcess.send(params, (err) => {
     if (err) {
       log.warn(`Send error: ${err.stack || err.message || err.name}`)
     }
   })
+  return true
 }
 
 function startIndex() {
@@ -54,15 +61,22 @@ function startIndex() {
   );
 
   scanProcess.on("message", (mess) => {
-    const { data, msglog } = mess;
-    if (data) {
-      if (!workspace.isExistsBuffer(data.uri)) {
-        workspace.updateBuffer(data.uri, data.node);
-      }
-    }
+    const { msglog, id, res, error, fsPaths } = mess;
 
     if (msglog) {
       log.info(`child_log: ${msglog}`);
+    }
+
+    if (fsPaths) {
+      parserFiles(fsPaths)
+    }
+
+    if (id && parserCallbacks[id]) {
+      parserCallbacks[id]({
+        res,
+        error
+      })
+      delete parserCallbacks[id]
     }
   });
 
@@ -108,16 +122,47 @@ export function next(
         );
       }),
       waitMap((td: TextDocument) => {
-        return from(handleParse(td));
+        const id =  `${Date.now()}-${Math.random()}`
+        return from(new Promise<{res: any, error: any, isTimeout?: boolean}>((res) => {
+          parserCallbacks[id] = res
+          send({
+            id,
+            uri,
+            text: td.getText()
+          })
+        })).pipe(
+          timeout(10000),
+          catchError(() => {
+            if (parserCallbacks[id]) {
+              delete parserCallbacks[id]
+            }
+            scanProcess.kill()
+            scanProcess = undefined
+            return of({
+              res: '',
+              error: `Timeout: 10000ms`,
+              isTimeout: true,
+            })
+          })
+        )
       }, true),
     ).subscribe(
-      (res) => {
-        if (config.diagnostic.enable) {
-          // handle diagnostic
-          handleDiagnostic(textDoc, res[1]);
+      (data) => {
+        const { res, error, isTimeout } = data
+        if (res) {
+          if (config.diagnostic.enable) {
+            // handle diagnostic
+            handleDiagnostic(textDoc, res[1]);
+          }
+          // handle node
+          workspace.updateBuffer(uri, res[0]);
         }
-        // handle node
-        workspace.updateBuffer(uri, res[0]);
+        if (error) {
+          log.error(`Parse ${uri} error: ${error}`)
+        }
+        if (isTimeout) {
+          log.showErrorMessage(`Parse ${uri} error: ${error}`)
+        }
         // scan project
         if (!indexes[uri]) {
           indexes[uri] = true;
@@ -126,7 +171,7 @@ export function next(
           })
           if (!isScanRuntimepath) {
             isScanRuntimepath = true;
-            scan([config.vimruntime].concat(config.runtimepath));
+            scanRuntimePaths([config.vimruntime].concat(config.runtimepath));
           }
         }
       },
@@ -149,7 +194,7 @@ export function unsubscribe(textDoc: TextDocument) {
 }
 
 // scan directory
-export function scan(paths: string | string[]) {
+export function scanRuntimePaths(paths: string | string[]) {
   if (!scanProcess) {
     startIndex();
   }
@@ -164,9 +209,72 @@ export function scan(paths: string | string[]) {
       if (!p || p === "/") {
         continue;
       }
-      send({
-        uri: URI.file(join(p, "f")).toString(),
-      })
+      const uri = URI.file(join(p, "f")).toString()
+      if (!indexes[uri]) {
+        indexes[uri] = true;
+        send({
+          uri
+        })
+      }
     }
   }
+}
+
+export async function parserFiles (paths: string[]) {
+  queueFsPaths.push(...paths)
+  if (isParsing) {
+    return
+  }
+  isParsing = true
+  while (queueFsPaths.length) {
+    await Promise.all(
+      Array(config.indexes.count).fill('').map(async () => {
+        const fsPath = queueFsPaths.shift()
+        if (!fsPath || indexesFsPaths[fsPath]) {
+          return
+        }
+        indexesFsPaths[fsPath] = true
+        const id = `${Date.now()}-${Math.random()}`
+        const data = await new Promise<{res?: [INode | null, string], error: any, timeout?: boolean}>(res => {
+          parserCallbacks[id] = res
+          const isSend = send({
+            id,
+            fsPath
+          })
+          if (isSend) {
+            setTimeout(() => {
+              delete parserCallbacks[id]
+              res({
+                error: 'Timeout 10000ms',
+                timeout: true
+              })
+            }, 10000);
+          } else {
+            queueFsPaths.unshift(fsPath)
+            delete parserCallbacks[id]
+            res({
+              error: `Cancel parser since scan process does not exists`
+            })
+          }
+        })
+        if (data.res && data.res[0]) {
+          const uri = URI.file(fsPath).toString()
+          if (!workspace.isExistsBuffer(uri)) {
+            workspace.updateBuffer(uri, data.res[0]);
+          }
+        }
+        if (data.error) {
+          log.error(`Parse ${fsPath} error: ${data.error}`)
+        }
+        if (data.timeout) {
+          scanProcess.kill()
+          scanProcess = undefined
+          startIndex()
+          log.showErrorMessage(`Parse ${fsPath} error: ${data.error}`)
+        }
+      })
+    )
+    await delay(config.indexes.gap)
+  }
+  isParsing = false
 }
