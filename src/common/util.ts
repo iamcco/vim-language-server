@@ -6,8 +6,18 @@ import path from "path";
 import {Readable} from "stream";
 import {CompletionItem, InsertTextFormat, Position, Range, TextDocument} from "vscode-languageserver";
 import {INode, StringReader, VimLParser} from "../lib/vimparser";
-import {commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern} from "./patterns";
+import { commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern } from "./patterns";
 import config from '../server/config';
+
+// FIXME vimlparser missing update builtin_commands
+if (VimLParser.prototype) {
+  (VimLParser.prototype as any).builtin_commands?.push({
+    name: 'balt',
+    minlen: 4,
+    flags: 'NEEDARG|FILE1|EDITCMD|TRLBAR|CMDWIN',
+    parser: 'parse_cmd_common'
+  })
+}
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
   return patterns.some((p) => p.test(line));
