@@ -23,6 +23,7 @@ import logger from "./common/logger";
 
 // lsp initialize
 connection.onInitialize((param: InitializeParams) => {
+  const renamePrepareSupport = param.capabilities.textDocument && param.capabilities.textDocument.rename && param.capabilities.textDocument.rename.prepareSupport === true;
   const { initializationOptions = {} } = param;
   const {
     isNeovim,
@@ -93,9 +94,9 @@ connection.onInitialize((param: InitializeParams) => {
       },
       definitionProvider: true,
       referencesProvider: true,
-      renameProvider: {
+      renameProvider: renamePrepareSupport ? {
         prepareProvider: true,
-      },
+      } : true,
     },
   };
 });
