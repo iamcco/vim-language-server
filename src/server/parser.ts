@@ -131,7 +131,7 @@ export function next(
             text: td.getText()
           })
         })).pipe(
-          timeout(10000),
+          timeout(50000),
           catchError(() => {
             if (parserCallbacks[id]) {
               delete parserCallbacks[id]
@@ -140,7 +140,7 @@ export function next(
             scanProcess = undefined
             return of({
               res: '',
-              error: `Timeout: 10000ms`,
+              error: `Timeout: 50000ms`,
               isTimeout: true,
             })
           })
