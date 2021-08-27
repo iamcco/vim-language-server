@@ -245,10 +245,10 @@ export async function parserFiles (paths: string[]) {
             setTimeout(() => {
               delete parserCallbacks[id]
               res({
-                error: 'Timeout 10000ms',
+                error: 'Timeout 50000ms',
                 timeout: true
               })
-            }, 10000);
+            }, 50000);
           } else {
             queueFsPaths.unshift(fsPath)
             delete parserCallbacks[id]
