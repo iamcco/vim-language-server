@@ -124,7 +124,7 @@ class Builtin {
         signatures: [{
           label: `${name}(${params[0]})${params[1] ? `: ${params[1]}` : ""}`,
           documentation: this.formatVimDocument(this.vimBuiltFunctionDocuments[name]),
-          parameters: params[0].split("[")[0].split(",").map((param) => {
+          parameters: params[0].replace(/[\[\]]/g, "").split(",").map((param) => {
             return {
               label: param.trim(),
             };
