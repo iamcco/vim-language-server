@@ -44,6 +44,12 @@ npm install -g vim-language-server
 :CocInstall coc-vimlsp
 ```
 
+**For vim-easycomplete user** install lsp server via `:InstallLspServer vim` and config nothing:
+
+```vim
+:InstallLspServer vim
+```
+
 ## Config
 
 for document highlight
