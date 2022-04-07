@@ -3,13 +3,13 @@ import {SelectionRangeParams, SelectionRange, Range, Position} from "vscode-lang
 import {workspace} from "../server/workspaces";
 import {documents} from "../server/documents";
 
-export const selectionRangeProvider = (params: SelectionRangeParams): SelectionRange[] => {
+export const selectionRangeProvider = async (params: SelectionRangeParams): Promise<SelectionRange[]> => {
   const selectRanges: SelectionRange[] = [];
   const { textDocument, positions } = params;
   if (!positions || positions.length === 0) {
     return selectRanges
   }
-  const buffer = workspace.getBufferByUri(textDocument.uri);
+  const buffer = await workspace.getBufferByUri(textDocument.uri);
   const document = documents.get(textDocument.uri)
   if (!buffer || !document) {
     return selectRanges;

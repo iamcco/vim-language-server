@@ -2,10 +2,10 @@ import {FoldingRange, FoldingRangeParams} from "vscode-languageserver";
 
 import {workspace} from "../server/workspaces";
 
-export const foldingRangeProvider = (params: FoldingRangeParams) => {
+export const foldingRangeProvider = async (params: FoldingRangeParams) => {
   const res: FoldingRange[] = [];
   const { textDocument } = params;
-  const buffer = workspace.getBufferByUri(textDocument.uri);
+  const buffer = await workspace.getBufferByUri(textDocument.uri);
   if (!buffer) {
     return res;
   }

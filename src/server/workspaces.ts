@@ -11,6 +11,7 @@ import config from "./config";
 
 export class Workspace {
   private buffers: Record<string, Buffer> = {};
+  private pendingBuffers: Record<string, Promise<Buffer>> = {};
 
   public isExistsBuffer(uri: string) {
     if (this.buffers[uri]) {
@@ -26,19 +27,31 @@ export class Workspace {
     if (this.buffers[uri]) {
       this.buffers[uri].updateBufferByNode(node);
     } else {
-      let projectRoot = await findProjectRoot(
-        URI.parse(uri).fsPath,
-        config.indexes.projectRootPatterns,
-      );
-      if (config.vimruntime.trim() !== '' && projectRoot.indexOf(config.vimruntime) === 0) {
-        projectRoot = config.vimruntime;
-      }
-      this.buffers[uri] = new Buffer(uri, projectRoot, node);
+      const loadPromise = this.loadBuffer(uri, node)
+      this.pendingBuffers[uri] = loadPromise
+      this.buffers[uri] = await loadPromise
+      delete this.pendingBuffers[uri]
     }
   }
 
-  public getBufferByUri(uri: string): Buffer | undefined {
-    return this.buffers[uri];
+  private async loadBuffer(uri: string, node: INode) : Promise<Buffer> {
+    let projectRoot = await findProjectRoot(
+      URI.parse(uri).fsPath,
+      config.indexes.projectRootPatterns,
+    );
+    if (config.vimruntime.trim() !== '' && projectRoot.indexOf(config.vimruntime) === 0) {
+      projectRoot = config.vimruntime;
+    }
+    return new Buffer(uri, projectRoot, node);
+  }
+
+  public getBufferByUri(uri: string): Promise<Buffer | undefined> {
+    if (this.buffers[uri]) {
+      return Promise.resolve(this.buffers[uri])
+    } else if (this.pendingBuffers[uri]) {
+      return this.pendingBuffers[uri]
+    }
+    return Promise.resolve(undefined)
   }
 
   public getFunctionItems(uri: string) {
