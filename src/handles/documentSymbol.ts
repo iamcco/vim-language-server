@@ -6,10 +6,10 @@ import {IFunction, IIdentifier} from "../server/buffer";
 import {documents} from "../server/documents";
 import config from "../server/config";
 
-export const documentSymbolProvider = (params: DocumentSymbolParams): DocumentSymbol[] | SymbolInformation[] => {
+export const documentSymbolProvider = async (params: DocumentSymbolParams): Promise<DocumentSymbol[] | SymbolInformation[]> => {
   const documentSymbols: DocumentSymbol[] = []
   const { textDocument } = params
-  const buffer = workspace.getBufferByUri(textDocument.uri)
+  const buffer = await workspace.getBufferByUri(textDocument.uri)
   const document = documents.get(textDocument.uri)
   if (!buffer || !document) {
     return documentSymbols
