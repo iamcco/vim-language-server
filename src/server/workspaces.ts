@@ -78,7 +78,7 @@ export class Workspace {
   } {
     let isFunArg: boolean = false;
     let res: Location[] = [];
-    if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name)) {
+    if (/^((g|b):\w+(\.\w+)*|(\w+#)+\w*)$/.test(name)) {
       res = this.getGlobalLocation(name, uri, position, locationType);
     } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
       // get function args references first
