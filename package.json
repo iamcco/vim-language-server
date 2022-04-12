@@ -1,6 +1,6 @@
 {
   "name": "vim-language-server",
-  "version": "2.2.8",
+  "version": "2.2.9",
   "description": "vim language server",
   "keywords": [
     "viml",
