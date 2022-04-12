@@ -144,7 +144,7 @@ export interface IRange {
   endCol: number
 }
 
-const globalFuncPattern = /^(g:\w+(\.\w+)*|[a-zA-Z_]\w*(\.\w+)*|\w+(#\w+)+)$/;
+const globalFuncPattern = /^(g:\w+(\.\w+)*|[a-zA-Z_]\w*(\.\w+)*|(\w+#)+\w*)$/;
 const scriptFuncPattern = /^(s:\w+(\.\w+)*|<SID>\w+(\.\w+)*)$/i;
 const globalVariablePattern = /^(g:\w+(\.\w+)*|b:\w+(\.\w+)*|\w{1,}(\.\w+)*|\w+(#\w+)+)$/;
 const localVariablePattern = /^(s:\w+(\.\w+)*|l:\w+(\.\w+)*|a:\w+(\.\w+)*)$/;
