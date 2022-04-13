@@ -5,6 +5,13 @@ import { findProjectRoot } from "../common/util";
 import { INode } from "../lib/vimparser";
 import { Buffer, IFunction, IIdentifier } from "./buffer";
 import config from "./config";
+import {
+  funcArgIdentifierPattern,
+  globalIdentifierPattern,
+  localIdentifierPattern,
+  normalIdentifierPattern,
+  scriptIdentifierPattern
+} from "../common/patterns";
 // import logger from '../common/logger';
 
 // const log = logger('workspace')
@@ -78,9 +85,9 @@ export class Workspace {
   } {
     let isFunArg: boolean = false;
     let res: Location[] = [];
-    if (/^((g|b):\w+(\.\w+)*|(\w+#)+\w*)$/.test(name)) {
+    if (globalIdentifierPattern.test(name)) {
       res = this.getGlobalLocation(name, uri, position, locationType);
-    } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name)) {
+    } else if (normalIdentifierPattern.test(name)) {
       // get function args references first
       res = this.getFunArgLocation(name, uri, position, locationType);
       if (res.length) {
@@ -91,7 +98,7 @@ export class Workspace {
           res = this.getGlobalLocation(name, uri, position, locationType);
         }
       }
-    } else if (/^((s:|<SID>)\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (scriptIdentifierPattern.test(name) && this.buffers[uri]) {
       const names = [name];
       if (/^<SID>/.test(name)) {
         names.push(name.replace(/^<SID>/, "s:"));
@@ -99,9 +106,9 @@ export class Workspace {
         names.push(name.replace(/^s:/, "<SID>"));
       }
       res = this.getScriptLocation(names, uri, position, locationType);
-    } else if (/^(l:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (localIdentifierPattern.test(name) && this.buffers[uri]) {
       res = this.getLocalLocation(name, uri, position, locationType);
-    } else if (/^(a:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (funcArgIdentifierPattern.test(name) && this.buffers[uri]) {
       res = this.getAIdentifierLocation(name, uri, position, locationType);
     }
 
@@ -130,9 +137,9 @@ export class Workspace {
   } {
     let isFunArg: boolean = false;
     let res: Location[] = [];
-    if (/^((g|b):\w+(\.\w+)*|\w+(#\w+)+)$/.test(name) && this.buffers[uri]) {
+    if (globalIdentifierPattern.test(name) && this.buffers[uri]) {
       res = this.getGlobalLocationByUri(name, uri, position, locationType);
-    } else if (/^([a-zA-Z_]\w*(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (normalIdentifierPattern.test(name) && this.buffers[uri]) {
       // get function args references first
       res = this.getFunArgLocation(name, uri, position, locationType);
       if (res.length) {
@@ -143,7 +150,7 @@ export class Workspace {
           res = this.getGlobalLocationByUri(name, uri, position, locationType);
         }
       }
-    } else if (/^((s:|<SID>)\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (scriptIdentifierPattern.test(name) && this.buffers[uri]) {
       const names = [name];
       if (/^<SID>/.test(name)) {
         names.push(name.replace(/^<SID>/, "s:"));
@@ -151,9 +158,9 @@ export class Workspace {
         names.push(name.replace(/^s:/, "<SID>"));
       }
       res = this.getScriptLocation(names, uri, position, locationType);
-    } else if (/^(l:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (localIdentifierPattern.test(name) && this.buffers[uri]) {
       res = this.getLocalLocation(name, uri, position, locationType);
-    } else if (/^(a:\w+(\.\w+)*)$/.test(name) && this.buffers[uri]) {
+    } else if (funcArgIdentifierPattern.test(name) && this.buffers[uri]) {
       res = this.getAIdentifierLocation(name, uri, position, locationType);
     }
 

@@ -4,6 +4,7 @@
     "Vimruntime",
     "Workdir",
     "argpos",
+    "autocmd",
     "cmdpos",
     "cond",
     "endfor",

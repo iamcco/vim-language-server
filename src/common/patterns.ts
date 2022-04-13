@@ -24,6 +24,16 @@ export const highlightValuePattern = /^[ \t]*(hi|highlight)([ \t]+[^ \t]+)*[ \t]
 
 export const autocmdPattern = /^[ \t]*(au|autocmd)!?[ \t]+([^ \t,]+,)*[^ \t,]*$/;
 
+export const globalIdentifierPattern = /^((g|b):\w+(\.\w+)*|(\w+#)+\w*)$/;
+
+export const normalIdentifierPattern = /^([a-zA-Z_]\w*(\.\w+)*)$/;
+
+export const scriptIdentifierPattern = /^((s:|<SID>)\w+(\.\w+)*)$/;
+
+export const localIdentifierPattern = /^(l:\w+(\.\w+)*)$/;
+
+export const funcArgIdentifierPattern = /^(a:\w+(\.\w+)*)$/;
+
 export const builtinVariablePattern = [
   /\bv:\w*$/,
 ];
