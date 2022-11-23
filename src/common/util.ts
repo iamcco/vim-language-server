@@ -131,6 +131,11 @@ export function getWordFromPosition(
     return;
   }
 
+  // invalid character which less than 0
+  if (position.character < 0) {
+    return
+  }
+
   const character = doc.getText(
     Range.create(
       Position.create(position.line, position.character),

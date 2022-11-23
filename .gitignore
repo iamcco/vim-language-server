@@ -63,3 +63,4 @@ typings/
 .env
 
 out/
+.DS_Store
