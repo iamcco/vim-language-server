@@ -1805,12 +1805,14 @@ VimLParser.prototype.parse_cmd_call = function() {
     this.add_node(node);
 }
 
-VimLParser.prototype.parse_heredoc = function() {
+VimLParser.prototype.parse_heredoc = function(prefix) {
     var node = Node(NODE_HEREDOC);
     node.pos = this.ea.cmdpos;
     node.op = "";
     node.rlist = [];
     node.body = [];
+    // allow prefix to precede heredoc end marker if true
+    var is_trim = FALSE;
     while (TRUE) {
         this.reader.skip_white();
         var pos = this.reader.getpos();
@@ -1827,6 +1829,9 @@ VimLParser.prototype.parse_heredoc = function() {
             keynode.pos = pos;
             keynode.value = key;
             viml_add(node.rlist, keynode);
+            if (key == "trim") {
+                var is_trim = TRUE;
+            }
         }
     }
     if (node.op == "") {
@@ -1839,7 +1844,7 @@ VimLParser.prototype.parse_heredoc = function() {
         }
         var pos = this.reader.getpos();
         var line = this.reader.getn(-1);
-        if (line == node.op) {
+        if (line == node.op || is_trim && line == prefix + node.op) {
             return node;
         }
         var linenode = Node(NODE_STRING);
@@ -1894,7 +1899,30 @@ VimLParser.prototype.parse_cmd_let = function() {
         this.reader.getn(viml_len(s2));
         this.reader.skip_white();
         node.op = s2;
-        node.right = this.parse_heredoc();
+        // compute allowed prefix for heredoc end marker (e.g. EOF)
+        var pos = this.reader.tell();
+        while (this.reader.tell() > 0) {
+            if (this.reader.peek() == "<EOL>") {
+                this.reader.seek_cur(1);
+                break;
+            }
+            this.reader.seek_cur(-1);
+        }
+        var prefix = "";
+        while (TRUE) {
+            var c = this.reader.getn(1);
+            if (c == ":") {
+                // any presence of leading ':' disables prefix for heredoc end marker
+                var prefix = "";
+                break;
+            }
+            else if (!iswhite(c)) {
+                break;
+            }
+            prefix += c;
+        }
+        this.reader.seek_set(pos);
+        node.right = this.parse_heredoc(prefix);
         this.add_node(node);
         return;
     }
