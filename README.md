@@ -20,7 +20,7 @@
 - select range
 - rename
 - snippets
-- diagnostic
+- diagnostic, include support for [vint](https://github.com/Vimjas/vint)
 
 ![autocomplete](https://user-images.githubusercontent.com/5492542/81493984-909c2e80-92d7-11ea-9638-d7be3e18e1d1.gif)
 

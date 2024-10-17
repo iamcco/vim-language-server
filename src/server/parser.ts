@@ -111,6 +111,7 @@ function startIndex() {
 
 export function next(
   textDoc: TextDocument,
+  save: boolean,
 ) {
   if (!parserHandles[textDoc.uri]) {
     const { uri } = textDoc;
@@ -152,7 +153,7 @@ export function next(
         if (res) {
           if (config.diagnostic.enable) {
             // handle diagnostic
-            handleDiagnostic(textDoc, res[1]);
+            handleDiagnostic(textDoc, res[1], save);
           }
           // handle node
           workspace.updateBuffer(uri, res[0]);

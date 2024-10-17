@@ -103,7 +103,15 @@ connection.onInitialize((param: InitializeParams) => {
 
 // document change or open
 documents.onDidChangeContent(( change ) => {
-  next(change.document);
+  next(change.document, false);
+});
+
+documents.onDidOpen(( change ) => {
+  next(change.document, true);
+});
+
+documents.onDidSave(( change ) => {
+  next(change.document, true);
 });
 
 documents.onDidClose((evt) => {
