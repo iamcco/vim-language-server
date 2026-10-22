@@ -51,7 +51,7 @@ var pat_vim2js = {
   "\\w" : "[0-9A-Za-z_]",
   "\\w\\|[:#]" : "[0-9A-Za-z_]|[:#]",
   "\\x" : "[0-9A-Fa-f]",
-  "^++" : "^\+\+",
+  "^++" : "^\\+\\+",
   "^++bad=\\(keep\\|drop\\|.\\)\\>" : "^\\+\\+bad=(keep|drop|.)\\b",
   "^++bad=drop" : "^\\+\\+bad=drop",
   "^++bad=keep" : "^\\+\\+bad=keep",
@@ -71,6 +71,7 @@ var pat_vim2js = {
   "^\\h" : "^[A-Za-z_]",
   "^\\s" : "^\\s",
   "^\\s*\\\\" : "^\\s*\\\\",
+  "^\\s*[\"#]\\\\ " : "^\\s*[\"#]\\\\ ",
   "^[ \\t]$" : "^[ \\t]$",
   "^[A-Za-z]$" : "^[A-Za-z]$",
   "^[0-9A-Za-z]$" : "^[0-9A-Za-z]$",
@@ -324,6 +325,35 @@ var NODE_EVAL = 95;
 var NODE_HEREDOC = 96;
 var NODE_METHOD = 97;
 var NODE_ECHOCONSOLE = 98;
+var NODE_LSHIFT = 99;
+var NODE_RSHIFT = 100;
+var NODE_DEF = 101;
+var NODE_ENDDEF = 102;
+var NODE_VAR = 103;
+var NODE_FINAL = 104;
+var NODE_EXPORT = 105;
+var NODE_IMPORT = 106;
+var NODE_VIM9SCRIPT = 107;
+var NODE_TUPLE = 108;
+var NODE_CAST = 109;
+var NODE_ASSIGN = 110;
+var NODE_BLOCK = 111;
+var NODE_ENDBLOCK = 112;
+var NODE_CLASS = 113;
+var NODE_ENDCLASS = 114;
+var NODE_INTERFACE = 115;
+var NODE_ENDINTERFACE = 116;
+var NODE_ENUM = 117;
+var NODE_ENDENUM = 118;
+var NODE_ENUMVALUE = 119;
+var NODE_TYPE = 120;
+var NODE_PUBLIC = 121;
+var NODE_STATIC = 122;
+var NODE_ABSTRACT = 123;
+var NODE_FALSY = 124;
+var NODE_INTERPOLATION = 125;
+var NODE_DEFER = 126;
+var NODE_ECHOWINDOW = 127;
 var TOKEN_EOF = 1;
 var TOKEN_EOL = 2;
 var TOKEN_SPACE = 3;
@@ -393,7 +423,13 @@ var TOKEN_BLOB = 66;
 var TOKEN_LITCOPEN = 67;
 var TOKEN_DOTDOT = 68;
 var TOKEN_HEREDOC = 69;
+var TOKEN_LSHIFT = 70;
+var TOKEN_RSHIFT = 71;
+var TOKEN_FATARROW = 72;
+var TOKEN_QUESTIONQUESTION = 73;
 var MAX_FUNC_ARGS = 20;
+// Binary operators that continue a Vim9 expression from the previous line.
+var VIM9_CONTINUATION_OPS = {"+":1, "-":1, "*":1, "/":1, "%":1, "..":1, "||":1, "&&":1, "??":1, "?":1, ":":1, "<<":1, ">>":1, "==":1, "==?":1, "==#":1, "!=":1, "!=?":1, "!=#":1, ">=":1, ">=?":1, ">=#":1, "<=":1, "<=?":1, "<=#":1, "=~":1, "=~?":1, "=~#":1, "!~":1, "!~?":1, "!~#":1, ">":1, ">?":1, ">#":1, "<":1, "<?":1, "<#":1};
 function isalpha(c) {
     return viml_eqregh(c, "^[A-Za-z]$");
 }
@@ -455,6 +491,29 @@ function islower(c) {
     return viml_eqregh(c, "^[a-z]$");
 }
 
+// Return TRUE for a command that does not exist in Vim9 script.
+function is_removed_in_vim9(name) {
+    return name == "append" || name == "change" || name == "insert" || name == "k" || name == "mode" || name == "open" || name == "t" || name == "xit" || name == "Print";
+}
+
+// Return TRUE when the text ends in white space and "{".
+function ends_with_block(str) {
+    var last = "";
+    var prev = "";
+    var __c3 = viml_split(str, "\\zs");
+    for (var __i3 = 0; __i3 < __c3.length; ++__i3) {
+        var c = __c3[__i3];
+        if (!iswhite(c)) {
+            var prev = last;
+            var last = c;
+        }
+        else if (last != "") {
+            var last = " ";
+        }
+    }
+    return last == "{" && (prev == " " || prev == "");
+}
+
 function ExArg() {
     var ea = {};
     ea.forceit = FALSE;
@@ -502,14 +561,14 @@ function ExArg() {
 // }
 // TOPLEVEL .body
 // COMMENT .str
-// EXCMD .ea .str
+// EXCMD .ea .str [.block]
 // FUNCTION .ea .body .left .rlist .default_args .attr .endfunction
 // ENDFUNCTION .ea
 // DELFUNCTION .ea .left
 // RETURN .ea .left
 // EXCALL .ea .left
 // LET .ea .op .left .list .rest .right
-// CONST .ea .op .left .list .rest .right
+// CONST .ea .op .left .list .rest .right [.type_str]
 // UNLET .ea .list
 // LOCKVAR .ea .depth .list
 // UNLOCKVAR .ea .depth .list
@@ -580,7 +639,7 @@ function ExArg() {
 // SUBSCRIPT .left .right
 // SLICE .left .rlist
 // METHOD .left .right
-// CALL .left .rlist
+// CALL .left .rlist [.type_args]
 // DOT .left .right
 // NUMBER .value
 // STRING .value
@@ -595,8 +654,35 @@ function ExArg() {
 // REG .value
 // CURLYNAMEPART .value
 // CURLYNAMEEXPR .value
-// LAMBDA .rlist .left
+// LAMBDA .rlist .left .body .rettype
 // HEREDOC .rlist .op .body
+// DEF .ea .body .left .rlist .default_args .attr .enddef
+// ENDDEF .ea
+// VAR .ea .op .left .list .rest .right .type_str
+// FINAL .ea .op .left .list .rest .right .type_str
+// EXPORT .ea .body
+// IMPORT .ea .str .left .autoload .alias
+// VIM9SCRIPT .ea .noclear
+// ASSIGN .ea .op .left .list .rest .right
+// BLOCK .ea .body .endblock
+// ENDBLOCK .ea
+// CLASS .ea .name .extends .implements .body .endclass
+// ENDCLASS .ea
+// INTERFACE .ea .name .extends .body .endinterface
+// ENDINTERFACE .ea
+// ENUM .ea .name .implements .enumvalues .body .endenum
+// ENDENUM .ea
+// ENUMVALUE .value .rlist
+// TYPE .ea .name .type_str
+// PUBLIC .ea .body
+// STATIC .ea .body
+// ABSTRACT .ea .body
+// FALSY .left .right
+// INTERPOLATION .value
+// DEFER .ea .left
+// ECHOWINDOW .ea .list
+// TUPLE .value
+// CAST .type_str .left
 function Node(type) {
     return {"type":type};
 }
@@ -615,6 +701,36 @@ VimLParser.prototype.__init__ = function() {
         this.neovim = 0;
     }
     this.find_command_cache = {};
+    this.vim9script = 0;
+    // TRUE while parsing the command after :abstract
+    this.abstract = FALSE;
+    // Set by the :vim9cmd (1) and :legacy (0) modifiers for one command.
+    this.vim9cmd = -1;
+}
+
+// Vim9 syntax applies inside :def functions, and in a Vim9 script outside of
+// legacy :function bodies.
+VimLParser.prototype.isvim9 = function() {
+    if (this.vim9cmd != -1) {
+        return this.vim9cmd;
+    }
+    var __c4 = this.context;
+    for (var __i4 = 0; __i4 < __c4.length; ++__i4) {
+        var node = __c4[__i4];
+        if (node.type == NODE_DEF || node.type == NODE_LAMBDA || node.type == NODE_BLOCK || node.type == NODE_CLASS || node.type == NODE_INTERFACE || node.type == NODE_ENUM) {
+            return TRUE;
+        }
+        else if (node.type == NODE_FUNCTION) {
+            return FALSE;
+        }
+    }
+    return this.vim9script;
+}
+
+VimLParser.prototype.declare = function(node) {
+    if (node !== NIL && node.type == NODE_IDENTIFIER) {
+        this.declared[node.value] = 1;
+    }
 }
 
 VimLParser.prototype.push_context = function(node) {
@@ -627,9 +743,9 @@ VimLParser.prototype.pop_context = function() {
 
 VimLParser.prototype.find_context = function(type) {
     var i = 0;
-    var __c3 = this.context;
-    for (var __i3 = 0; __i3 < __c3.length; ++__i3) {
-        var node = __c3[__i3];
+    var __c5 = this.context;
+    for (var __i5 = 0; __i5 < __c5.length; ++__i5) {
+        var node = __c5[__i5];
         if (node.type == type) {
             return i;
         }
@@ -645,6 +761,12 @@ VimLParser.prototype.add_node = function(node) {
 VimLParser.prototype.check_missing_endfunction = function(ends, pos) {
     if (this.context[0].type == NODE_FUNCTION) {
         throw Err(viml_printf("E126: Missing :endfunction:    %s", ends), pos);
+    }
+}
+
+VimLParser.prototype.check_missing_enddef = function(ends, pos) {
+    if (this.context[0].type == NODE_DEF) {
+        throw Err(viml_printf("E1057: Missing :enddef:    %s", ends), pos);
     }
 }
 
@@ -678,41 +800,353 @@ VimLParser.prototype.parse = function(reader) {
     var toplevel = Node(NODE_TOPLEVEL);
     toplevel.pos = this.reader.getpos();
     toplevel.body = [];
+    // Names of declared Vim9 variables, to tell an assignment from an Ex
+    // command.
+    this.declared = {};
     this.push_context(toplevel);
     while (this.reader.peek() != "<EOF>") {
         this.parse_one_cmd();
     }
     this.check_missing_endfunction("TOPLEVEL", this.reader.getpos());
+    this.check_missing_enddef("TOPLEVEL", this.reader.getpos());
     this.check_missing_endif("TOPLEVEL", this.reader.getpos());
     this.check_missing_endtry("TOPLEVEL", this.reader.getpos());
     this.check_missing_endwhile("TOPLEVEL", this.reader.getpos());
     this.check_missing_endfor("TOPLEVEL", this.reader.getpos());
+    if (this.context[0].type == NODE_BLOCK) {
+        throw Err("E1026: Missing }", this.reader.getpos());
+    }
+    else if (this.context[0].type == NODE_CLASS) {
+        throw Err("E1101: Missing :endclass", this.reader.getpos());
+    }
+    else if (this.context[0].type == NODE_INTERFACE) {
+        throw Err("E1101: Missing :endinterface", this.reader.getpos());
+    }
+    else if (this.context[0].type == NODE_ENUM) {
+        throw Err("E1101: Missing :endenum", this.reader.getpos());
+    }
     this.pop_context();
     return toplevel;
 }
 
 VimLParser.prototype.parse_one_cmd = function() {
     this.ea = ExArg();
+    this.vim9cmd = -1;
     if (this.reader.peekn(2) == "#!") {
         this.parse_hashbang();
         this.reader.get();
         return;
     }
-    this.reader.skip_white_and_colon();
+    var vim9 = this.isvim9();
+    var colon = FALSE;
+    while (iswhite(this.reader.peekn(1)) || this.reader.peekn(1) == ":") {
+        if (this.reader.peekn(1) == ":") {
+            var colon = TRUE;
+        }
+        this.reader.seek_cur(1);
+    }
     if (this.reader.peekn(1) == "") {
         this.reader.get();
         return;
     }
-    if (this.reader.peekn(1) == "\"") {
+    if (this.reader.peekn(1) == "\"" && !this.isvim9()) {
         this.parse_comment();
         this.reader.get();
         return;
     }
+    if (this.isvim9() && this.reader.peekn(1) == "#") {
+        this.parse_comment();
+        this.reader.get();
+        return;
+    }
+    if (this.context[0].type == NODE_ENUM && !this.context[0].values_done && this.parse_enum_values()) {
+        this.parse_trail();
+        return;
+    }
     this.ea.linepos = this.reader.getpos();
     this.parse_command_modifiers();
-    this.parse_range();
+    var vim9 = this.isvim9();
+    if (vim9) {
+        // In Vim9 script a range must be preceded by a colon, without it the line
+        // may be an expression or assignment.
+        this.reader.skip_white();
+        if (this.reader.peekn(1) == ":") {
+            var colon = TRUE;
+            this.reader.skip_white_and_colon();
+        }
+        if (colon) {
+            this.parse_range();
+        }
+        else if (this.parse_vim9_statement()) {
+            this.parse_trail();
+            return;
+        }
+    }
+    else {
+        this.parse_range();
+    }
     this.parse_command();
     this.parse_trail();
+}
+
+// Recognize a Vim9 expression or assignment without :eval, :call or :let,
+// like find_ex_command() in Vim.  Return TRUE when the line was parsed.
+VimLParser.prototype.parse_vim9_statement = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    this.ea.cmdpos = r.getpos();
+    var c = r.peekn(1);
+    if (c == "{") {
+        // "{" by itself is the start of a block.
+        r.getn(1);
+        r.skip_white();
+        var block = this.ends_excmds(r.peek());
+        r.seek_set(pos);
+        if (block) {
+            return FALSE;
+        }
+        this.parse_vim9_expr_cmd();
+        return TRUE;
+    }
+    else if (c == "(" || c == "'" || c == "\"" || c == "$" && (r.p(1) == "'" || r.p(1) == "\"") || c == "0" && r.p(1) == "z") {
+        this.parse_vim9_expr_cmd();
+        return TRUE;
+    }
+    else if (c == "[") {
+        if (this.is_vim9_list_assign()) {
+            this.parse_vim9_assign();
+        }
+        else {
+            this.parse_vim9_expr_cmd();
+        }
+        return TRUE;
+    }
+    else if (c == "&" || c == "$" || c == "@" && r.p(1) != "<EOL>") {
+        this.parse_vim9_assign_or_expr();
+        return TRUE;
+    }
+    else if ((c == "+" || c == "-") && r.p(1) == c) {
+        this.parse_vim9_increment();
+        return TRUE;
+    }
+    else if (isdigit(c)) {
+        r.read_digit();
+        r.skip_white();
+        var method = r.peekn(2) == "->";
+        r.seek_set(pos);
+        if (method) {
+            this.parse_vim9_expr_cmd();
+        }
+        return method;
+    }
+    else if (!iswordc1(c)) {
+        return FALSE;
+    }
+    var name = r.read_vim9_name();
+    var c = r.peekn(1);
+    if (c == "(" || c == "<" && this.is_generic_args()) {
+        // "funcname(" is always a function call.
+        r.seek_set(pos);
+        this.parse_vim9_expr_cmd();
+        return TRUE;
+    }
+    else if (viml_stridx(name, ":") == 1 || c == "[" || c == "." && iswordc1(r.p(1))) {
+        // "g:name", "name[idx]" and "name.member" start an expression or
+        // assignment.
+        r.seek_set(pos);
+        this.parse_vim9_assign_or_expr();
+        return TRUE;
+    }
+    r.skip_white();
+    var result = FALSE;
+    if (r.peekn(2) == "->") {
+        var result = TRUE;
+    }
+    else if (this.peek_assign_op() != "") {
+        // "name = expr" is an assignment when "name" is a variable or not a
+        // command.
+        var result = viml_has_key(this.declared, name) || this.is_vim9_command(pos) == FALSE;
+    }
+    else if (this.ends_excmds(r.peek())) {
+        // A variable followed by an operator on the next line.  A variable alone
+        // has no effect, then it is a command like :new.
+        var result = viml_has_key(this.declared, name) && (this.is_vim9_command(pos) == FALSE || this.vim9_line_continues());
+    }
+    r.seek_set(pos);
+    if (result) {
+        this.parse_vim9_assign_or_expr();
+    }
+    return result;
+}
+
+// Return TRUE when the next line continues the expression on this line.
+VimLParser.prototype.vim9_line_continues = function() {
+    var pos = this.reader.tell();
+    if (this.reader.peek() == "#") {
+        this.reader.getn(-1);
+    }
+    var result = this.reader.peek() == "<EOL>" && new ExprTokenizer(this.reader, TRUE).next_line_continues();
+    this.reader.seek_set(pos);
+    return result;
+}
+
+// Return TRUE when the text at reader position "pos" is an Ex command that
+// exists in Vim9 script.
+VimLParser.prototype.is_vim9_command = function(cmdpos) {
+    var pos = this.reader.tell();
+    this.reader.seek_set(cmdpos);
+    var cmd = this.find_command();
+    this.reader.seek_set(pos);
+    if (cmd === NIL) {
+        return FALSE;
+    }
+    return !is_removed_in_vim9(cmd.name);
+}
+
+// Return the assignment operator at the cursor, or an empty string.
+VimLParser.prototype.peek_assign_op = function() {
+    var s3 = this.reader.peekn(3);
+    var s2 = this.reader.peekn(2);
+    var op = "";
+    if (s3 == "..=" || s3 == "=<<") {
+        var op = s3;
+    }
+    else if (s2 == "+=" || s2 == "-=" || s2 == "*=" || s2 == "/=" || s2 == "%=" || s2 == ".=") {
+        var op = s2;
+    }
+    else if (s2 == "==" || s2 == "=~" || s2 == "=>") {
+        return "";
+    }
+    else if (this.reader.peekn(1) == "=") {
+        var op = "=";
+    }
+    return op;
+}
+
+// Return TRUE when the generic type arguments of a function call follow:
+// "<type, ...>(".
+VimLParser.prototype.is_generic_args = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    r.getn(1);
+    var depth = 1;
+    while (depth > 0) {
+        var c = r.peekn(1);
+        if (c == "<") {
+            depth += 1;
+        }
+        else if (c == ">") {
+            depth -= 1;
+        }
+        else if (!iswordc(c) && c != "," && c != " " && c != "(" && c != ")" && c != ":" && c != ".") {
+            r.seek_set(pos);
+            return FALSE;
+        }
+        r.getn(1);
+    }
+    var result = r.peekn(1) == "(";
+    r.seek_set(pos);
+    return result;
+}
+
+// Return TRUE when "[a, b] =" follows: the list is closed on this line and
+// followed by an assignment operator.
+VimLParser.prototype.is_vim9_list_assign = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    var depth = 0;
+    while (TRUE) {
+        var c = r.peekn(1);
+        if (c == "") {
+            r.seek_set(pos);
+            return FALSE;
+        }
+        r.getn(1);
+        if (c == "[") {
+            depth += 1;
+        }
+        else if (c == "]") {
+            depth -= 1;
+            if (depth == 0) {
+                break;
+            }
+        }
+        else if (c == "'" || c == "\"") {
+            while (r.peekn(1) != "" && r.peekn(1) != c) {
+                r.getn(1);
+            }
+            r.getn(1);
+        }
+    }
+    r.skip_white();
+    var op = this.peek_assign_op();
+    r.seek_set(pos);
+    return op != "" && op != "=<<";
+}
+
+// Vim9 expression used as a command.  A function call is like :call, any
+// other expression is like :eval.
+VimLParser.prototype.parse_vim9_expr_cmd = function() {
+    var left = this.parse_expr();
+    if (left.type == NODE_CALL) {
+        var node = Node(NODE_EXCALL);
+    }
+    else {
+        var node = Node(NODE_EVAL);
+    }
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.left = left;
+    this.add_node(node);
+}
+
+VimLParser.prototype.parse_vim9_assign_or_expr = function() {
+    var pos = this.reader.tell();
+    this.parse_lvalue();
+    this.reader.skip_white();
+    var op = this.peek_assign_op();
+    this.reader.seek_set(pos);
+    if (op == "") {
+        this.parse_vim9_expr_cmd();
+    }
+    else {
+        this.parse_vim9_assign();
+    }
+}
+
+// Vim9 assignment without :let: "name = expr", "[a, b] = expr", "name += expr"
+VimLParser.prototype.parse_vim9_assign = function() {
+    var lhs = this.parse_letlhs();
+    this.reader.skip_white();
+    var node = Node(NODE_ASSIGN);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.op = this.peek_assign_op();
+    node.left = lhs.left;
+    node.list = lhs.list;
+    node.rest = lhs.rest;
+    this.reader.getn(viml_len(node.op));
+    if (node.op == "=<<") {
+        this.reader.skip_white();
+        node.right = this.parse_heredoc(this.heredoc_prefix());
+    }
+    else {
+        node.right = this.parse_expr();
+    }
+    this.add_node(node);
+}
+
+// Vim9 "++var" and "--var"
+VimLParser.prototype.parse_vim9_increment = function() {
+    var node = Node(NODE_ASSIGN);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.op = this.reader.getn(2);
+    node.left = this.parse_lvalue();
+    node.list = NIL;
+    node.rest = NIL;
+    node.right = NIL;
+    this.add_node(node);
 }
 
 // FIXME:
@@ -726,9 +1160,27 @@ VimLParser.prototype.parse_command_modifiers = function() {
             this.reader.skip_white();
         }
         var k = this.reader.read_alpha();
+        if (k == "vim" && this.reader.peekn(1) == "9") {
+            k += this.reader.read_alnum();
+        }
         var c = this.reader.peekn(1);
         this.reader.skip_white();
-        if (viml_stridx("aboveleft", k) == 0 && viml_len(k) >= 3) {
+        if (this.isvim9() && (c == "(" || c == "[" || c == "." || c == ":" || this.peek_assign_op() != "" || this.reader.peekn(2) == "->")) {
+            // A Vim9 variable or function, not a modifier.
+            this.reader.seek_set(pos);
+            break;
+        }
+        else if (viml_stridx("vim9cmd", k) == 0 && viml_len(k) >= 4) {
+            // vim9\%[cmd]
+            viml_add(modifiers, {"name":"vim9cmd"});
+            this.vim9cmd = TRUE;
+        }
+        else if (viml_stridx("legacy", k) == 0 && viml_len(k) >= 3) {
+            // leg\%[acy]
+            viml_add(modifiers, {"name":"legacy"});
+            this.vim9cmd = FALSE;
+        }
+        else if (viml_stridx("aboveleft", k) == 0 && viml_len(k) >= 3) {
             // abo\%[veleft]
             viml_add(modifiers, {"name":"aboveleft"});
         }
@@ -965,7 +1417,7 @@ VimLParser.prototype.parse_pattern = function(delimiter) {
 VimLParser.prototype.parse_command = function() {
     this.reader.skip_white_and_colon();
     this.ea.cmdpos = this.reader.getpos();
-    if (this.reader.peekn(1) == "" || this.reader.peekn(1) == "\"") {
+    if (this.reader.peekn(1) == "" || this.ends_excmds(this.reader.peekn(1))) {
         if (!viml_empty(this.ea.modifiers) || !viml_empty(this.ea.range)) {
             this.parse_cmd_modifier_range();
         }
@@ -975,6 +1427,21 @@ VimLParser.prototype.parse_command = function() {
     if (this.ea.cmd === NIL) {
         this.reader.setpos(this.ea.cmdpos);
         throw Err(viml_printf("E492: Not an editor command: %s", this.reader.peekline()), this.ea.cmdpos);
+    }
+    if (this.isvim9() && is_removed_in_vim9(this.ea.cmd.name)) {
+        this.reader.setpos(this.ea.cmdpos);
+        throw Err(viml_printf("E1100: Command not supported in Vim9 script (missing :var?): %s", this.reader.peekline()), this.ea.cmdpos);
+    }
+    // In legacy script :final is an abbreviation of :finally.
+    if (this.ea.cmd.name == "final" && !this.isvim9()) {
+        var __c6 = this.builtin_commands;
+        for (var __i6 = 0; __i6 < __c6.length; ++__i6) {
+            var x = __c6[__i6];
+            if (x.name == "finally") {
+                this.ea.cmd = x;
+                break;
+            }
+        }
     }
     if (this.reader.peekn(1) == "!" && this.ea.cmd.name != "substitute" && this.ea.cmd.name != "smagic" && this.ea.cmd.name != "snomagic") {
         this.reader.getn(1);
@@ -1180,6 +1647,69 @@ VimLParser.prototype._parse_command = function(parser) {
     else if (parser == "parse_cmd_syntax") {
         this.parse_cmd_syntax();
     }
+    else if (parser == "parse_cmd_vim9script") {
+        this.parse_cmd_vim9script();
+    }
+    else if (parser == "parse_cmd_def") {
+        this.parse_cmd_def();
+    }
+    else if (parser == "parse_cmd_enddef") {
+        this.parse_cmd_enddef();
+    }
+    else if (parser == "parse_cmd_var") {
+        this.parse_cmd_var();
+    }
+    else if (parser == "parse_cmd_final") {
+        this.parse_cmd_final();
+    }
+    else if (parser == "parse_cmd_export") {
+        this.parse_cmd_export();
+    }
+    else if (parser == "parse_cmd_import") {
+        this.parse_cmd_import();
+    }
+    else if (parser == "parse_cmd_abstract") {
+        this.parse_cmd_abstract();
+    }
+    else if (parser == "parse_cmd_class") {
+        this.parse_cmd_class();
+    }
+    else if (parser == "parse_cmd_endclass") {
+        this.parse_cmd_endclass();
+    }
+    else if (parser == "parse_cmd_interface") {
+        this.parse_cmd_interface();
+    }
+    else if (parser == "parse_cmd_endinterface") {
+        this.parse_cmd_endinterface();
+    }
+    else if (parser == "parse_cmd_enum") {
+        this.parse_cmd_enum();
+    }
+    else if (parser == "parse_cmd_endenum") {
+        this.parse_cmd_endenum();
+    }
+    else if (parser == "parse_cmd_type") {
+        this.parse_cmd_type();
+    }
+    else if (parser == "parse_cmd_public") {
+        this.parse_cmd_public();
+    }
+    else if (parser == "parse_cmd_static") {
+        this.parse_cmd_static();
+    }
+    else if (parser == "parse_cmd_defer") {
+        this.parse_cmd_defer();
+    }
+    else if (parser == "parse_cmd_echowindow") {
+        this.parse_cmd_echowindow();
+    }
+    else if (parser == "parse_cmd_block") {
+        this.parse_cmd_block();
+    }
+    else if (parser == "parse_cmd_endblock") {
+        this.parse_cmd_endblock();
+    }
     else {
         throw viml_printf("unknown parser: %s", viml_string(parser));
     }
@@ -1196,7 +1726,7 @@ VimLParser.prototype.find_command = function() {
         this.reader.getn(1);
         var name = "substitute";
     }
-    else if (viml_eqregh(c, "[@*!=><&~#]")) {
+    else if (viml_eqregh(c, "[@*!=><&~#]") || c == "{" || c == "}") {
         this.reader.getn(1);
         var name = c;
     }
@@ -1206,6 +1736,9 @@ VimLParser.prototype.find_command = function() {
     else {
         var pos = this.reader.tell();
         var name = this.reader.read_alpha();
+        if (name == "vim" && this.reader.peekn(1) == "9") {
+            name += this.reader.read_alnum();
+        }
         if (name != "del" && viml_eqregh(name, "\\v^d%[elete][lp]$")) {
             this.reader.seek_set(pos);
             var name = this.reader.getn(viml_len(name) - 1);
@@ -1218,9 +1751,9 @@ VimLParser.prototype.find_command = function() {
         return this.find_command_cache[name];
     }
     var cmd = NIL;
-    var __c4 = this.builtin_commands;
-    for (var __i4 = 0; __i4 < __c4.length; ++__i4) {
-        var x = __c4[__i4];
+    var __c7 = this.builtin_commands;
+    for (var __i7 = 0; __i7 < __c7.length; ++__i7) {
+        var x = __c7[__i7];
         if (viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen) {
             delete cmd;
             var cmd = x;
@@ -1228,18 +1761,18 @@ VimLParser.prototype.find_command = function() {
         }
     }
     if (this.neovim) {
-        var __c5 = this.neovim_additional_commands;
-        for (var __i5 = 0; __i5 < __c5.length; ++__i5) {
-            var x = __c5[__i5];
+        var __c8 = this.neovim_additional_commands;
+        for (var __i8 = 0; __i8 < __c8.length; ++__i8) {
+            var x = __c8[__i8];
             if (viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen) {
                 delete cmd;
                 var cmd = x;
                 break;
             }
         }
-        var __c6 = this.neovim_removed_commands;
-        for (var __i6 = 0; __i6 < __c6.length; ++__i6) {
-            var x = __c6[__i6];
+        var __c9 = this.neovim_removed_commands;
+        for (var __i9 = 0; __i9 < __c9.length; ++__i9) {
+            var x = __c9[__i9];
             if (viml_stridx(x.name, name) == 0 && viml_len(name) >= x.minlen) {
                 delete cmd;
                 var cmd = NIL;
@@ -1350,7 +1883,7 @@ VimLParser.prototype.read_cmdarg = function() {
 VimLParser.prototype.parse_comment = function() {
     var npos = this.reader.getpos();
     var c = this.reader.get();
-    if (c != "\"") {
+    if (c != "\"" && c != "#") {
         throw Err(viml_printf("unexpected character: %s", c), npos);
     }
     var node = Node(NODE_COMMENT);
@@ -1372,6 +1905,11 @@ VimLParser.prototype.parse_trail = function() {
         this.reader.get();
     }
     else if (c == "\"") {
+        // Also in Vim9 script a double quote after a command starts a comment.
+        this.parse_comment();
+        this.reader.get();
+    }
+    else if (this.isvim9() && c == "#") {
         this.parse_comment();
         this.reader.get();
     }
@@ -1416,12 +1954,24 @@ VimLParser.prototype.parse_cmd_common = function() {
     node.ea = this.ea;
     node.str = this.reader.getstr(this.ea.linepos, end);
     this.add_node(node);
+    if ((this.ea.cmd.name == "command" || this.ea.cmd.name == "autocmd") && ends_with_block(node.str)) {
+        // The commands of a user command or autocommand in a block use Vim9
+        // syntax: {cmd} ... }
+        var block = Node(NODE_BLOCK);
+        block.pos = this.ea.cmdpos;
+        block.ea = this.ea;
+        block.body = [];
+        block.endblock = NIL;
+        node.block = block;
+        this.push_context(block);
+    }
 }
 
 VimLParser.prototype.separate_nextcmd = function() {
     if (this.ea.cmd.name == "vimgrep" || this.ea.cmd.name == "vimgrepadd" || this.ea.cmd.name == "lvimgrep" || this.ea.cmd.name == "lvimgrepadd") {
         this.skip_vimgrep_pat();
     }
+    var vim9 = this.isvim9();
     var pc = "";
     var end = this.reader.getpos();
     var nospend = end;
@@ -1454,7 +2004,7 @@ VimLParser.prototype.separate_nextcmd = function() {
             }
             this.reader.getn(1);
         }
-        else if (c == "|" || c == "\n" || c == "\"" && !viml_eqregh(this.ea.cmd.flags, "\\<NOTRLCOM\\>") && (this.ea.cmd.name != "@" && this.ea.cmd.name != "*" || this.reader.getpos() != this.ea.argpos) && (this.ea.cmd.name != "redir" || this.reader.getpos().i != this.ea.argpos.i + 1 || pc != "@")) {
+        else if (c == "|" || c == "\n" || c == "\"" && !vim9 && !viml_eqregh(this.ea.cmd.flags, "\\<NOTRLCOM\\>") && (this.ea.cmd.name != "@" && this.ea.cmd.name != "*" || this.reader.getpos() != this.ea.argpos) && (this.ea.cmd.name != "redir" || this.reader.getpos().i != this.ea.argpos.i + 1 || pc != "@") || vim9 && c == "#" && iswhite(pc) && !viml_eqregh(this.ea.cmd.flags, "\\<NOTRLCOM\\>")) {
             var has_cpo_bar = FALSE;
             // &cpoptions =~ 'b'
             if ((!has_cpo_bar || !viml_eqregh(this.ea.cmd.flags, "\\<USECTRLV\\>")) && pc == "\\") {
@@ -1774,7 +2324,7 @@ VimLParser.prototype.parse_cmd_delfunction = function() {
 }
 
 VimLParser.prototype.parse_cmd_return = function() {
-    if (this.find_context(NODE_FUNCTION) == -1) {
+    if (this.find_context(NODE_FUNCTION) == -1 && this.find_context(NODE_DEF) == -1 && this.find_context(NODE_LAMBDA) == -1) {
         throw Err("E133: :return not inside a function", this.ea.cmdpos);
     }
     var node = Node(NODE_RETURN);
@@ -1799,7 +2349,12 @@ VimLParser.prototype.parse_cmd_call = function() {
         throw Err("E471: Argument required", this.reader.getpos());
     }
     node.left = this.parse_expr();
-    if (node.left.type != NODE_CALL) {
+    // A method call may follow the function call: call Func()->Method()
+    var base = node.left;
+    while (base.type == NODE_METHOD) {
+        var base = base.left;
+    }
+    if (base.type != NODE_CALL) {
         throw Err("Not an function call", node.left.pos);
     }
     this.add_node(node);
@@ -1899,30 +2454,7 @@ VimLParser.prototype.parse_cmd_let = function() {
         this.reader.getn(viml_len(s2));
         this.reader.skip_white();
         node.op = s2;
-        // compute allowed prefix for heredoc end marker (e.g. EOF)
-        var pos = this.reader.tell();
-        while (this.reader.tell() > 0) {
-            if (this.reader.peek() == "<EOL>") {
-                this.reader.seek_cur(1);
-                break;
-            }
-            this.reader.seek_cur(-1);
-        }
-        var prefix = "";
-        while (TRUE) {
-            var c = this.reader.getn(1);
-            if (c == ":") {
-                // any presence of leading ':' disables prefix for heredoc end marker
-                var prefix = "";
-                break;
-            }
-            else if (!iswhite(c)) {
-                break;
-            }
-            prefix += c;
-        }
-        this.reader.seek_set(pos);
-        node.right = this.parse_heredoc(prefix);
+        node.right = this.parse_heredoc(this.heredoc_prefix());
         this.add_node(node);
         return;
     }
@@ -1937,7 +2469,39 @@ VimLParser.prototype.parse_cmd_let = function() {
     this.add_node(node);
 }
 
+// Compute the allowed prefix for a heredoc end marker (e.g. EOF): the indent
+// of the command line.
+VimLParser.prototype.heredoc_prefix = function() {
+    var pos = this.reader.tell();
+    while (this.reader.tell() > 0) {
+        if (this.reader.peek() == "<EOL>") {
+            this.reader.seek_cur(1);
+            break;
+        }
+        this.reader.seek_cur(-1);
+    }
+    var prefix = "";
+    while (TRUE) {
+        var c = this.reader.getn(1);
+        if (c == ":") {
+            // any presence of leading ':' disables prefix for heredoc end marker
+            var prefix = "";
+            break;
+        }
+        else if (!iswhite(c)) {
+            break;
+        }
+        prefix += c;
+    }
+    this.reader.seek_set(pos);
+    return prefix;
+}
+
 VimLParser.prototype.parse_cmd_const = function() {
+    if (this.isvim9()) {
+        this.parse_vim9_decl(NODE_CONST);
+        return;
+    }
     var pos = this.reader.tell();
     this.reader.skip_white();
     // :const
@@ -1966,6 +2530,679 @@ VimLParser.prototype.parse_cmd_const = function() {
     node.rest = lhs.rest;
     node.right = this.parse_expr();
     this.add_node(node);
+}
+
+VimLParser.prototype.parse_cmd_vim9script = function() {
+    var node = Node(NODE_VIM9SCRIPT);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.noclear = FALSE;
+    this.reader.skip_white();
+    var pos = this.reader.tell();
+    if (this.reader.read_alpha() == "noclear") {
+        node.noclear = TRUE;
+    }
+    else {
+        this.reader.seek_set(pos);
+    }
+    this.vim9script = 1;
+    this.add_node(node);
+}
+
+VimLParser.prototype.parse_cmd_def = function() {
+    var pos = this.reader.tell();
+    this.reader.skip_white();
+    // :def
+    if (this.ends_excmds(this.reader.peek())) {
+        this.reader.seek_set(pos);
+        this.parse_cmd_common();
+        return;
+    }
+    // :def /pattern
+    if (this.reader.peekn(1) == "/") {
+        this.reader.seek_set(pos);
+        this.parse_cmd_common();
+        return;
+    }
+    var left = this.parse_lvalue_func();
+    // Generic function: :def {name}<{type}, ...>(
+    var type_params = "";
+    if (this.reader.peekn(1) == "<") {
+        while (this.reader.peekn(1) != "" && this.reader.peekn(1) != ">") {
+            type_params += this.reader.getn(1);
+        }
+        type_params += this.reader.getn(1);
+    }
+    this.reader.skip_white();
+    // :def {name}
+    if (this.reader.peekn(1) != "(") {
+        this.reader.seek_set(pos);
+        this.parse_cmd_common();
+        return;
+    }
+    // :def[!] {name}([arguments]) [: returntype]
+    var node = Node(NODE_DEF);
+    node.pos = this.ea.cmdpos;
+    node.body = [];
+    node.ea = this.ea;
+    node.left = left;
+    node.rlist = [];
+    node.default_args = [];
+    node.attr = {"range":0, "abort":0, "dict":0, "closure":0, "return_type":"", "type_params":type_params};
+    node.enddef = NIL;
+    // The arguments use Vim9 syntax, also in a legacy script.
+    this.add_node(node);
+    this.push_context(node);
+    this.reader.getn(1);
+    var named = {};
+    while (TRUE) {
+        this.skip_vim9_white();
+        if (this.reader.peekn(1) == ")") {
+            this.reader.getn(1);
+            break;
+        }
+        var varnode = Node(NODE_IDENTIFIER);
+        varnode.pos = this.reader.getpos();
+        varnode.type_str = "";
+        var variadic = this.reader.peekn(3) == "...";
+        if (variadic) {
+            this.reader.getn(3);
+        }
+        var pname = this.reader.read_word();
+        if (pname == "this" && this.reader.peekn(1) == ".") {
+            // constructor argument that sets an object variable: this.name
+            pname += this.reader.getn(1) + this.reader.read_word();
+        }
+        if (pname == "") {
+            throw Err(viml_printf("E475: Invalid argument: %s", this.reader.peekn(1)), this.reader.getpos());
+        }
+        if (viml_has_key(named, pname) && pname != "_") {
+            throw Err(viml_printf("E853: Duplicate argument name: %s", pname), varnode.pos);
+        }
+        named[pname] = 1;
+        this.declared[pname] = 1;
+        varnode.value = pname;
+        if (variadic) {
+            varnode.value = "..." + pname;
+        }
+        viml_add(node.rlist, varnode);
+        // Check for type annotation
+        if (this.reader.peekn(1) == ":") {
+            this.reader.getn(1);
+            this.reader.skip_white();
+            varnode.type_str = this.read_type();
+        }
+        // Check for default value
+        this.reader.skip_white();
+        if (this.reader.peekn(1) == "=" && !variadic) {
+            this.reader.getn(1);
+            this.reader.skip_white();
+            viml_add(node.default_args, this.parse_expr());
+        }
+        else if (viml_len(node.default_args) > 0 && !variadic) {
+            throw Err("E989: Non-default argument follows default argument", varnode.pos);
+        }
+        this.skip_vim9_white();
+        if (this.reader.peekn(1) == ",") {
+            this.reader.getn(1);
+        }
+        else if (this.reader.peekn(1) != ")") {
+            throw Err(viml_printf("E475: Invalid argument: %s", this.reader.peekn(1)), this.reader.getpos());
+        }
+    }
+    // Check for return type annotation ': type'
+    this.reader.skip_white();
+    if (this.reader.peekn(1) == ":") {
+        this.reader.getn(1);
+        this.reader.skip_white();
+        node.attr.return_type = this.read_type();
+    }
+    // A method in an interface and an abstract method have no body.
+    if (this.abstract || this.context[1].type == NODE_INTERFACE) {
+        this.pop_context();
+    }
+}
+
+// Skip white space, comments and line breaks, e.g. in the argument list of a
+// :def function.
+VimLParser.prototype.skip_vim9_white = function() {
+    while (TRUE) {
+        this.reader.skip_white();
+        if (this.reader.peek() == "#") {
+            this.reader.getn(-1);
+        }
+        if (this.reader.peek() != "<EOL>") {
+            break;
+        }
+        this.reader.get();
+    }
+}
+
+VimLParser.prototype.read_type = function() {
+    var type_str = "";
+    // Read the type name
+    while (TRUE) {
+        var c = this.reader.peekn(1);
+        if (iswordc(c) || c == ".") {
+            type_str += this.reader.getn(1);
+        }
+        else {
+            break;
+        }
+    }
+    // Handle func: rettype
+    if (type_str == "func" && this.reader.peekn(1) == ":" && iswhite(this.reader.p(1))) {
+        this.reader.getn(1);
+        this.reader.skip_white();
+        return type_str + ": " + this.read_type();
+    }
+    // Handle generics: type<...>
+    if (this.reader.peekn(1) == "<") {
+        type_str += this.reader.getn(1);
+        var depth = 1;
+        while (depth > 0) {
+            var c = this.reader.peekn(1);
+            if (c == "") {
+                break;
+            }
+            else if (c == "<") {
+                depth += 1;
+            }
+            else if (c == ">") {
+                depth -= 1;
+            }
+            type_str += this.reader.getn(1);
+        }
+    }
+    // Handle func(argtype): rettype
+    if (this.reader.peekn(1) == "(") {
+        type_str += this.reader.getn(1);
+        var depth = 1;
+        while (depth > 0) {
+            var c = this.reader.peekn(1);
+            if (c == "") {
+                break;
+            }
+            else if (c == "(") {
+                depth += 1;
+            }
+            else if (c == ")") {
+                depth -= 1;
+            }
+            type_str += this.reader.getn(1);
+        }
+        // Check for ': rettype' after func params
+        this.reader.skip_white();
+        if (this.reader.peekn(1) == ":") {
+            this.reader.getn(1);
+            this.reader.skip_white();
+            type_str += ": " + this.read_type();
+        }
+    }
+    return type_str;
+}
+
+// Parse the statements of a Vim9 lambda "(args) => {", up to the "}" at the
+// start of a line.  Only a comment may follow the "{".
+VimLParser.prototype.parse_lambda_block = function(node) {
+    var ea = this.ea;
+    var vim9cmd = this.vim9cmd;
+    this.reader.skip_white();
+    if (this.reader.peek() == "#") {
+        this.reader.getn(-1);
+    }
+    if (this.reader.peek() != "<EOL>") {
+        throw Err(viml_printf("E488: Trailing characters: %s", this.reader.peekline()), this.reader.getpos());
+    }
+    this.reader.get();
+    this.push_context(node);
+    while (TRUE) {
+        if (this.reader.peek() == "<EOF>") {
+            throw Err("E1171: Missing } after inline function", this.reader.getpos());
+        }
+        var pos = this.reader.tell();
+        this.reader.skip_white();
+        if (this.context[0] === node && this.reader.peek() == "}") {
+            this.reader.get();
+            break;
+        }
+        this.reader.seek_set(pos);
+        this.parse_one_cmd();
+    }
+    this.pop_context();
+    this.ea = ea;
+    this.vim9cmd = vim9cmd;
+}
+
+VimLParser.prototype.parse_cmd_enddef = function() {
+    this.check_missing_endif("ENDDEF", this.ea.cmdpos);
+    this.check_missing_endtry("ENDDEF", this.ea.cmdpos);
+    this.check_missing_endwhile("ENDDEF", this.ea.cmdpos);
+    this.check_missing_endfor("ENDDEF", this.ea.cmdpos);
+    if (this.context[0].type != NODE_DEF) {
+        throw Err("E1152: :enddef not inside a function", this.ea.cmdpos);
+    }
+    this.reader.getn(-1);
+    var node = Node(NODE_ENDDEF);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    this.context[0].enddef = node;
+    this.pop_context();
+}
+
+VimLParser.prototype.parse_cmd_var = function() {
+    this.parse_vim9_decl(NODE_VAR);
+}
+
+VimLParser.prototype.parse_cmd_final = function() {
+    this.parse_vim9_decl(NODE_FINAL);
+}
+
+// Vim9 declaration with :var, :final or :const:
+//   var name[: type] [= expr]
+//   var [name[: type], ...[; rest]] = expr
+//   var name[: type] =<< [trim] [eval] END
+VimLParser.prototype.parse_vim9_decl = function(type) {
+    var pos = this.reader.tell();
+    this.reader.skip_white();
+    // :var without argument lists variables
+    if (this.ends_excmds(this.reader.peek())) {
+        this.reader.seek_set(pos);
+        this.parse_cmd_common();
+        return;
+    }
+    var node = Node(type);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.op = "";
+    node.left = NIL;
+    node.list = NIL;
+    node.rest = NIL;
+    node.right = NIL;
+    node.type_str = "";
+    if (this.reader.peekn(1) == "[") {
+        this.reader.getn(1);
+        node.list = [];
+        while (TRUE) {
+            viml_add(node.list, this.parse_vim9_decl_name());
+            this.reader.skip_white();
+            var c = this.reader.getn(1);
+            if (c == ";") {
+                node.rest = this.parse_vim9_decl_name();
+                this.reader.skip_white();
+                var c = this.reader.getn(1);
+            }
+            if (c == "]") {
+                break;
+            }
+            else if (c != ",") {
+                throw Err(viml_printf("E475: Invalid argument: %s", c), this.reader.getpos());
+            }
+        }
+        var __c10 = node.list;
+        for (var __i10 = 0; __i10 < __c10.length; ++__i10) {
+            var x = __c10[__i10];
+            this.declare(x);
+        }
+        this.declare(node.rest);
+    }
+    else {
+        node.left = this.parse_vim9_decl_name();
+        node.type_str = node.left.type_str;
+        this.declare(node.left);
+    }
+    this.reader.skip_white();
+    node.op = this.peek_assign_op();
+    this.reader.getn(viml_len(node.op));
+    if (node.op == "=<<") {
+        this.reader.skip_white();
+        node.right = this.parse_heredoc(this.heredoc_prefix());
+    }
+    else if (node.op != "") {
+        node.right = this.parse_expr();
+    }
+    this.add_node(node);
+}
+
+// Variable name with an optional type in a Vim9 declaration: "name: type"
+VimLParser.prototype.parse_vim9_decl_name = function() {
+    this.reader.skip_white();
+    var node = Node(NODE_IDENTIFIER);
+    node.pos = this.reader.getpos();
+    node.value = this.reader.read_vim9_name();
+    node.type_str = "";
+    if (node.value == "") {
+        throw Err(viml_printf("E475: Invalid argument: %s", this.reader.peekline()), node.pos);
+    }
+    if (this.reader.peekn(1) == ":") {
+        this.reader.getn(1);
+        this.reader.skip_white();
+        node.type_str = this.read_type();
+    }
+    return node;
+}
+
+VimLParser.prototype.parse_cmd_export = function() {
+    this.parse_wrapper(NODE_EXPORT);
+}
+
+VimLParser.prototype.parse_cmd_public = function() {
+    this.parse_wrapper(NODE_PUBLIC);
+}
+
+VimLParser.prototype.parse_cmd_static = function() {
+    this.parse_wrapper(NODE_STATIC);
+}
+
+VimLParser.prototype.parse_cmd_abstract = function() {
+    this.abstract = TRUE;
+    this.parse_wrapper(NODE_ABSTRACT);
+    this.abstract = FALSE;
+}
+
+// Parse a command that applies to the following command, like :export
+// and :static.  The nodes of the following command go into the body.
+VimLParser.prototype.parse_wrapper = function(type) {
+    this.reader.skip_white();
+    var wrapper_pos = this.ea.cmdpos;
+    // Re-find the inner command
+    this.ea.cmdpos = this.reader.getpos();
+    this.ea.cmd = this.find_command();
+    if (this.ea.cmd === NIL) {
+        throw Err(viml_printf("E492: Not an editor command: %s", this.reader.peekline()), this.ea.cmdpos);
+    }
+    if (this.reader.peekn(1) == "!" && this.ea.cmd.name != "substitute" && this.ea.cmd.name != "smagic" && this.ea.cmd.name != "snomagic") {
+        this.reader.getn(1);
+        this.ea.forceit = TRUE;
+    }
+    this.reader.skip_white();
+    this.ea.argpos = this.reader.getpos();
+    var wrapper = Node(type);
+    wrapper.pos = wrapper_pos;
+    wrapper.ea = this.ea;
+    wrapper.body = [];
+    // Remember current context body position
+    var ctx = this.context[0];
+    var before = viml_len(ctx.body);
+    // Parse the inner command
+    this._parse_command(this.ea.cmd.parser);
+    // Move newly-added nodes into the wrapper body
+    while (viml_len(ctx.body) > before) {
+        var moved_node = ctx.body[before];
+        viml_remove(ctx.body, before);
+        viml_add(wrapper.body, moved_node);
+    }
+    viml_add(ctx.body, wrapper);
+}
+
+// :class {name} [extends {class}] [implements {interface}, ...]
+VimLParser.prototype.parse_cmd_class = function() {
+    var node = Node(NODE_CLASS);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.name = this.read_class_name();
+    node.extends = "";
+    node.implements = [];
+    node.body = [];
+    node.endclass = NIL;
+    while (TRUE) {
+        this.reader.skip_white();
+        var pos = this.reader.tell();
+        var key = this.reader.read_alpha();
+        if (key == "extends") {
+            this.reader.skip_white();
+            node.extends = this.read_type();
+        }
+        else if (key == "implements" || key == "specifies") {
+            node.implements = this.read_type_list();
+        }
+        else {
+            this.reader.seek_set(pos);
+            break;
+        }
+    }
+    this.add_node(node);
+    this.push_context(node);
+}
+
+VimLParser.prototype.parse_cmd_endclass = function() {
+    this.parse_class_end(NODE_CLASS, "E1316: Class can only be defined in Vim9 script");
+}
+
+// :interface {name} [extends {interface}, ...]
+VimLParser.prototype.parse_cmd_interface = function() {
+    var node = Node(NODE_INTERFACE);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.name = this.read_class_name();
+    node.extends = [];
+    node.body = [];
+    node.endinterface = NIL;
+    this.reader.skip_white();
+    var pos = this.reader.tell();
+    if (this.reader.read_alpha() == "extends") {
+        node.extends = this.read_type_list();
+    }
+    else {
+        this.reader.seek_set(pos);
+    }
+    this.add_node(node);
+    this.push_context(node);
+}
+
+VimLParser.prototype.parse_cmd_endinterface = function() {
+    this.parse_class_end(NODE_INTERFACE, "E1345: :endinterface without :interface");
+}
+
+// :enum {name} [implements {interface}, ...]
+VimLParser.prototype.parse_cmd_enum = function() {
+    var node = Node(NODE_ENUM);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.name = this.read_class_name();
+    node.implements = [];
+    node.enumvalues = [];
+    node.body = [];
+    node.endenum = NIL;
+    // The enum values come first.
+    node.values_done = FALSE;
+    this.reader.skip_white();
+    var pos = this.reader.tell();
+    if (this.reader.read_alpha() == "implements") {
+        node.implements = this.read_type_list();
+    }
+    else {
+        this.reader.seek_set(pos);
+    }
+    this.add_node(node);
+    this.push_context(node);
+}
+
+VimLParser.prototype.parse_cmd_endenum = function() {
+    this.parse_class_end(NODE_ENUM, "E1419: :endenum without :enum");
+}
+
+// Parse the enum values at the start of an enum: "Name[(args)], ..."
+// Return FALSE when the line is not a list of values.
+VimLParser.prototype.parse_enum_values = function() {
+    var enumnode = this.context[0];
+    var pos = this.reader.tell();
+    var word = this.reader.read_word();
+    var c = this.reader.peekn(1);
+    this.reader.seek_set(pos);
+    if (word == "" || word == "var" || word == "final" || word == "const" || word == "def" || word == "static" || word == "public" || word == "endenum" || c != "" && c != "," && c != "(" && !iswhite(c)) {
+        enumnode.values_done = TRUE;
+        return FALSE;
+    }
+    while (TRUE) {
+        this.skip_vim9_white();
+        var node = Node(NODE_ENUMVALUE);
+        node.pos = this.reader.getpos();
+        node.value = this.reader.read_word();
+        node.rlist = [];
+        if (this.reader.peekn(1) == "(") {
+            var p = new ExprParser(this.reader, this);
+            p.tokenizer.get();
+            node.rlist = p.parse_rlist();
+        }
+        viml_add(enumnode.enumvalues, node);
+        this.reader.skip_white();
+        if (this.reader.peekn(1) != ",") {
+            break;
+        }
+        this.reader.getn(1);
+        this.skip_vim9_white();
+        if (this.reader.peek() == "<EOF>") {
+            break;
+        }
+        var pos = this.reader.tell();
+        var word = this.reader.read_word();
+        this.reader.seek_set(pos);
+        if (word == "endenum") {
+            break;
+        }
+    }
+    enumnode.values_done = TRUE;
+    return TRUE;
+}
+
+VimLParser.prototype.parse_class_end = function(type, msg) {
+    this.check_missing_endif(this.ea.cmd.name, this.ea.cmdpos);
+    this.check_missing_endtry(this.ea.cmd.name, this.ea.cmdpos);
+    this.check_missing_endwhile(this.ea.cmd.name, this.ea.cmdpos);
+    this.check_missing_endfor(this.ea.cmd.name, this.ea.cmdpos);
+    this.check_missing_enddef(this.ea.cmd.name, this.ea.cmdpos);
+    if (this.context[0].type != type) {
+        throw Err(msg, this.ea.cmdpos);
+    }
+    if (type == NODE_CLASS) {
+        var node = Node(NODE_ENDCLASS);
+        this.context[0].endclass = node;
+    }
+    else if (type == NODE_INTERFACE) {
+        var node = Node(NODE_ENDINTERFACE);
+        this.context[0].endinterface = node;
+    }
+    else {
+        var node = Node(NODE_ENDENUM);
+        this.context[0].endenum = node;
+    }
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    this.pop_context();
+}
+
+// :type {name} = {type}
+VimLParser.prototype.parse_cmd_type = function() {
+    if (!this.isvim9()) {
+        this.parse_cmd_common();
+        return;
+    }
+    var node = Node(NODE_TYPE);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.name = this.read_class_name();
+    this.reader.skip_white();
+    if (this.reader.getn(1) != "=") {
+        throw Err("E1403: Missing \"=\" in type alias", this.reader.getpos());
+    }
+    this.reader.skip_white();
+    node.type_str = this.read_type();
+    this.declared[node.name] = 1;
+    this.add_node(node);
+}
+
+VimLParser.prototype.read_class_name = function() {
+    this.reader.skip_white();
+    var name = this.reader.read_word();
+    if (name == "") {
+        throw Err(viml_printf("E475: Invalid argument: %s", this.reader.peekline()), this.reader.getpos());
+    }
+    this.declared[name] = 1;
+    return name;
+}
+
+// A comma separated list of types, e.g. after "implements".
+VimLParser.prototype.read_type_list = function() {
+    var list = [];
+    while (TRUE) {
+        this.reader.skip_white();
+        viml_add(list, this.read_type());
+        this.reader.skip_white();
+        if (this.reader.peekn(1) != ",") {
+            break;
+        }
+        this.reader.getn(1);
+    }
+    return list;
+}
+
+// :import [autoload] {expr} [as {name}]
+VimLParser.prototype.parse_cmd_import = function() {
+    var node = Node(NODE_IMPORT);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.autoload = FALSE;
+    node.alias = "";
+    this.reader.skip_white();
+    var start = this.reader.getpos();
+    var pos = this.reader.tell();
+    if (this.reader.read_alpha() == "autoload" && iswhite(this.reader.peekn(1))) {
+        node.autoload = TRUE;
+        this.reader.skip_white();
+    }
+    else {
+        this.reader.seek_set(pos);
+    }
+    node.left = this.parse_expr();
+    var end = this.reader.getpos();
+    this.reader.skip_white();
+    var pos = this.reader.tell();
+    if (this.reader.read_alpha() == "as" && iswhite(this.reader.peekn(1))) {
+        this.reader.skip_white();
+        node.alias = this.reader.read_word();
+        this.declared[node.alias] = 1;
+        var end = this.reader.getpos();
+    }
+    else {
+        this.reader.seek_set(pos);
+    }
+    // The text of the arguments.
+    node.str = this.reader.getstr(start, end);
+    this.add_node(node);
+}
+
+VimLParser.prototype.parse_cmd_block = function() {
+    if (!this.isvim9()) {
+        this.parse_cmd_common();
+        return;
+    }
+    var node = Node(NODE_BLOCK);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.body = [];
+    node.endblock = NIL;
+    this.add_node(node);
+    this.push_context(node);
+}
+
+VimLParser.prototype.parse_cmd_endblock = function() {
+    if (!this.isvim9()) {
+        this.parse_cmd_common();
+        return;
+    }
+    this.check_missing_endif("}", this.ea.cmdpos);
+    this.check_missing_endtry("}", this.ea.cmdpos);
+    this.check_missing_endwhile("}", this.ea.cmdpos);
+    this.check_missing_endfor("}", this.ea.cmdpos);
+    if (this.context[0].type != NODE_BLOCK) {
+        throw Err("E1128: } without {", this.ea.cmdpos);
+    }
+    var node = Node(NODE_ENDBLOCK);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    this.context[0].endblock = node;
+    this.pop_context();
 }
 
 VimLParser.prototype.parse_cmd_unlet = function() {
@@ -2092,10 +3329,24 @@ VimLParser.prototype.parse_cmd_for = function() {
     node.left = NIL;
     node.right = NIL;
     node.endfor = NIL;
-    var lhs = this.parse_letlhs();
+    if (this.isvim9()) {
+        var lhs = this.parse_vim9_forlhs();
+    }
+    else {
+        var lhs = this.parse_letlhs();
+    }
     node.left = lhs.left;
     node.list = lhs.list;
     node.rest = lhs.rest;
+    this.declare(node.left);
+    if (node.list !== NIL) {
+        var __c11 = node.list;
+        for (var __i11 = 0; __i11 < __c11.length; ++__i11) {
+            var x = __c11[__i11];
+            this.declare(x);
+        }
+    }
+    this.declare(node.rest);
     this.reader.skip_white();
     var epos = this.reader.getpos();
     if (this.reader.read_alpha() != "in") {
@@ -2104,6 +3355,36 @@ VimLParser.prototype.parse_cmd_for = function() {
     node.right = this.parse_expr();
     this.add_node(node);
     this.push_context(node);
+}
+
+// Vim9 :for loop variables with optional types: "name: type" or
+// "[name: type, ...]"
+VimLParser.prototype.parse_vim9_forlhs = function() {
+    var lhs = {"left":NIL, "list":NIL, "rest":NIL};
+    this.reader.skip_white();
+    if (this.reader.peekn(1) != "[") {
+        lhs.left = this.parse_vim9_decl_name();
+        return lhs;
+    }
+    this.reader.getn(1);
+    lhs.list = [];
+    while (TRUE) {
+        viml_add(lhs.list, this.parse_vim9_decl_name());
+        this.reader.skip_white();
+        var c = this.reader.getn(1);
+        if (c == ";") {
+            lhs.rest = this.parse_vim9_decl_name();
+            this.reader.skip_white();
+            var c = this.reader.getn(1);
+        }
+        if (c == "]") {
+            break;
+        }
+        else if (c != ",") {
+            throw Err(viml_printf("E475: Invalid argument: %s", c), this.reader.getpos());
+        }
+    }
+    return lhs;
 }
 
 VimLParser.prototype.parse_cmd_endfor = function() {
@@ -2270,6 +3551,26 @@ VimLParser.prototype.parse_cmd_echoconsole = function() {
     this.add_node(node);
 }
 
+VimLParser.prototype.parse_cmd_echowindow = function() {
+    var node = Node(NODE_ECHOWINDOW);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.list = this.parse_exprlist();
+    this.add_node(node);
+}
+
+// :defer {func}({args})
+VimLParser.prototype.parse_cmd_defer = function() {
+    var node = Node(NODE_DEFER);
+    node.pos = this.ea.cmdpos;
+    node.ea = this.ea;
+    node.left = this.parse_expr();
+    if (node.left.type != NODE_CALL) {
+        throw Err("E107: Missing parentheses", node.left.pos);
+    }
+    this.add_node(node);
+}
+
 VimLParser.prototype.parse_cmd_execute = function() {
     var node = Node(NODE_EXECUTE);
     node.pos = this.ea.cmdpos;
@@ -2279,7 +3580,7 @@ VimLParser.prototype.parse_cmd_execute = function() {
 }
 
 VimLParser.prototype.parse_expr = function() {
-    return new ExprParser(this.reader).parse();
+    return new ExprParser(this.reader, this).parse();
 }
 
 VimLParser.prototype.parse_exprlist = function() {
@@ -2297,7 +3598,7 @@ VimLParser.prototype.parse_exprlist = function() {
 }
 
 VimLParser.prototype.parse_lvalue_func = function() {
-    var p = new LvalueParser(this.reader);
+    var p = new LvalueParser(this.reader, this);
     var node = p.parse();
     if (node.type == NODE_IDENTIFIER || node.type == NODE_CURLYNAME || node.type == NODE_SUBSCRIPT || node.type == NODE_DOT || node.type == NODE_OPTION || node.type == NODE_ENV || node.type == NODE_REG) {
         return node;
@@ -2307,7 +3608,7 @@ VimLParser.prototype.parse_lvalue_func = function() {
 
 // FIXME:
 VimLParser.prototype.parse_lvalue = function() {
-    var p = new LvalueParser(this.reader);
+    var p = new LvalueParser(this.reader, this);
     var node = p.parse();
     if (node.type == NODE_IDENTIFIER) {
         if (!isvarname(node.value)) {
@@ -2322,7 +3623,7 @@ VimLParser.prototype.parse_lvalue = function() {
 
 // TODO: merge with s:VimLParser.parse_lvalue()
 VimLParser.prototype.parse_constlvalue = function() {
-    var p = new LvalueParser(this.reader);
+    var p = new LvalueParser(this.reader, this);
     var node = p.parse();
     if (node.type == NODE_IDENTIFIER) {
         if (!isvarname(node.value)) {
@@ -2365,7 +3666,7 @@ VimLParser.prototype.parse_lvaluelist = function() {
 // FIXME:
 VimLParser.prototype.parse_letlhs = function() {
     var lhs = {"left":NIL, "list":NIL, "rest":NIL};
-    var tokenizer = new ExprTokenizer(this.reader);
+    var tokenizer = new ExprTokenizer(this.reader, this.isvim9());
     if (tokenizer.peek().type == TOKEN_SQOPEN) {
         tokenizer.get();
         lhs.list = [];
@@ -2404,7 +3705,7 @@ VimLParser.prototype.parse_letlhs = function() {
 // TODO: merge with s:VimLParser.parse_letlhs() ?
 VimLParser.prototype.parse_constlhs = function() {
     var lhs = {"left":NIL, "list":NIL, "rest":NIL};
-    var tokenizer = new ExprTokenizer(this.reader);
+    var tokenizer = new ExprTokenizer(this.reader, this.isvim9());
     if (tokenizer.peek().type == TOKEN_SQOPEN) {
         tokenizer.get();
         lhs.list = [];
@@ -2441,6 +3742,14 @@ VimLParser.prototype.parse_constlhs = function() {
 }
 
 VimLParser.prototype.ends_excmds = function(c) {
+    if (this.isvim9()) {
+        if (c == "#") {
+            return 1;
+        }
+        else if (c == "\"") {
+            return 0;
+        }
+    }
     return c == "" || c == "|" || c == "\"" || c == "<EOF>" || c == "<EOL>";
 }
 
@@ -2499,14 +3808,22 @@ VimLParser.prototype.neovim_additional_commands = [{"name":"rshada", "minlen":3,
 VimLParser.prototype.neovim_removed_commands = [{"name":"Print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|EXFLAGS|TRLBAR|CMDWIN", "parser":"parse_cmd_common"}, {"name":"fixdel", "minlen":3, "flags":"TRLBAR|CMDWIN", "parser":"parse_cmd_common"}, {"name":"helpfind", "minlen":5, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"open", "minlen":1, "flags":"RANGE|BANG|EXTRA", "parser":"parse_cmd_common"}, {"name":"shell", "minlen":2, "flags":"TRLBAR|CMDWIN", "parser":"parse_cmd_common"}, {"name":"tearoff", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|CMDWIN", "parser":"parse_cmd_common"}, {"name":"gvim", "minlen":2, "flags":"BANG|FILES|EDITCMD|ARGOPT|TRLBAR|CMDWIN", "parser":"parse_cmd_common"}];
 // To find new builtin_commands, run the below script.
 // $ scripts/update_builtin_commands.sh /path/to/vim/src/ex_cmds.h
-VimLParser.prototype.builtin_commands = [{"name":"append", "minlen":1, "flags":"BANG|RANGE|ZEROR|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_append"}, {"name":"abbreviate", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"abclear", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"aboveleft", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"abstract", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"all", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"amenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"anoremenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"args", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argadd", "minlen":4, "flags":"BANG|RANGE|ZEROR|FILES|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argdelete", "minlen":4, "flags":"BANG|RANGE|FILES|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argdo", "minlen":5, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"argdedupe", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"argedit", "minlen":4, "flags":"BANG|NEEDARG|RANGE|ZEROR|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argglobal", "minlen":4, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"arglocal", "minlen":4, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argument", "minlen":4, "flags":"BANG|RANGE|COUNT|EXTRA|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ascii", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"autocmd", "minlen":2, "flags":"BANG|EXTRA|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"augroup", "minlen":3, "flags":"BANG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"aunmenu", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"buffer", "minlen":1, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bNext", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ball", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"badd", "minlen":3, "flags":"NEEDARG|FILE1|CMDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"balt", "minlen":4, "flags":"NEEDARG|FILE1|CMDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"bdelete", "minlen":2, "flags":"BANG|RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"behave", "minlen":2, "flags":"BANG|NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"belowright", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"bfirst", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"blast", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bmodified", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bnext", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"botright", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"bprevious", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"brewind", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"break", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_break"}, {"name":"breakadd", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"breakdel", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"breaklist", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"browse", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"buffers", "minlen":7, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"bufdo", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"bunload", "minlen":3, "flags":"BANG|RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bwipeout", "minlen":2, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"change", "minlen":1, "flags":"BANG|WHOLEFOLD|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"cNext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cNfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cabbrev", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cabclear", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cabove", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"caddbuffer", "minlen":3, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"caddexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"caddfile", "minlen":5, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"cafter", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"call", "minlen":3, "flags":"RANGE|NEEDARG|EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_call"}, {"name":"catch", "minlen":3, "flags":"EXTRA|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_catch"}, {"name":"cbuffer", "minlen":2, "flags":"BANG|RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbefore", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbelow", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbottom", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"cc", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cclose", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"cd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"center", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"cexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG|BANG", "parser":"parse_cmd_common"}, {"name":"cfile", "minlen":2, "flags":"TRLBAR|FILE1|BANG", "parser":"parse_cmd_common"}, {"name":"cfdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"cfirst", "minlen":4, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cgetfile", "minlen":2, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"cgetbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cgetexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"chdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"changes", "minlen":7, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"checkpath", "minlen":3, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"checktime", "minlen":6, "flags":"RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"chistory", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"clist", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"clast", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"class", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"close", "minlen":3, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"clearjumps", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cnewer", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cnfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cnoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnoreabbrev", "minlen":6, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"copy", "minlen":2, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"colder", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"colorscheme", "minlen":4, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"command", "minlen":3, "flags":"EXTRA|BANG|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"comclear", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"compiler", "minlen":4, "flags":"BANG|TRLBAR|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"continue", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_continue"}, {"name":"confirm", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"const", "minlen":4, "flags":"EXTRA|BANG|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_const"}, {"name":"copen", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cprevious", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cpfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cquit", "minlen":2, "flags":"RANGE|COUNT|ZEROR|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"crewind", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cscope", "minlen":2, "flags":"EXTRA|NOTRLCOM|XFILE", "parser":"parse_cmd_common"}, {"name":"cstag", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"cunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cunabbrev", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cwindow", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"delete", "minlen":1, "flags":"RANGE|WHOLEFOLD|REGSTR|COUNT|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"delmarks", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"debug", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"debuggreedy", "minlen":6, "flags":"RANGE|ZEROR|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"def", "minlen":3, "flags":"EXTRA|BANG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"defer", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"defcompile", "minlen":4, "flags":"SBOXOK|CMDWIN|LOCK_OK|TRLBAR", "parser":"parse_cmd_common"}, {"name":"delcommand", "minlen":4, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"delfunction", "minlen":4, "flags":"BANG|NEEDARG|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_delfunction"}, {"name":"display", "minlen":2, "flags":"EXTRA|NOTRLCOM|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"diffupdate", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffget", "minlen":5, "flags":"RANGE|EXTRA|TRLBAR|MODIFY", "parser":"parse_cmd_common"}, {"name":"diffoff", "minlen":5, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffpatch", "minlen":5, "flags":"EXTRA|FILE1|TRLBAR|MODIFY", "parser":"parse_cmd_common"}, {"name":"diffput", "minlen":6, "flags":"RANGE|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffsplit", "minlen":5, "flags":"EXTRA|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffthis", "minlen":5, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"digraphs", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"disassemble", "minlen":4, "flags":"BANG|EXTRA|NEEDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"djump", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"dlist", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"doautocmd", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"doautoall", "minlen":7, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"drop", "minlen":2, "flags":"FILES|CMDARG|NEEDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"dsearch", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"dsplit", "minlen":3, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"edit", "minlen":1, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"earlier", "minlen":2, "flags":"TRLBAR|EXTRA|NOSPC|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"echo", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echo"}, {"name":"echoerr", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echoerr"}, {"name":"echohl", "minlen":5, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echohl"}, {"name":"echomsg", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echomsg"}, {"name":"echoconsole", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echoconsole"}, {"name":"echowindow", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"echon", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echon"}, {"name":"else", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_else"}, {"name":"elseif", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_elseif"}, {"name":"emenu", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|RANGE|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"endif", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endif"}, {"name":"endinterface", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"endclass", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"enddef", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"endenum", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"endfunction", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endfunction"}, {"name":"endfor", "minlen":5, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endfor"}, {"name":"endtry", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endtry"}, {"name":"endwhile", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endwhile"}, {"name":"enew", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"enum", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"eval", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_eval"}, {"name":"ex", "minlen":2, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"execute", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_execute"}, {"name":"exit", "minlen":3, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"export", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"exusage", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"file", "minlen":1, "flags":"RANGE|ZEROR|BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"files", "minlen":5, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"filetype", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"filter", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"find", "minlen":3, "flags":"RANGE|BANG|FILE1|CMDARG|ARGOPT|TRLBAR|NEEDARG", "parser":"parse_cmd_common"}, {"name":"final", "minlen":4, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"finally", "minlen":6, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_finally"}, {"name":"finish", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_finish"}, {"name":"first", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"fixdel", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"fold", "minlen":2, "flags":"RANGE|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"foldclose", "minlen":5, "flags":"RANGE|BANG|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"folddoopen", "minlen":5, "flags":"RANGE|DFLALL|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"folddoclosed", "minlen":7, "flags":"RANGE|DFLALL|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"foldopen", "minlen":5, "flags":"RANGE|BANG|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"for", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_for"}, {"name":"function", "minlen":2, "flags":"EXTRA|BANG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_function"}, {"name":"global", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|EXTRA|DFLALL|SBOXOK|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"goto", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"grep", "minlen":2, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"grepadd", "minlen":5, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"gui", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"gvim", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"help", "minlen":1, "flags":"BANG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"helpclose", "minlen":5, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"helpfind", "minlen":5, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"helpgrep", "minlen":5, "flags":"EXTRA|NOTRLCOM|NEEDARG", "parser":"parse_cmd_common"}, {"name":"helptags", "minlen":5, "flags":"NEEDARG|FILES|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"hardcopy", "minlen":2, "flags":"RANGE|COUNT|EXTRA|EXPAND|TRLBAR|DFLALL|BANG", "parser":"parse_cmd_common"}, {"name":"highlight", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"hide", "minlen":3, "flags":"BANG|RANGE|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"history", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"horizontal", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"insert", "minlen":1, "flags":"BANG|RANGE|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_insert"}, {"name":"iabbrev", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iabclear", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"if", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_if"}, {"name":"ijump", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"ilist", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"import", "minlen":3, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"inoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"inoreabbrev", "minlen":6, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"inoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"intro", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"interface", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"isearch", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"isplit", "minlen":3, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"iunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iunabbrev", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"join", "minlen":1, "flags":"BANG|RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"jumps", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"k", "minlen":1, "flags":"RANGE|WORD1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"keepmarks", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keepjumps", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keeppatterns", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keepalt", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"list", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lNext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lNfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"last", "minlen":2, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"labove", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"language", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"laddexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"laddbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"laddfile", "minlen":5, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"lafter", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"later", "minlen":3, "flags":"TRLBAR|EXTRA|NOSPC|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lbuffer", "minlen":2, "flags":"BANG|RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbefore", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbelow", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbottom", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"lcd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lchdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lclose", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lcscope", "minlen":3, "flags":"EXTRA|NOTRLCOM|XFILE", "parser":"parse_cmd_common"}, {"name":"ldo", "minlen":2, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"left", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"leftabove", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"let", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_let"}, {"name":"lexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG|BANG", "parser":"parse_cmd_common"}, {"name":"legacy", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lfile", "minlen":2, "flags":"TRLBAR|FILE1|BANG", "parser":"parse_cmd_common"}, {"name":"lfdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"lfirst", "minlen":4, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lgetfile", "minlen":2, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"lgetbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lgetexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"lgrep", "minlen":3, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lgrepadd", "minlen":6, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lhelpgrep", "minlen":2, "flags":"EXTRA|NOTRLCOM|NEEDARG", "parser":"parse_cmd_common"}, {"name":"lhistory", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ll", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"llast", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"llist", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmake", "minlen":4, "flags":"BANG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lnext", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lnewer", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lnfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"loadview", "minlen":2, "flags":"FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"loadkeymap", "minlen":5, "flags":"CMDWIN|LOCK_OK", "parser":"parse_cmd_loadkeymap"}, {"name":"lockmarks", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"lockvar", "minlen":5, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_lockvar"}, {"name":"lolder", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lopen", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lprevious", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lpfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lrewind", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"ltag", "minlen":2, "flags":"TRLBAR|BANG|WORD1", "parser":"parse_cmd_common"}, {"name":"lunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lua", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_lua"}, {"name":"luado", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"luafile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"lvimgrep", "minlen":2, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lvimgrepadd", "minlen":9, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lwindow", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ls", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"move", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"mark", "minlen":2, "flags":"RANGE|WORD1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"make", "minlen":3, "flags":"BANG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"map", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mapclear", "minlen":4, "flags":"EXTRA|BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"marks", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"match", "minlen":3, "flags":"RANGE|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"menu", "minlen":2, "flags":"RANGE|ZEROR|BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"menutranslate", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"messages", "minlen":3, "flags":"EXTRA|TRLBAR|RANGE|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mkexrc", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mksession", "minlen":3, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"mkspell", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"mkvimrc", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mkview", "minlen":5, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"mode", "minlen":3, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mzscheme", "minlen":2, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|CMDWIN|LOCK_OK|SBOXOK|RESTRICT", "parser":"parse_cmd_mzscheme"}, {"name":"mzfile", "minlen":3, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"next", "minlen":1, "flags":"RANGE|BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"nbkey", "minlen":2, "flags":"EXTRA|NEEDARG", "parser":"parse_cmd_common"}, {"name":"nbclose", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nbstart", "minlen":3, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"new", "minlen":3, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"nmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noremap", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noautocmd", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"nohlsearch", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noreabbrev", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noremenu", "minlen":6, "flags":"RANGE|ZEROR|BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noswapfile", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"normal", "minlen":4, "flags":"RANGE|BANG|EXTRA|NEEDARG|NOTRLCOM|CTRLV|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"number", "minlen":2, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nunmap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"open", "minlen":1, "flags":"RANGE|BANG|EXTRA", "parser":"parse_cmd_common"}, {"name":"oldfiles", "minlen":2, "flags":"BANG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"only", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"onoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"onoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"options", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"ounmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ounmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ownsyntax", "minlen":2, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"packadd", "minlen":2, "flags":"BANG|FILE1|NEEDARG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"packloadall", "minlen":5, "flags":"BANG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"pclose", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"perl", "minlen":2, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_perl"}, {"name":"perldo", "minlen":5, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"pedit", "minlen":3, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"pop", "minlen":2, "flags":"RANGE|BANG|COUNT|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"popup", "minlen":4, "flags":"NEEDARG|EXTRA|BANG|TRLBAR|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ppop", "minlen":2, "flags":"RANGE|BANG|COUNT|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"preserve", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"previous", "minlen":4, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"promptfind", "minlen":3, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"promptrepl", "minlen":7, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"profile", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"profdel", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"psearch", "minlen":2, "flags":"BANG|RANGE|WHOLEFOLD|DFLALL|EXTRA", "parser":"parse_cmd_common"}, {"name":"ptag", "minlen":2, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptNext", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptfirst", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptjump", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"ptlast", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ptnext", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptprevious", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptrewind", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptselect", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"put", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|REGSTR|TRLBAR|ZEROR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"pwd", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"python", "minlen":2, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python"}, {"name":"pydo", "minlen":3, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyfile", "minlen":3, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"py3", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python3"}, {"name":"py3do", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"python3", "minlen":7, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python3"}, {"name":"py3file", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyx", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyxdo", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pythonx", "minlen":7, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyxfile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"quit", "minlen":1, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"quitall", "minlen":5, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"qall", "minlen":2, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"read", "minlen":1, "flags":"BANG|RANGE|WHOLEFOLD|FILE1|ARGOPT|TRLBAR|ZEROR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"recover", "minlen":3, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"redo", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redir", "minlen":4, "flags":"BANG|FILES|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redraw", "minlen":4, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redrawstatus", "minlen":7, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redrawtabline", "minlen":7, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"registers", "minlen":3, "flags":"EXTRA|NOTRLCOM|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"resize", "minlen":3, "flags":"RANGE|TRLBAR|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"retab", "minlen":3, "flags":"TRLBAR|RANGE|WHOLEFOLD|DFLALL|BANG|WORD1|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"return", "minlen":4, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_return"}, {"name":"rewind", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"right", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"rightbelow", "minlen":6, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"runtime", "minlen":2, "flags":"BANG|NEEDARG|FILES|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ruby", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_ruby"}, {"name":"rubydo", "minlen":5, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"rubyfile", "minlen":5, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"rundo", "minlen":4, "flags":"NEEDARG|FILE1", "parser":"parse_cmd_common"}, {"name":"rviminfo", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"substitute", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"sNext", "minlen":2, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sargument", "minlen":2, "flags":"BANG|RANGE|COUNT|EXTRA|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sall", "minlen":3, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sandbox", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"saveas", "minlen":3, "flags":"BANG|FILE1|ARGOPT|CMDWIN|LOCK_OK|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbuffer", "minlen":2, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbNext", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sball", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbfirst", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sblast", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbmodified", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbnext", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbprevious", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbrewind", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"scriptnames", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scriptencoding", "minlen":7, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scriptversion", "minlen":7, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scscope", "minlen":3, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"set", "minlen":2, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"setfiletype", "minlen":4, "flags":"TRLBAR|EXTRA|NEEDARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"setglobal", "minlen":4, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"setlocal", "minlen":4, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"sfind", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR|NEEDARG", "parser":"parse_cmd_common"}, {"name":"sfirst", "minlen":4, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"shell", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"simalt", "minlen":2, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sign", "minlen":3, "flags":"NEEDARG|RANGE|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"silent", "minlen":3, "flags":"NEEDARG|EXTRA|BANG|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sleep", "minlen":2, "flags":"BANG|RANGE|COUNT|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"slast", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"smagic", "minlen":2, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"smap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"smapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"smenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"snext", "minlen":2, "flags":"RANGE|BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"snomagic", "minlen":3, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"snoremap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"snoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"source", "minlen":2, "flags":"BANG|FILE1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sort", "minlen":3, "flags":"RANGE|DFLALL|WHOLEFOLD|BANG|EXTRA|NOTRLCOM|MODIFY", "parser":"parse_cmd_common"}, {"name":"split", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellgood", "minlen":3, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spelldump", "minlen":6, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellinfo", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellrepall", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellrare", "minlen":7, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellundo", "minlen":6, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellwrong", "minlen":6, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sprevious", "minlen":3, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"srewind", "minlen":2, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"stop", "minlen":2, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"stag", "minlen":3, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"startinsert", "minlen":4, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"startgreplace", "minlen":6, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"startreplace", "minlen":6, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"static", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"stopinsert", "minlen":5, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"stjump", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"stselect", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"sunhide", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sunmap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"suspend", "minlen":3, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sview", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"swapname", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"syntax", "minlen":2, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_syntax"}, {"name":"syntime", "minlen":5, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"syncbind", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"smile", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"t", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"tNext", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tag", "minlen":2, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tags", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tab", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"tabclose", "minlen":4, "flags":"BANG|RANGE|ZEROR|EXTRA|NOSPC|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tabdo", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"tabedit", "minlen":4, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabfind", "minlen":4, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|NEEDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabfirst", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabmove", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tablast", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabnext", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabnew", "minlen":6, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabonly", "minlen":4, "flags":"BANG|RANGE|ZEROR|EXTRA|NOSPC|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tabprevious", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabNext", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabrewind", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabs", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tcd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tchdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tcl", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_tcl"}, {"name":"tcldo", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"tclfile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"tearoff", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"terminal", "minlen":3, "flags":"RANGE|BANG|FILES|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tfirst", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"throw", "minlen":2, "flags":"EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_throw"}, {"name":"tjump", "minlen":2, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"tlast", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tlmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tlnoremenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tlunmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tnext", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tnoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"topleft", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"tprevious", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"trewind", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"try", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_try"}, {"name":"tselect", "minlen":2, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"tunmenu", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tunmap", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"type", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"undo", "minlen":1, "flags":"RANGE|COUNT|ZEROR|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"undojoin", "minlen":5, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"undolist", "minlen":5, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unabbreviate", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unhide", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"unlet", "minlen":3, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_unlet"}, {"name":"unlockvar", "minlen":4, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_unlockvar"}, {"name":"unmap", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unmenu", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unsilent", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"update", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vglobal", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|DFLALL|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"var", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"version", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"verbose", "minlen":4, "flags":"NEEDARG|RANGE|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vertical", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"visual", "minlen":2, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"view", "minlen":3, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vimgrep", "minlen":3, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vimgrepadd", "minlen":8, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vim9cmd", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vim9script", "minlen":5, "flags":"WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"viusage", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"vmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vnew", "minlen":3, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vsplit", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"write", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"wNext", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wall", "minlen":2, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"while", "minlen":2, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_while"}, {"name":"winsize", "minlen":2, "flags":"EXTRA|NEEDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wincmd", "minlen":4, "flags":"NEEDARG|WORD1|RANGE|CMDWIN|LOCK_OK", "parser":"parse_wincmd"}, {"name":"windo", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"winpos", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"wnext", "minlen":2, "flags":"RANGE|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wprevious", "minlen":2, "flags":"RANGE|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wq", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wqall", "minlen":3, "flags":"BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wundo", "minlen":2, "flags":"BANG|NEEDARG|FILE1", "parser":"parse_cmd_common"}, {"name":"wviminfo", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xit", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xall", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"xmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xrestore", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"yank", "minlen":1, "flags":"RANGE|WHOLEFOLD|REGSTR|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"z", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|EXTRA|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"!", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILES|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"#", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"&", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"*", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"<", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"=", "minlen":1, "flags":"RANGE|TRLBAR|DFLALL|FLAGS|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":">", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"@", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"{", "minlen":1, "flags":"TRLBAR|LOCK_OK|CMDWIN", "parser":"parse_cmd_common"}, {"name":"}", "minlen":1, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"~", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"Next", "minlen":1, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"Print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"X", "minlen":1, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"++", "minlen":1, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"--", "minlen":1, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}];
+VimLParser.prototype.builtin_commands = [{"name":"append", "minlen":1, "flags":"BANG|RANGE|ZEROR|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_append"}, {"name":"abbreviate", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"abclear", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"aboveleft", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"abstract", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_abstract"}, {"name":"all", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"amenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"anoremenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"args", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argadd", "minlen":4, "flags":"BANG|RANGE|ZEROR|FILES|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argdelete", "minlen":4, "flags":"BANG|RANGE|FILES|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argdo", "minlen":5, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"argdedupe", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"argedit", "minlen":4, "flags":"BANG|NEEDARG|RANGE|ZEROR|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argglobal", "minlen":4, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"arglocal", "minlen":4, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"argument", "minlen":4, "flags":"BANG|RANGE|COUNT|EXTRA|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ascii", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"autocmd", "minlen":2, "flags":"BANG|EXTRA|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"augroup", "minlen":3, "flags":"BANG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"aunmenu", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"buffer", "minlen":1, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bNext", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ball", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"badd", "minlen":3, "flags":"NEEDARG|FILE1|CMDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"balt", "minlen":4, "flags":"NEEDARG|FILE1|CMDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"bdelete", "minlen":2, "flags":"BANG|RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"behave", "minlen":2, "flags":"BANG|NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"belowright", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"bfirst", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"blast", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bmodified", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bnext", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"botright", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"bprevious", "minlen":2, "flags":"BANG|RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"brewind", "minlen":2, "flags":"BANG|RANGE|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"break", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_break"}, {"name":"breakadd", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"breakdel", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"breaklist", "minlen":6, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"browse", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"buffers", "minlen":7, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"bufdo", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"bunload", "minlen":3, "flags":"BANG|RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"bwipeout", "minlen":2, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"change", "minlen":1, "flags":"BANG|WHOLEFOLD|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"cNext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cNfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cabbrev", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cabclear", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cabove", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"caddbuffer", "minlen":3, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"caddexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"caddfile", "minlen":5, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"cafter", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"call", "minlen":3, "flags":"RANGE|NEEDARG|EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_call"}, {"name":"catch", "minlen":3, "flags":"EXTRA|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_catch"}, {"name":"cbuffer", "minlen":2, "flags":"BANG|RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbefore", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbelow", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cbottom", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"cc", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cclose", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"cd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"center", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"cexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG|BANG", "parser":"parse_cmd_common"}, {"name":"cfile", "minlen":2, "flags":"TRLBAR|FILE1|BANG", "parser":"parse_cmd_common"}, {"name":"cfdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"cfirst", "minlen":4, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cgetfile", "minlen":2, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"cgetbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cgetexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"chdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"changes", "minlen":7, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"checkpath", "minlen":3, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"checktime", "minlen":6, "flags":"RANGE|BUFNAME|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"chistory", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"clist", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"clast", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"class", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_class"}, {"name":"close", "minlen":3, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"clearjumps", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cnewer", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cnfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cnoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnoreabbrev", "minlen":6, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"copy", "minlen":2, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"colder", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"colorscheme", "minlen":4, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"command", "minlen":3, "flags":"EXTRA|BANG|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"comclear", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"compiler", "minlen":4, "flags":"BANG|TRLBAR|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"continue", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_continue"}, {"name":"confirm", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"const", "minlen":4, "flags":"EXTRA|BANG|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_const"}, {"name":"copen", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"cprevious", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cpfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cquit", "minlen":2, "flags":"RANGE|COUNT|ZEROR|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"crewind", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"cscope", "minlen":2, "flags":"EXTRA|NOTRLCOM|XFILE", "parser":"parse_cmd_common"}, {"name":"cstag", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"cunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cunabbrev", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"cwindow", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"delete", "minlen":1, "flags":"RANGE|WHOLEFOLD|REGSTR|COUNT|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"delmarks", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"debug", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"debuggreedy", "minlen":6, "flags":"RANGE|ZEROR|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"def", "minlen":3, "flags":"EXTRA|BANG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_def"}, {"name":"defer", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_defer"}, {"name":"defcompile", "minlen":4, "flags":"SBOXOK|CMDWIN|LOCK_OK|TRLBAR", "parser":"parse_cmd_common"}, {"name":"delcommand", "minlen":4, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"delfunction", "minlen":4, "flags":"BANG|NEEDARG|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_delfunction"}, {"name":"display", "minlen":2, "flags":"EXTRA|NOTRLCOM|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"diffupdate", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffget", "minlen":5, "flags":"RANGE|EXTRA|TRLBAR|MODIFY", "parser":"parse_cmd_common"}, {"name":"diffoff", "minlen":5, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffpatch", "minlen":5, "flags":"EXTRA|FILE1|TRLBAR|MODIFY", "parser":"parse_cmd_common"}, {"name":"diffput", "minlen":6, "flags":"RANGE|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffsplit", "minlen":5, "flags":"EXTRA|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"diffthis", "minlen":5, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"digraphs", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"disassemble", "minlen":4, "flags":"BANG|EXTRA|NEEDARG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"djump", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"dlist", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"doautocmd", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"doautoall", "minlen":7, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"drop", "minlen":2, "flags":"FILES|CMDARG|NEEDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"dsearch", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"dsplit", "minlen":3, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"edit", "minlen":1, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"earlier", "minlen":2, "flags":"TRLBAR|EXTRA|NOSPC|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"echo", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echo"}, {"name":"echoerr", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echoerr"}, {"name":"echohl", "minlen":5, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echohl"}, {"name":"echomsg", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echomsg"}, {"name":"echoconsole", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echoconsole"}, {"name":"echowindow", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echowindow"}, {"name":"echon", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_echon"}, {"name":"else", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_else"}, {"name":"elseif", "minlen":5, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_elseif"}, {"name":"emenu", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|RANGE|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"endif", "minlen":2, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endif"}, {"name":"endinterface", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endinterface"}, {"name":"endclass", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endclass"}, {"name":"enddef", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_enddef"}, {"name":"endenum", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endenum"}, {"name":"endfunction", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endfunction"}, {"name":"endfor", "minlen":5, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endfor"}, {"name":"endtry", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endtry"}, {"name":"endwhile", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_endwhile"}, {"name":"enew", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"enum", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_enum"}, {"name":"eval", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_eval"}, {"name":"ex", "minlen":2, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"execute", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_execute"}, {"name":"exit", "minlen":3, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"export", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_export"}, {"name":"exusage", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"file", "minlen":1, "flags":"RANGE|ZEROR|BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"files", "minlen":5, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"filetype", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"filter", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"find", "minlen":3, "flags":"RANGE|BANG|FILE1|CMDARG|ARGOPT|TRLBAR|NEEDARG", "parser":"parse_cmd_common"}, {"name":"final", "minlen":4, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_final"}, {"name":"finally", "minlen":6, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_finally"}, {"name":"finish", "minlen":4, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_finish"}, {"name":"first", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"fixdel", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"fold", "minlen":2, "flags":"RANGE|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"foldclose", "minlen":5, "flags":"RANGE|BANG|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"folddoopen", "minlen":5, "flags":"RANGE|DFLALL|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"folddoclosed", "minlen":7, "flags":"RANGE|DFLALL|NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"foldopen", "minlen":5, "flags":"RANGE|BANG|WHOLEFOLD|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"for", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_for"}, {"name":"function", "minlen":2, "flags":"EXTRA|BANG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_function"}, {"name":"global", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|EXTRA|DFLALL|SBOXOK|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"goto", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"grep", "minlen":2, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"grepadd", "minlen":5, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"gui", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"gvim", "minlen":2, "flags":"BANG|FILES|CMDARG|ARGOPT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"help", "minlen":1, "flags":"BANG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"helpclose", "minlen":5, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"helpfind", "minlen":5, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"helpgrep", "minlen":5, "flags":"EXTRA|NOTRLCOM|NEEDARG", "parser":"parse_cmd_common"}, {"name":"helptags", "minlen":5, "flags":"NEEDARG|FILES|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"hardcopy", "minlen":2, "flags":"RANGE|COUNT|EXTRA|EXPAND|TRLBAR|DFLALL|BANG", "parser":"parse_cmd_common"}, {"name":"highlight", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"hide", "minlen":3, "flags":"BANG|RANGE|COUNT|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"history", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"horizontal", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"insert", "minlen":1, "flags":"BANG|RANGE|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_insert"}, {"name":"iabbrev", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iabclear", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"if", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_if"}, {"name":"ijump", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"ilist", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"imenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"import", "minlen":3, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_import"}, {"name":"inoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"inoreabbrev", "minlen":6, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"inoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"intro", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"interface", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_interface"}, {"name":"isearch", "minlen":2, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"isplit", "minlen":3, "flags":"BANG|RANGE|DFLALL|WHOLEFOLD|EXTRA", "parser":"parse_cmd_common"}, {"name":"iunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iunabbrev", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"join", "minlen":1, "flags":"BANG|RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"jumps", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"k", "minlen":1, "flags":"RANGE|WORD1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"keepmarks", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keepjumps", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keeppatterns", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"keepalt", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"list", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lNext", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lNfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"last", "minlen":2, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"labove", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"language", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"laddexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"laddbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"laddfile", "minlen":5, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"lafter", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"later", "minlen":3, "flags":"TRLBAR|EXTRA|NOSPC|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lbuffer", "minlen":2, "flags":"BANG|RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbefore", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbelow", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lbottom", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"lcd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lchdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lclose", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lcscope", "minlen":3, "flags":"EXTRA|NOTRLCOM|XFILE", "parser":"parse_cmd_common"}, {"name":"ldo", "minlen":2, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"left", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"leftabove", "minlen":5, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"let", "minlen":3, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_let"}, {"name":"lexpr", "minlen":3, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG|BANG", "parser":"parse_cmd_common"}, {"name":"legacy", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lfile", "minlen":2, "flags":"TRLBAR|FILE1|BANG", "parser":"parse_cmd_common"}, {"name":"lfdo", "minlen":3, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"lfirst", "minlen":4, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lgetfile", "minlen":2, "flags":"TRLBAR|FILE1", "parser":"parse_cmd_common"}, {"name":"lgetbuffer", "minlen":5, "flags":"RANGE|WORD1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lgetexpr", "minlen":5, "flags":"NEEDARG|WORD1|NOTRLCOM|EXPR_ARG", "parser":"parse_cmd_common"}, {"name":"lgrep", "minlen":3, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lgrepadd", "minlen":6, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lhelpgrep", "minlen":2, "flags":"EXTRA|NOTRLCOM|NEEDARG", "parser":"parse_cmd_common"}, {"name":"lhistory", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ll", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"llast", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"llist", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lmake", "minlen":4, "flags":"BANG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"lnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lnext", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lnewer", "minlen":4, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lnfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"loadview", "minlen":2, "flags":"FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"loadkeymap", "minlen":5, "flags":"CMDWIN|LOCK_OK", "parser":"parse_cmd_loadkeymap"}, {"name":"lockmarks", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"lockvar", "minlen":5, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_lockvar"}, {"name":"lolder", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lopen", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"lprevious", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lpfile", "minlen":3, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"lrewind", "minlen":2, "flags":"RANGE|COUNT|TRLBAR|BANG", "parser":"parse_cmd_common"}, {"name":"ltag", "minlen":2, "flags":"TRLBAR|BANG|WORD1", "parser":"parse_cmd_common"}, {"name":"lunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lua", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_lua"}, {"name":"luado", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"luafile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"lvimgrep", "minlen":2, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lvimgrepadd", "minlen":9, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"lwindow", "minlen":2, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ls", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"move", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"mark", "minlen":2, "flags":"RANGE|WORD1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"make", "minlen":3, "flags":"BANG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"map", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mapclear", "minlen":4, "flags":"EXTRA|BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"marks", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"match", "minlen":3, "flags":"RANGE|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"menu", "minlen":2, "flags":"RANGE|ZEROR|BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"menutranslate", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"messages", "minlen":3, "flags":"EXTRA|TRLBAR|RANGE|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mkexrc", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mksession", "minlen":3, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"mkspell", "minlen":4, "flags":"BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE", "parser":"parse_cmd_common"}, {"name":"mkvimrc", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mkview", "minlen":5, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"mode", "minlen":3, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"mzscheme", "minlen":2, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|CMDWIN|LOCK_OK|SBOXOK|RESTRICT", "parser":"parse_cmd_mzscheme"}, {"name":"mzfile", "minlen":3, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"next", "minlen":1, "flags":"RANGE|BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"nbkey", "minlen":2, "flags":"EXTRA|NEEDARG", "parser":"parse_cmd_common"}, {"name":"nbclose", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nbstart", "minlen":3, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"new", "minlen":3, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"nmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noremap", "minlen":2, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noautocmd", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"nohlsearch", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noreabbrev", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noremenu", "minlen":6, "flags":"RANGE|ZEROR|BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"noswapfile", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"normal", "minlen":4, "flags":"RANGE|BANG|EXTRA|NEEDARG|NOTRLCOM|CTRLV|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"number", "minlen":2, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nunmap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"nunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"open", "minlen":1, "flags":"RANGE|BANG|EXTRA", "parser":"parse_cmd_common"}, {"name":"oldfiles", "minlen":2, "flags":"BANG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"omenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"only", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"onoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"onoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"options", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"ounmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ounmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ownsyntax", "minlen":2, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"packadd", "minlen":2, "flags":"BANG|FILE1|NEEDARG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"packloadall", "minlen":5, "flags":"BANG|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"pclose", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"perl", "minlen":2, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_perl"}, {"name":"perldo", "minlen":5, "flags":"RANGE|EXTRA|DFLALL|NEEDARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"pedit", "minlen":3, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"pop", "minlen":2, "flags":"RANGE|BANG|COUNT|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"popup", "minlen":4, "flags":"NEEDARG|EXTRA|BANG|TRLBAR|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ppop", "minlen":2, "flags":"RANGE|BANG|COUNT|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"preserve", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"previous", "minlen":4, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"promptfind", "minlen":3, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"promptrepl", "minlen":7, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"profile", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"profdel", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"psearch", "minlen":2, "flags":"BANG|RANGE|WHOLEFOLD|DFLALL|EXTRA", "parser":"parse_cmd_common"}, {"name":"ptag", "minlen":2, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptNext", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptfirst", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptjump", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"ptlast", "minlen":3, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"ptnext", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptprevious", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptrewind", "minlen":3, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"ptselect", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"public", "minlen":3, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_public"}, {"name":"put", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|REGSTR|TRLBAR|ZEROR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"pwd", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"python", "minlen":2, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python"}, {"name":"pydo", "minlen":3, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyfile", "minlen":3, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"py3", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python3"}, {"name":"py3do", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"python3", "minlen":7, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_python3"}, {"name":"py3file", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyx", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyxdo", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pythonx", "minlen":7, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"pyxfile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"quit", "minlen":1, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"quitall", "minlen":5, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"qall", "minlen":2, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"read", "minlen":1, "flags":"BANG|RANGE|WHOLEFOLD|FILE1|ARGOPT|TRLBAR|ZEROR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"recover", "minlen":3, "flags":"BANG|FILE1|TRLBAR", "parser":"parse_cmd_common"}, {"name":"redo", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redir", "minlen":4, "flags":"BANG|FILES|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redraw", "minlen":4, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redrawstatus", "minlen":7, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"redrawtabline", "minlen":7, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"registers", "minlen":3, "flags":"EXTRA|NOTRLCOM|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"resize", "minlen":3, "flags":"RANGE|TRLBAR|WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"retab", "minlen":3, "flags":"TRLBAR|RANGE|WHOLEFOLD|DFLALL|BANG|WORD1|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"return", "minlen":4, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_return"}, {"name":"rewind", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"right", "minlen":2, "flags":"TRLBAR|RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"rightbelow", "minlen":6, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"runtime", "minlen":2, "flags":"BANG|NEEDARG|FILES|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"ruby", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_ruby"}, {"name":"rubydo", "minlen":5, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"rubyfile", "minlen":5, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"rundo", "minlen":4, "flags":"NEEDARG|FILE1", "parser":"parse_cmd_common"}, {"name":"rviminfo", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"substitute", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"sNext", "minlen":2, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sargument", "minlen":2, "flags":"BANG|RANGE|COUNT|EXTRA|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sall", "minlen":3, "flags":"BANG|RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sandbox", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"saveas", "minlen":3, "flags":"BANG|FILE1|ARGOPT|CMDWIN|LOCK_OK|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbuffer", "minlen":2, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbNext", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sball", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbfirst", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sblast", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbmodified", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbnext", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbprevious", "minlen":3, "flags":"RANGE|COUNT|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sbrewind", "minlen":3, "flags":"CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"scriptnames", "minlen":2, "flags":"BANG|RANGE|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scriptencoding", "minlen":7, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scriptversion", "minlen":7, "flags":"WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"scscope", "minlen":3, "flags":"EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"set", "minlen":2, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"setfiletype", "minlen":4, "flags":"TRLBAR|EXTRA|NEEDARG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"setglobal", "minlen":4, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"setlocal", "minlen":4, "flags":"BANG|TRLBAR|EXTRA|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"sfind", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR|NEEDARG", "parser":"parse_cmd_common"}, {"name":"sfirst", "minlen":4, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"shell", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"simalt", "minlen":2, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sign", "minlen":3, "flags":"NEEDARG|RANGE|EXTRA|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"silent", "minlen":3, "flags":"NEEDARG|EXTRA|BANG|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sleep", "minlen":2, "flags":"BANG|RANGE|COUNT|EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"slast", "minlen":3, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"smagic", "minlen":2, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"smap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"smapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"smenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"snext", "minlen":2, "flags":"RANGE|BANG|FILES|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"snomagic", "minlen":3, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"snoremap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"snoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"source", "minlen":2, "flags":"BANG|FILE1|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sort", "minlen":3, "flags":"RANGE|DFLALL|WHOLEFOLD|BANG|EXTRA|NOTRLCOM|MODIFY", "parser":"parse_cmd_common"}, {"name":"split", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellgood", "minlen":3, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spelldump", "minlen":6, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellinfo", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellrepall", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellrare", "minlen":7, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellundo", "minlen":6, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"spellwrong", "minlen":6, "flags":"BANG|RANGE|NEEDARG|EXTRA|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sprevious", "minlen":3, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"srewind", "minlen":2, "flags":"EXTRA|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"stop", "minlen":2, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"stag", "minlen":3, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"startinsert", "minlen":4, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"startgreplace", "minlen":6, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"startreplace", "minlen":6, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"static", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_static"}, {"name":"stopinsert", "minlen":5, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"stjump", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"stselect", "minlen":3, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"sunhide", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"sunmap", "minlen":4, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"suspend", "minlen":3, "flags":"TRLBAR|BANG|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"sview", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"swapname", "minlen":2, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"syntax", "minlen":2, "flags":"EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_syntax"}, {"name":"syntime", "minlen":5, "flags":"NEEDARG|WORD1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"syncbind", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"smile", "minlen":3, "flags":"TRLBAR|CMDWIN|LOCK_OK|SBOXOK", "parser":"parse_cmd_common"}, {"name":"t", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"tNext", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tag", "minlen":2, "flags":"RANGE|BANG|WORD1|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tags", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tab", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"tabclose", "minlen":4, "flags":"BANG|RANGE|ZEROR|EXTRA|NOSPC|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tabdo", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"tabedit", "minlen":4, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabfind", "minlen":4, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|NEEDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabfirst", "minlen":6, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabmove", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tablast", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabnext", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabnew", "minlen":6, "flags":"BANG|FILE1|RANGE|ZEROR|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabonly", "minlen":4, "flags":"BANG|RANGE|ZEROR|EXTRA|NOSPC|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tabprevious", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabNext", "minlen":4, "flags":"RANGE|ZEROR|EXTRA|NOSPC|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabrewind", "minlen":4, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"tabs", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tcd", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tchdir", "minlen":3, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tcl", "minlen":3, "flags":"RANGE|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_tcl"}, {"name":"tcldo", "minlen":4, "flags":"RANGE|DFLALL|EXTRA|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"tclfile", "minlen":4, "flags":"RANGE|FILE1|NEEDARG|CMDWIN|LOCK_OK|RESTRICT", "parser":"parse_cmd_common"}, {"name":"tearoff", "minlen":2, "flags":"NEEDARG|EXTRA|TRLBAR|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"terminal", "minlen":3, "flags":"RANGE|BANG|FILES|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tfirst", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"throw", "minlen":2, "flags":"EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_throw"}, {"name":"tjump", "minlen":2, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"tlast", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"tlmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tlnoremenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tlunmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmenu", "minlen":2, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tnext", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"tnoremap", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"topleft", "minlen":2, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"tprevious", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"trewind", "minlen":2, "flags":"RANGE|BANG|TRLBAR|ZEROR", "parser":"parse_cmd_common"}, {"name":"try", "minlen":3, "flags":"TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_try"}, {"name":"tselect", "minlen":2, "flags":"BANG|TRLBAR|WORD1", "parser":"parse_cmd_common"}, {"name":"tunmenu", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"tunmap", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"type", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_type"}, {"name":"undo", "minlen":1, "flags":"RANGE|COUNT|ZEROR|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"undojoin", "minlen":5, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"undolist", "minlen":5, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unabbreviate", "minlen":3, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unhide", "minlen":3, "flags":"RANGE|COUNT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"unlet", "minlen":3, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_unlet"}, {"name":"unlockvar", "minlen":4, "flags":"BANG|EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_unlockvar"}, {"name":"unmap", "minlen":3, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unmenu", "minlen":4, "flags":"BANG|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"unsilent", "minlen":3, "flags":"NEEDARG|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"update", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vglobal", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|DFLALL|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"var", "minlen":2, "flags":"EXTRA|NOTRLCOM|EXPR_ARG|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_var"}, {"name":"version", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"verbose", "minlen":4, "flags":"NEEDARG|RANGE|EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vertical", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM", "parser":"parse_cmd_common"}, {"name":"visual", "minlen":2, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"view", "minlen":3, "flags":"BANG|FILE1|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vimgrep", "minlen":3, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vimgrepadd", "minlen":8, "flags":"RANGE|BANG|NEEDARG|EXTRA|NOTRLCOM|TRLBAR|XFILE|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vim9cmd", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vim9script", "minlen":5, "flags":"WORD1|CMDWIN|LOCK_OK", "parser":"parse_cmd_vim9script"}, {"name":"viusage", "minlen":3, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"vmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vnew", "minlen":3, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vsplit", "minlen":2, "flags":"BANG|FILE1|RANGE|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"vunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"vunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"write", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"wNext", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wall", "minlen":2, "flags":"BANG|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"while", "minlen":2, "flags":"EXTRA|NOTRLCOM|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_while"}, {"name":"winsize", "minlen":2, "flags":"EXTRA|NEEDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wincmd", "minlen":4, "flags":"NEEDARG|WORD1|RANGE|CMDWIN|LOCK_OK", "parser":"parse_wincmd"}, {"name":"windo", "minlen":4, "flags":"NEEDARG|EXTRA|NOTRLCOM|RANGE|DFLALL|EXPAND", "parser":"parse_cmd_common"}, {"name":"winpos", "minlen":4, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"wnext", "minlen":2, "flags":"RANGE|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wprevious", "minlen":2, "flags":"RANGE|BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wq", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wqall", "minlen":3, "flags":"BANG|FILE1|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"wundo", "minlen":2, "flags":"BANG|NEEDARG|FILE1", "parser":"parse_cmd_common"}, {"name":"wviminfo", "minlen":2, "flags":"BANG|FILE1|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xit", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILE1|ARGOPT|DFLALL|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xall", "minlen":2, "flags":"BANG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"xmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xmapclear", "minlen":5, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xmenu", "minlen":3, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xnoremap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xnoremenu", "minlen":7, "flags":"RANGE|ZEROR|EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xrestore", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xunmap", "minlen":2, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"xunmenu", "minlen":5, "flags":"EXTRA|TRLBAR|NOTRLCOM|CTRLV|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"yank", "minlen":1, "flags":"RANGE|WHOLEFOLD|REGSTR|COUNT|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"z", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|EXTRA|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"!", "minlen":1, "flags":"RANGE|WHOLEFOLD|BANG|FILES|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"#", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"&", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"*", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"<", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"=", "minlen":1, "flags":"RANGE|TRLBAR|DFLALL|FLAGS|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":">", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"@", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|TRLBAR|CMDWIN|LOCK_OK|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"{", "minlen":1, "flags":"TRLBAR|LOCK_OK|CMDWIN", "parser":"parse_cmd_block"}, {"name":"}", "minlen":1, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_endblock"}, {"name":"~", "minlen":1, "flags":"RANGE|WHOLEFOLD|EXTRA|CMDWIN|LOCK_OK|MODIFY|NONWHITE_OK", "parser":"parse_cmd_common"}, {"name":"Next", "minlen":1, "flags":"EXTRA|RANGE|COUNT|BANG|CMDARG|ARGOPT|TRLBAR", "parser":"parse_cmd_common"}, {"name":"Print", "minlen":1, "flags":"RANGE|WHOLEFOLD|COUNT|FLAGS|TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"X", "minlen":1, "flags":"TRLBAR", "parser":"parse_cmd_common"}, {"name":"++", "minlen":1, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"--", "minlen":1, "flags":"EXTRA|TRLBAR|SBOXOK|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"clipreset", "minlen":4, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"iput", "minlen":2, "flags":"RANGE|WHOLEFOLD|BANG|REGSTR|TRLBAR|ZEROR|CMDWIN|LOCK_OK|MODIFY", "parser":"parse_cmd_common"}, {"name":"pbuffer", "minlen":2, "flags":"BANG|RANGE|BUFNAME|BUFUNL|COUNT|EXTRA|CMDARG|TRLBAR", "parser":"parse_cmd_common"}, {"name":"redrawtabpanel", "minlen":10, "flags":"TRLBAR|CMDWIN|LOCK_OK", "parser":"parse_cmd_common"}, {"name":"this", "minlen":3, "flags":"EXTRA|NEEDARG|SBOXOK|CMDWIN|LOCK_OK|WHOLE", "parser":"parse_cmd_common"}, {"name":"uniq", "minlen":3, "flags":"RANGE|DFLALL|WHOLEFOLD|BANG|EXTRA|NOTRLCOM|MODIFY", "parser":"parse_cmd_common"}, {"name":"wlrestore", "minlen":2, "flags":"EXTRA|TRLBAR|CMDWIN|LOCK_OK|BANG", "parser":"parse_cmd_common"}];
 // To find new builtin_functions, run the below script.
 // $ scripts/update_builtin_functions.sh /path/to/vim/src/evalfunc.c
 VimLParser.prototype.builtin_functions = [{"name":"abs", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"acos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"add", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"and", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"append", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"appendbufline", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"argc", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"argidx", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"arglistid", "min_argc":0, "max_argc":2, "argtype":"0"}, {"name":"argv", "min_argc":0, "max_argc":2, "argtype":"0"}, {"name":"asin", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"assert_beeps", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"assert_equal", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"assert_equalfile", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"assert_exception", "min_argc":1, "max_argc":2, "argtype":"0"}, {"name":"assert_fails", "min_argc":1, "max_argc":5, "argtype":"FEARG_1"}, {"name":"assert_false", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"assert_inrange", "min_argc":3, "max_argc":4, "argtype":"FEARG_3"}, {"name":"assert_match", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"assert_nobeep", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"assert_notequal", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"assert_notmatch", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"assert_report", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"assert_true", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"atan", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"atan2", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"autocmd_add", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"autocmd_delete", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"autocmd_get", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"balloon_gettext", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"balloon_show", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"balloon_split", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"blob2list", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"browse", "min_argc":4, "max_argc":4, "argtype":"0"}, {"name":"browsedir", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"bufadd", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufexists", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"buffer_exists", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"buffer_name", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"buffer_number", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"buflisted", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufload", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufloaded", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufname", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufnr", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"bufwinid", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"bufwinnr", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"byte2line", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"byteidx", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"byteidxcomp", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"call", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"ceil", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_canread", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_close", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_close_in", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_evalexpr", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"ch_evalraw", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"ch_getbufnr", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_getjob", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_info", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"ch_log", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_logfile", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_open", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_read", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_readblob", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_readraw", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_sendexpr", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"ch_sendraw", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"ch_setoptions", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"ch_status", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"changenr", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"char2nr", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"charclass", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"charcol", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"charidx", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"chdir", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"cindent", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"clearmatches", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"col", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"complete", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"complete_add", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"complete_check", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"complete_info", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"confirm", "min_argc":1, "max_argc":4, "argtype":"FEARG_1"}, {"name":"copy", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"cos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"cosh", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"count", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"cscope_connection", "min_argc":0, "max_argc":3, "argtype":"0"}, {"name":"cursor", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"debugbreak", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"deepcopy", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"delete", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"deletebufline", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"did_filetype", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"diff_filler", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"diff_hlID", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"digraph_get", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"digraph_getlist", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"digraph_set", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"digraph_setlist", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"echoraw", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"empty", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"environ", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"escape", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"eval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"eventhandler", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"executable", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"execute", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"exepath", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"exists", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"exists_compiled", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"exp", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"expand", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"expandcmd", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"extend", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"extendnew", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"feedkeys", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"file_readable", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"filereadable", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"filewritable", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"filter", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"finddir", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"findfile", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"flatten", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"flattennew", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"float2nr", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"floor", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"fmod", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"fnameescape", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"fnamemodify", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"foldclosed", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"foldclosedend", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"foldlevel", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"foldtext", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"foldtextresult", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"foreground", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"fullcommand", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"funcref", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"function", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"garbagecollect", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"get", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"getbufinfo", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getbufline", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"getbufvar", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"getchangelist", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getchar", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"getcharmod", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcharpos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getcharsearch", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcharstr", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"getcmdcompltype", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcmdline", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcmdpos", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcmdscreenpos", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcmdtype", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcmdwintype", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getcompletion", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"getcurpos", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getcursorcharpos", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getcwd", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"getenv", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getfontname", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"getfperm", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getfsize", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getftime", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getftype", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getimstatus", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getjumplist", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"getline", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"getloclist", "min_argc":1, "max_argc":2, "argtype":"0"}, {"name":"getmarklist", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getmatches", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"getmousepos", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getpid", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getpos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getqflist", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"getreg", "min_argc":0, "max_argc":3, "argtype":"FEARG_1"}, {"name":"getreginfo", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getregtype", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getscriptinfo", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"gettabinfo", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"gettabvar", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"gettabwinvar", "min_argc":3, "max_argc":4, "argtype":"FEARG_1"}, {"name":"gettagstack", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"gettext", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getwininfo", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getwinpos", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"getwinposx", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getwinposy", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"getwinvar", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"glob", "min_argc":1, "max_argc":4, "argtype":"FEARG_1"}, {"name":"glob2regpat", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"globpath", "min_argc":2, "max_argc":5, "argtype":"FEARG_2"}, {"name":"has", "min_argc":1, "max_argc":2, "argtype":"0"}, {"name":"has_key", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"haslocaldir", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"hasmapto", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"highlightID", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"highlight_exists", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"histadd", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"histdel", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"histget", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"histnr", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"hlID", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"hlexists", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"hlget", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"hlset", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"hostname", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"iconv", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"indent", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"index", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"indexof", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"input", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"inputdialog", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"inputlist", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"inputrestore", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"inputsave", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"inputsecret", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"insert", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"interrupt", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"invert", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"isabsolutepath", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"isdirectory", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"isinf", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"islocked", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"isnan", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"items", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"job_getchannel", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"job_info", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"job_setoptions", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"job_start", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"job_status", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"job_stop", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"join", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"js_decode", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"js_encode", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"json_decode", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"json_encode", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"keys", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"last_buffer_nr", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"len", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"libcall", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"libcallnr", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"line", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"line2byte", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"lispindent", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"list2blob", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"list2str", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"listener_add", "min_argc":1, "max_argc":2, "argtype":"FEARG_2"}, {"name":"listener_flush", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"listener_remove", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"localtime", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"log", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"log10", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"luaeval", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"map", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"maparg", "min_argc":1, "max_argc":4, "argtype":"FEARG_1"}, {"name":"mapcheck", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"maplist", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"mapnew", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"mapset", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"match", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"matchadd", "min_argc":2, "max_argc":5, "argtype":"FEARG_1"}, {"name":"matchaddpos", "min_argc":2, "max_argc":5, "argtype":"FEARG_1"}, {"name":"matcharg", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"matchdelete", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"matchend", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"matchfuzzy", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"matchfuzzypos", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"matchlist", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"matchstr", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"matchstrpos", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"max", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"menu_info", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"min", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"mkdir", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"mode", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"mzeval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"nextnonblank", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"nr2char", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"or", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"pathshorten", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"perleval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"popup_atcursor", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_beval", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_clear", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"popup_close", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_create", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_dialog", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_filter_menu", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"popup_filter_yesno", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"popup_findinfo", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"popup_findpreview", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"popup_getoptions", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"popup_getpos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"popup_hide", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"popup_list", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"popup_locate", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"popup_menu", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_move", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_notification", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_setoptions", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_settext", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"popup_show", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"pow", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prevnonblank", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"printf", "min_argc":1, "max_argc":19, "argtype":"FEARG_2"}, {"name":"prompt_getprompt", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"prompt_setcallback", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prompt_setinterrupt", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prompt_setprompt", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_add", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"prop_add_list", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_clear", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"prop_find", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_list", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_remove", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"prop_type_add", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_type_change", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_type_delete", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_type_get", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"prop_type_list", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"pum_getpos", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"pumvisible", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"py3eval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"pyeval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"pyxeval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"rand", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"range", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"readblob", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"readdir", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"readdirex", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"readfile", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"reduce", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"reg_executing", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"reg_recording", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"reltime", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"reltimefloat", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"reltimestr", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"remote_expr", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"remote_foreground", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"remote_peek", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"remote_read", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"remote_send", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"remote_startserver", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"remove", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"rename", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"repeat", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"resolve", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"reverse", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"round", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"rubyeval", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"screenattr", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"screenchar", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"screenchars", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"screencol", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"screenpos", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"screenrow", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"screenstring", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"search", "min_argc":1, "max_argc":5, "argtype":"FEARG_1"}, {"name":"searchcount", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"searchdecl", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"searchpair", "min_argc":3, "max_argc":7, "argtype":"0"}, {"name":"searchpairpos", "min_argc":3, "max_argc":7, "argtype":"0"}, {"name":"searchpos", "min_argc":1, "max_argc":5, "argtype":"FEARG_1"}, {"name":"server2client", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"serverlist", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"setbufline", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"setbufvar", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"setcellwidths", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"setcharpos", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"setcharsearch", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"setcmdline", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"setcmdpos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"setcursorcharpos", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"setenv", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"setfperm", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"setline", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"setloclist", "min_argc":2, "max_argc":4, "argtype":"FEARG_2"}, {"name":"setmatches", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"setpos", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"setqflist", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"setreg", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"settabvar", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"settabwinvar", "min_argc":4, "max_argc":4, "argtype":"FEARG_4"}, {"name":"settagstack", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"setwinvar", "min_argc":3, "max_argc":3, "argtype":"FEARG_3"}, {"name":"sha256", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"shellescape", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"shiftwidth", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sign_define", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"sign_getdefined", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sign_getplaced", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"sign_jump", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"sign_place", "min_argc":4, "max_argc":5, "argtype":"FEARG_1"}, {"name":"sign_placelist", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sign_undefine", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sign_unplace", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"sign_unplacelist", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"simplify", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sin", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"sinh", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"slice", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"sort", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"sound_clear", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"sound_playevent", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"sound_playfile", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"sound_stop", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"soundfold", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"spellbadword", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"spellsuggest", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"split", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"sqrt", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"srand", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"state", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"str2float", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"str2list", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"str2nr", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"strcharlen", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"strcharpart", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"strchars", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"strdisplaywidth", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"strftime", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"strgetchar", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"stridx", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"string", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"strlen", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"strpart", "min_argc":2, "max_argc":4, "argtype":"FEARG_1"}, {"name":"strptime", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"strridx", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"strtrans", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"strwidth", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"submatch", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"substitute", "min_argc":4, "max_argc":4, "argtype":"FEARG_1"}, {"name":"swapinfo", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"swapname", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"synID", "min_argc":3, "max_argc":3, "argtype":"0"}, {"name":"synIDattr", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"synIDtrans", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"synconcealed", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"synstack", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"system", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"systemlist", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"tabpagebuflist", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"tabpagenr", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"tabpagewinnr", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"tagfiles", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"taglist", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"tan", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"tanh", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"tempname", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"term_dumpdiff", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"term_dumpload", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_dumpwrite", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"term_getaltscreen", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getansicolors", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getattr", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_getcursor", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getjob", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getline", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_getscrolled", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getsize", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_getstatus", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_gettitle", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"term_gettty", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_list", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"term_scrape", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_sendkeys", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_setansicolors", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_setapi", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_setkill", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_setrestore", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_setsize", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"term_start", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"term_wait", "min_argc":1, "max_argc":2, "argtype":"FEARG_1"}, {"name":"terminalprops", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_alloc_fail", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"test_autochdir", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_feedinput", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_garbagecollect_now", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_garbagecollect_soon", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_getvalue", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_gui_drop_files", "min_argc":4, "max_argc":4, "argtype":"0"}, {"name":"test_gui_event", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"test_gui_mouse_event", "min_argc":5, "max_argc":5, "argtype":"0"}, {"name":"test_ignore_error", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_null_blob", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_channel", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_dict", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_function", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_job", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_list", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_partial", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_null_string", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_option_not_set", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_override", "min_argc":2, "max_argc":2, "argtype":"FEARG_2"}, {"name":"test_refcount", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_scrollbar", "min_argc":3, "max_argc":3, "argtype":"FEARG_2"}, {"name":"test_setmouse", "min_argc":2, "max_argc":2, "argtype":"0"}, {"name":"test_settime", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_srand_seed", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"test_unknown", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"test_void", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"timer_info", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"timer_pause", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"timer_start", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"timer_stop", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"timer_stopall", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"tolower", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"toupper", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"tr", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"trim", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"trunc", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"type", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"typename", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"undofile", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"undotree", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"uniq", "min_argc":1, "max_argc":3, "argtype":"FEARG_1"}, {"name":"values", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"virtcol", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"virtcol2col", "min_argc":3, "max_argc":3, "argtype":"FEARG_1"}, {"name":"visualmode", "min_argc":0, "max_argc":1, "argtype":"0"}, {"name":"wildmenumode", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"win_execute", "min_argc":2, "max_argc":3, "argtype":"FEARG_2"}, {"name":"win_findbuf", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_getid", "min_argc":0, "max_argc":2, "argtype":"FEARG_1"}, {"name":"win_gettype", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_gotoid", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_id2tabwin", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_id2win", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_move_separator", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"win_move_statusline", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}, {"name":"win_screenpos", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"win_splitmove", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"winbufnr", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"wincol", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"windowsversion", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"winheight", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"winlayout", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"winline", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"winnr", "min_argc":0, "max_argc":1, "argtype":"FEARG_1"}, {"name":"winrestcmd", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"winrestview", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"winsaveview", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"winwidth", "min_argc":1, "max_argc":1, "argtype":"FEARG_1"}, {"name":"wordcount", "min_argc":0, "max_argc":0, "argtype":"0"}, {"name":"writefile", "min_argc":2, "max_argc":3, "argtype":"FEARG_1"}, {"name":"xor", "min_argc":2, "max_argc":2, "argtype":"FEARG_1"}];
 function ExprTokenizer() { this.__init__.apply(this, arguments); }
 ExprTokenizer.prototype.__init__ = function(reader) {
+    var a000 = Array.prototype.slice.call(arguments, 1);
     this.reader = reader;
     this.cache = {};
+    this.vim9 = FALSE;
+    if (viml_len(a000) > 0) {
+        this.vim9 = a000[0];
+    }
+    // Nesting level of brackets, inside which a Vim9 expression may continue
+    // on the next line.
+    this.depth = 0;
 }
 
 ExprTokenizer.prototype.token = function(type, value, pos) {
@@ -2521,6 +3838,9 @@ ExprTokenizer.prototype.peek = function() {
 }
 
 ExprTokenizer.prototype.get = function() {
+    if (this.vim9) {
+        this.skip_vim9_newline(FALSE);
+    }
     // FIXME: remove dirty hack
     if (viml_has_key(this.cache, this.reader.tell())) {
         var x = this.cache[this.reader.tell()];
@@ -2532,6 +3852,80 @@ ExprTokenizer.prototype.get = function() {
     var r = this.get2();
     this.cache[pos] = [this.reader.tell(), r];
     return r;
+}
+
+// In Vim9 script an expression continues on the next line inside brackets,
+// after an operator (a:force), and before an operator that starts the next
+// line.  Comments and empty lines in between are skipped.
+ExprTokenizer.prototype.skip_vim9_newline = function(force_newline) {
+    var r = this.reader;
+    var force = force_newline;
+    while (TRUE) {
+        var pos = r.tell();
+        r.skip_white();
+        if (r.peek() == "#" && r.tell() > 0 && (iswhite(r.p(-1)) || r.p(-1) == "<EOL>")) {
+            r.getn(-1);
+        }
+        if (r.peek() != "<EOL>" || !(force || this.depth > 0 || this.next_line_continues()) || this.next_line_is_enddef()) {
+            r.seek_set(pos);
+            return;
+        }
+        r.get();
+        var force = TRUE;
+    }
+}
+
+// :enddef cannot be used at the start of a continuation line.
+ExprTokenizer.prototype.next_line_is_enddef = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    r.get();
+    r.skip_white();
+    var result = r.read_alpha() == "enddef" && !iswordc(r.peekn(1));
+    r.seek_set(pos);
+    return result;
+}
+
+// Return TRUE when the next line, ignoring comments and empty lines, starts
+// with an operator that continues the expression.
+ExprTokenizer.prototype.next_line_continues = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    while (r.peek() == "<EOL>") {
+        r.get();
+        r.skip_white();
+        if (r.peek() == "#") {
+            r.getn(-1);
+        }
+    }
+    var c = r.peek();
+    var continues = FALSE;
+    if (c == "-" && r.p(1) == ">") {
+        var continues = TRUE;
+    }
+    else if (c == "." && iswordc1(r.p(1))) {
+        var continues = TRUE;
+    }
+    else if (c == "i" && r.p(1) == "s") {
+        var op = r.read_alpha();
+        if (op == "is" || op == "isnot") {
+            if (r.peek() == "?" || r.peek() == "#") {
+                r.get();
+            }
+            var continues = iswhite(r.peek()) || r.peek() == "<EOL>";
+        }
+    }
+    else if (c != "<EOF>" && viml_stridx("+-*/%.|&?:=!<>", c) != -1) {
+        var op = "";
+        while (r.peek() != "<EOF>" && viml_stridx("+-*/%.|&?:=!<>~#", r.peek()) != -1) {
+            op += r.get();
+        }
+        if (viml_has_key(VIM9_CONTINUATION_OPS, op)) {
+            var continues = iswhite(r.peek()) || r.peek() == "<EOL>";
+        }
+    }
+    r.seek_set(pos);
+    return continues;
 }
 
 ExprTokenizer.prototype.get2 = function() {
@@ -2559,6 +3953,11 @@ ExprTokenizer.prototype.get2 = function() {
         s += r.read_bdigit();
         return this.token(TOKEN_NUMBER, s, pos);
     }
+    else if (c == "0" && (r.p(1) == "O" || r.p(1) == "o") && isodigit(r.p(2))) {
+        var s = r.getn(3);
+        s += r.read_odigit();
+        return this.token(TOKEN_NUMBER, s, pos);
+    }
     else if (c == "0" && (r.p(1) == "Z" || r.p(1) == "z") && r.p(2) != ".") {
         var s = r.getn(2);
         s += r.read_blob();
@@ -2566,6 +3965,10 @@ ExprTokenizer.prototype.get2 = function() {
     }
     else if (isdigit(c)) {
         var s = r.read_digit();
+        // Vim9 script allows a single quote between digits: 1'000'000
+        while (this.vim9 && r.p(0) == "'" && isdigit(r.p(1))) {
+            s += r.getn(1) + r.read_digit();
+        }
         if (r.p(0) == "." && isdigit(r.p(1))) {
             s += r.getn(1);
             s += r.read_digit();
@@ -2605,7 +4008,12 @@ ExprTokenizer.prototype.get2 = function() {
         }
     }
     else if (isnamec1(c)) {
-        var s = r.read_name();
+        if (this.vim9) {
+            var s = r.read_vim9_name();
+        }
+        else {
+            var s = r.read_name();
+        }
         return this.token(TOKEN_IDENTIFIER, s, pos);
     }
     else if (c == "|" && r.p(1) == "|") {
@@ -2615,6 +4023,10 @@ ExprTokenizer.prototype.get2 = function() {
     else if (c == "&" && r.p(1) == "&") {
         r.seek_cur(2);
         return this.token(TOKEN_ANDAND, "&&", pos);
+    }
+    else if (c == "=" && r.p(1) == ">" && this.vim9) {
+        r.seek_cur(2);
+        return this.token(TOKEN_FATARROW, "=>", pos);
     }
     else if (c == "=" && r.p(1) == "=") {
         if (r.p(2) == "?") {
@@ -2709,6 +4121,10 @@ ExprTokenizer.prototype.get2 = function() {
             r.seek_cur(2);
             return this.token(TOKEN_GTCS, ">#", pos);
         }
+        else if (r.p(1) == ">") {
+            r.seek_cur(2);
+            return this.token(TOKEN_RSHIFT, ">>", pos);
+        }
         else {
             r.seek_cur(1);
             return this.token(TOKEN_GT, ">", pos);
@@ -2722,6 +4138,10 @@ ExprTokenizer.prototype.get2 = function() {
         else if (r.p(1) == "#") {
             r.seek_cur(2);
             return this.token(TOKEN_LTCS, "<#", pos);
+        }
+        else if (r.p(1) == "<") {
+            r.seek_cur(2);
+            return this.token(TOKEN_LSHIFT, "<<", pos);
         }
         else {
             r.seek_cur(1);
@@ -2774,6 +4194,10 @@ ExprTokenizer.prototype.get2 = function() {
         r.seek_cur(1);
         return this.token(TOKEN_NOT, "!", pos);
     }
+    else if (c == "?" && r.p(1) == "?") {
+        r.seek_cur(2);
+        return this.token(TOKEN_QUESTIONQUESTION, "??", pos);
+    }
     else if (c == "?") {
         r.seek_cur(1);
         return this.token(TOKEN_QUESTION, "?", pos);
@@ -2783,7 +4207,7 @@ ExprTokenizer.prototype.get2 = function() {
         return this.token(TOKEN_COLON, ":", pos);
     }
     else if (c == "#") {
-        if (r.p(1) == "{") {
+        if (r.p(1) == "{" && !this.vim9) {
             r.seek_cur(2);
             return this.token(TOKEN_LITCOPEN, "#{", pos);
         }
@@ -2961,8 +4385,16 @@ ExprTokenizer.prototype.parse_dict_literal_key = function() {
 
 function ExprParser() { this.__init__.apply(this, arguments); }
 ExprParser.prototype.__init__ = function(reader) {
+    var a000 = Array.prototype.slice.call(arguments, 1);
     this.reader = reader;
-    this.tokenizer = new ExprTokenizer(reader);
+    // The VimLParser using this parser, if any.
+    this.parser = NIL;
+    this.vim9 = FALSE;
+    if (viml_len(a000) > 0) {
+        this.parser = a000[0];
+        this.vim9 = this.parser.isvim9();
+    }
+    this.tokenizer = new ExprTokenizer(reader, this.vim9);
 }
 
 ExprParser.prototype.parse = function() {
@@ -2970,11 +4402,19 @@ ExprParser.prototype.parse = function() {
 }
 
 // expr1: expr2 ? expr1 : expr1
+//        expr2 ?? expr1
 ExprParser.prototype.parse_expr1 = function() {
     var left = this.parse_expr2();
     var pos = this.reader.tell();
     var token = this.tokenizer.get();
-    if (token.type == TOKEN_QUESTION) {
+    if (token.type == TOKEN_QUESTIONQUESTION) {
+        var node = Node(NODE_FALSY);
+        node.pos = token.pos;
+        node.left = left;
+        node.right = this.parse_expr1();
+        var left = node;
+    }
+    else if (token.type == TOKEN_QUESTION) {
         var node = Node(NODE_TERNARY);
         node.pos = token.pos;
         node.cond = left;
@@ -3274,7 +4714,7 @@ ExprParser.prototype.parse_expr4 = function() {
 //        expr6 . expr6 ..
 //        expr6 .. expr6 ..
 ExprParser.prototype.parse_expr5 = function() {
-    var left = this.parse_expr6();
+    var left = this.parse_expr5_5();
     while (TRUE) {
         var pos = this.reader.tell();
         var token = this.tokenizer.get();
@@ -3282,14 +4722,14 @@ ExprParser.prototype.parse_expr5 = function() {
             var node = Node(NODE_ADD);
             node.pos = token.pos;
             node.left = left;
-            node.right = this.parse_expr6();
+            node.right = this.parse_expr5_5();
             var left = node;
         }
         else if (token.type == TOKEN_MINUS) {
             var node = Node(NODE_SUBTRACT);
             node.pos = token.pos;
             node.left = left;
-            node.right = this.parse_expr6();
+            node.right = this.parse_expr5_5();
             var left = node;
         }
         else if (token.type == TOKEN_DOTDOT) {
@@ -3297,12 +4737,41 @@ ExprParser.prototype.parse_expr5 = function() {
             var node = Node(NODE_CONCAT);
             node.pos = token.pos;
             node.left = left;
+            node.right = this.parse_expr5_5();
+            var left = node;
+        }
+        else if (token.type == TOKEN_DOT && !this.vim9) {
+            // TODO check scriptversion?
+            var node = Node(NODE_CONCAT);
+            node.pos = token.pos;
+            node.left = left;
+            node.right = this.parse_expr5_5();
+            var left = node;
+        }
+        else {
+            this.reader.seek_set(pos);
+            break;
+        }
+    }
+    return left;
+}
+
+// expr5_5: expr6 << expr6 ..
+//          expr6 >> expr6 ..
+ExprParser.prototype.parse_expr5_5 = function() {
+    var left = this.parse_expr6();
+    while (TRUE) {
+        var pos = this.reader.tell();
+        var token = this.tokenizer.get();
+        if (token.type == TOKEN_LSHIFT) {
+            var node = Node(NODE_LSHIFT);
+            node.pos = token.pos;
+            node.left = left;
             node.right = this.parse_expr6();
             var left = node;
         }
-        else if (token.type == TOKEN_DOT) {
-            // TODO check scriptversion?
-            var node = Node(NODE_CONCAT);
+        else if (token.type == TOKEN_RSHIFT) {
+            var node = Node(NODE_RSHIFT);
             node.pos = token.pos;
             node.left = left;
             node.right = this.parse_expr6();
@@ -3357,6 +4826,9 @@ ExprParser.prototype.parse_expr6 = function() {
 //        - expr7
 //        + expr7
 ExprParser.prototype.parse_expr7 = function() {
+    if (this.vim9) {
+        this.tokenizer.skip_vim9_newline(TRUE);
+    }
     var pos = this.reader.tell();
     var token = this.tokenizer.get();
     if (token.type == TOKEN_NOT) {
@@ -3374,6 +4846,18 @@ ExprParser.prototype.parse_expr7 = function() {
     else if (token.type == TOKEN_PLUS) {
         var node = Node(NODE_PLUS);
         node.pos = token.pos;
+        node.left = this.parse_expr7();
+        return node;
+    }
+    else if (token.type == TOKEN_LT && this.vim9 && !viml_equalci(this.reader.peekn(4), "SID>")) {
+        // Vim9 type cast: <type>expr
+        var node = Node(NODE_CAST);
+        node.pos = token.pos;
+        node.type_str = this.parser.read_type();
+        var token = this.tokenizer.get();
+        if (token.type != TOKEN_GT) {
+            throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+        }
         node.left = this.parse_expr7();
         return node;
     }
@@ -3397,8 +4881,36 @@ ExprParser.prototype.parse_expr8 = function() {
         var pos = this.reader.tell();
         var c = this.reader.peek();
         var token = this.tokenizer.get();
-        if (!iswhite(c) && token.type == TOKEN_SQOPEN) {
+        // In Vim9 script no white space or line break is allowed before "[" and
+        // "(", a member "." may start a continuation line.
+        var attached = !iswhite(c) && !(this.vim9 && c == "<EOL>");
+        if (this.vim9 && c == "<" && this.parser.is_generic_args()) {
+            // Vim9 generic function call: Func<type, ...>(args)
+            this.reader.seek_set(pos);
+            var type_args = this.reader.getn(1);
+            var depth = 1;
+            while (depth > 0) {
+                var c = this.reader.getn(1);
+                if (c == "<") {
+                    depth += 1;
+                }
+                else if (c == ">") {
+                    depth -= 1;
+                }
+                type_args += c;
+            }
+            var token = this.tokenizer.get();
+            var node = Node(NODE_CALL);
+            node.pos = token.pos;
+            node.left = left;
+            node.type_args = type_args;
+            node.rlist = this.parse_rlist();
+            var left = node;
+            delete node;
+        }
+        else if (attached && token.type == TOKEN_SQOPEN) {
             var npos = token.pos;
+            this.tokenizer.depth += 1;
             if (this.tokenizer.peek().type == TOKEN_COLON) {
                 this.tokenizer.get();
                 var node = Node(NODE_SLICE);
@@ -3410,6 +4922,7 @@ ExprParser.prototype.parse_expr8 = function() {
                     node.rlist[1] = this.parse_expr1();
                 }
                 var token = this.tokenizer.get();
+                this.tokenizer.depth -= 1;
                 if (token.type != TOKEN_SQCLOSE) {
                     throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
                 }
@@ -3428,6 +4941,7 @@ ExprParser.prototype.parse_expr8 = function() {
                         node.rlist[1] = this.parse_expr1();
                     }
                     var token = this.tokenizer.get();
+                    this.tokenizer.depth -= 1;
                     if (token.type != TOKEN_SQCLOSE) {
                         throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
                     }
@@ -3439,6 +4953,7 @@ ExprParser.prototype.parse_expr8 = function() {
                     node.left = left;
                     node.right = right;
                     var token = this.tokenizer.get();
+                    this.tokenizer.depth -= 1;
                     if (token.type != TOKEN_SQCLOSE) {
                         throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
                     }
@@ -3464,7 +4979,7 @@ ExprParser.prototype.parse_expr8 = function() {
             var left = node;
             delete node;
         }
-        else if (token.type == TOKEN_POPEN) {
+        else if (token.type == TOKEN_POPEN && (attached || !this.vim9)) {
             var node = Node(NODE_CALL);
             node.pos = token.pos;
             node.left = left;
@@ -3472,7 +4987,7 @@ ExprParser.prototype.parse_expr8 = function() {
             var left = node;
             delete node;
         }
-        else if (!iswhite(c) && token.type == TOKEN_DOT) {
+        else if ((attached || this.vim9 && c == "<EOL>") && token.type == TOKEN_DOT) {
             // TODO check scriptversion?
             var node = this.parse_dot(token, left);
             if (node === NIL) {
@@ -3492,9 +5007,11 @@ ExprParser.prototype.parse_expr8 = function() {
 
 ExprParser.prototype.parse_rlist = function() {
     var rlist = [];
+    this.tokenizer.depth += 1;
     var token = this.tokenizer.peek();
     if (this.tokenizer.peek().type == TOKEN_PCLOSE) {
         this.tokenizer.get();
+        this.tokenizer.depth -= 1;
     }
     else {
         while (TRUE) {
@@ -3504,10 +5021,12 @@ ExprParser.prototype.parse_rlist = function() {
                 // XXX: Vim allows foo(a, b, ).  Lint should warn it.
                 if (this.tokenizer.peek().type == TOKEN_PCLOSE) {
                     this.tokenizer.get();
+                    this.tokenizer.depth -= 1;
                     break;
                 }
             }
             else if (token.type == TOKEN_PCLOSE) {
+                this.tokenizer.depth -= 1;
                 break;
             }
             else {
@@ -3567,6 +5086,7 @@ ExprParser.prototype.parse_expr9 = function() {
         var node = Node(NODE_LIST);
         node.pos = token.pos;
         node.value = [];
+        this.tokenizer.depth += 1;
         var token = this.tokenizer.peek();
         if (token.type == TOKEN_SQCLOSE) {
             this.tokenizer.get();
@@ -3591,6 +5111,10 @@ ExprParser.prototype.parse_expr9 = function() {
                 }
             }
         }
+        this.tokenizer.depth -= 1;
+    }
+    else if (token.type == TOKEN_COPEN && this.vim9) {
+        var node = this.parse_vim9_dict(token);
     }
     else if (token.type == TOKEN_COPEN || token.type == TOKEN_LITCOPEN) {
         var is_litdict = token.type == TOKEN_LITCOPEN;
@@ -3719,9 +5243,14 @@ ExprParser.prototype.parse_expr9 = function() {
         }
         return node;
     }
+    else if (token.type == TOKEN_POPEN && this.vim9) {
+        var node = this.parse_vim9_paren(token);
+    }
     else if (token.type == TOKEN_POPEN) {
+        this.tokenizer.depth += 1;
         var node = this.parse_expr1();
         var token = this.tokenizer.get();
+        this.tokenizer.depth -= 1;
         if (token.type != TOKEN_PCLOSE) {
             throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
         }
@@ -3748,6 +5277,9 @@ ExprParser.prototype.parse_expr9 = function() {
         this.reader.seek_set(pos);
         var node = this.parse_identifier();
     }
+    else if (token.type == TOKEN_ENV && token.value == "$" && (this.reader.p(0) == "\"" || this.reader.p(0) == "'")) {
+        var node = this.parse_interpolation(token);
+    }
     else if (token.type == TOKEN_ENV) {
         var node = Node(NODE_ENV);
         node.pos = token.pos;
@@ -3764,11 +5296,263 @@ ExprParser.prototype.parse_expr9 = function() {
     return node;
 }
 
+// Interpolated string: $"text {expr1} text" or $'text {expr1} text'
+// .value is a list of NODE_STRING parts, in the quotes of the string, and
+// expressions.
+ExprParser.prototype.parse_interpolation = function(token) {
+    var r = this.reader;
+    var node = Node(NODE_INTERPOLATION);
+    node.pos = token.pos;
+    node.value = [];
+    var quote = r.get();
+    var str = "";
+    var strpos = r.getpos();
+    while (TRUE) {
+        var c = r.p(0);
+        if (c == "<EOF>" || c == "<EOL>") {
+            throw Err("unexpected EOL", r.getpos());
+        }
+        else if (c == quote && quote == "'" && r.p(1) == "'") {
+            str += r.getn(2);
+        }
+        else if (c == quote) {
+            r.seek_cur(1);
+            break;
+        }
+        else if (c == "\\" && quote == "\"") {
+            str += r.getn(2);
+        }
+        else if (c == "{" && r.p(1) == "{" || c == "}" && r.p(1) == "}") {
+            str += r.getn(2);
+        }
+        else if (c == "{") {
+            if (str != "") {
+                var part = Node(NODE_STRING);
+                part.pos = strpos;
+                part.value = quote + str + quote;
+                viml_add(node.value, part);
+                var str = "";
+            }
+            r.seek_cur(1);
+            viml_add(node.value, this.parse_expr1());
+            r.skip_white();
+            if (r.p(0) != "}") {
+                throw Err(viml_printf("unexpected token: %s", r.p(0)), r.getpos());
+            }
+            r.seek_cur(1);
+            var strpos = r.getpos();
+        }
+        else {
+            str += r.getn(1);
+        }
+    }
+    if (str != "") {
+        var part = Node(NODE_STRING);
+        part.pos = strpos;
+        part.value = quote + str + quote;
+        viml_add(node.value, part);
+    }
+    return node;
+}
+
+// Vim9 lambda, tuple or expression in parentheses, after the "(":
+//   (args) => expr1
+//   (args): type => {
+//   ()  (expr1,)  (expr1, expr1, ...)
+//   (expr1)
+ExprParser.prototype.parse_vim9_paren = function(popen) {
+    if (this.is_vim9_lambda()) {
+        return this.parse_vim9_lambda(popen);
+    }
+    this.tokenizer.depth += 1;
+    var token = this.tokenizer.peek();
+    if (token.type == TOKEN_PCLOSE) {
+        this.tokenizer.get();
+        this.tokenizer.depth -= 1;
+        var node = Node(NODE_TUPLE);
+        node.pos = popen.pos;
+        node.value = [];
+        return node;
+    }
+    var node = this.parse_expr1();
+    var token = this.tokenizer.get();
+    if (token.type == TOKEN_COMMA) {
+        var tuple = Node(NODE_TUPLE);
+        tuple.pos = popen.pos;
+        tuple.value = [node];
+        while (this.tokenizer.peek().type != TOKEN_PCLOSE) {
+            viml_add(tuple.value, this.parse_expr1());
+            var token = this.tokenizer.peek();
+            if (token.type == TOKEN_COMMA) {
+                this.tokenizer.get();
+            }
+            else if (token.type != TOKEN_PCLOSE) {
+                throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+            }
+        }
+        var token = this.tokenizer.get();
+        var node = tuple;
+    }
+    this.tokenizer.depth -= 1;
+    if (token.type != TOKEN_PCLOSE) {
+        throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+    }
+    return node;
+}
+
+// Return TRUE when the text after "(" is the argument list of a Vim9 lambda,
+// i.e. names with optional types, ")", an optional return type and "=>".
+ExprParser.prototype.is_vim9_lambda = function() {
+    var r = this.reader;
+    var pos = r.tell();
+    var result = FALSE;
+    while (TRUE) {
+        r.skip_white();
+        if (r.peekn(1) == ")") {
+            break;
+        }
+        if (r.peekn(3) == "...") {
+            r.getn(3);
+        }
+        if (r.read_word() == "") {
+            r.seek_set(pos);
+            return FALSE;
+        }
+        if (r.peekn(1) == ":") {
+            r.getn(1);
+            r.skip_white();
+            this.parser.read_type();
+        }
+        r.skip_white();
+        if (r.peekn(1) == ",") {
+            r.getn(1);
+        }
+        else if (r.peekn(1) != ")") {
+            r.seek_set(pos);
+            return FALSE;
+        }
+    }
+    r.getn(1);
+    if (r.peekn(1) == ":") {
+        r.getn(1);
+        r.skip_white();
+        this.parser.read_type();
+    }
+    r.skip_white();
+    var result = r.peekn(2) == "=>";
+    r.seek_set(pos);
+    return result;
+}
+
+ExprParser.prototype.parse_vim9_lambda = function(token) {
+    var r = this.reader;
+    var node = Node(NODE_LAMBDA);
+    node.pos = token.pos;
+    node.rlist = [];
+    node.left = NIL;
+    node.body = [];
+    node.rettype = "";
+    while (TRUE) {
+        r.skip_white();
+        if (r.peekn(1) == ")") {
+            r.getn(1);
+            break;
+        }
+        var varnode = Node(NODE_IDENTIFIER);
+        varnode.pos = r.getpos();
+        varnode.value = "";
+        varnode.type_str = "";
+        if (r.peekn(3) == "...") {
+            varnode.value = r.getn(3);
+        }
+        var name = r.read_word();
+        varnode.value += name;
+        this.parser.declared[name] = 1;
+        if (r.peekn(1) == ":") {
+            r.getn(1);
+            r.skip_white();
+            varnode.type_str = this.parser.read_type();
+        }
+        viml_add(node.rlist, varnode);
+        r.skip_white();
+        if (r.peekn(1) == ",") {
+            r.getn(1);
+        }
+    }
+    if (r.peekn(1) == ":") {
+        r.getn(1);
+        r.skip_white();
+        node.rettype = this.parser.read_type();
+    }
+    r.skip_white();
+    r.getn(2);
+    r.skip_white();
+    var pos = r.tell();
+    if (r.peekn(1) == "{") {
+        r.getn(1);
+        r.skip_white();
+        if (r.peek() == "<EOL>" || r.peek() == "#") {
+            this.parser.parse_lambda_block(node);
+            return node;
+        }
+        r.seek_set(pos);
+    }
+    node.left = this.parse_expr1();
+    return node;
+}
+
+// Vim9 dictionary: {key: expr1, "key": expr1, [expr1]: expr1, ...}
+// A key made of word characters and "-" is a literal string.
+ExprParser.prototype.parse_vim9_dict = function(copen) {
+    var node = Node(NODE_DICT);
+    node.pos = copen.pos;
+    node.value = [];
+    this.tokenizer.depth += 1;
+    while (TRUE) {
+        var token = this.tokenizer.peek();
+        if (token.type == TOKEN_CCLOSE) {
+            this.tokenizer.get();
+            break;
+        }
+        if (token.type == TOKEN_SQOPEN) {
+            this.tokenizer.get();
+            var key = this.parse_expr1();
+            var token = this.tokenizer.get();
+            if (token.type != TOKEN_SQCLOSE) {
+                throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+            }
+        }
+        else if (token.type == TOKEN_SQUOTE || token.type == TOKEN_DQUOTE) {
+            var key = this.parse_expr1();
+        }
+        else {
+            this.tokenizer.skip_vim9_newline(FALSE);
+            var key = this.tokenizer.parse_dict_literal_key();
+        }
+        var token = this.tokenizer.get();
+        if (token.type != TOKEN_COLON) {
+            throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+        }
+        var val = this.parse_expr1();
+        viml_add(node.value, [key, val]);
+        var token = this.tokenizer.get();
+        if (token.type == TOKEN_CCLOSE) {
+            break;
+        }
+        else if (token.type != TOKEN_COMMA) {
+            throw Err(viml_printf("unexpected token: %s", token.value), token.pos);
+        }
+    }
+    this.tokenizer.depth -= 1;
+    return node;
+}
+
 // SUBSCRIPT or CONCAT
 //   dict "." [0-9A-Za-z_]+ => (subscript dict key)
 //   str  "." expr6         => (concat str expr6)
+// In Vim9 script "." is always a member access.
 ExprParser.prototype.parse_dot = function(token, left) {
-    if (left.type != NODE_IDENTIFIER && left.type != NODE_CURLYNAME && left.type != NODE_DICT && left.type != NODE_SUBSCRIPT && left.type != NODE_CALL && left.type != NODE_DOT) {
+    if (!this.vim9 && left.type != NODE_IDENTIFIER && left.type != NODE_CURLYNAME && left.type != NODE_DICT && left.type != NODE_SUBSCRIPT && left.type != NODE_CALL && left.type != NODE_DOT) {
         return NIL;
     }
     if (!iswordc(this.reader.p(0))) {
@@ -3776,7 +5560,7 @@ ExprParser.prototype.parse_dot = function(token, left) {
     }
     var pos = this.reader.getpos();
     var name = this.reader.read_word();
-    if (isnamec(this.reader.p(0))) {
+    if (!this.vim9 && isnamec(this.reader.p(0))) {
         // XXX: foo is str => ok, foo is obj => invalid expression
         // foo.s:bar or foo.bar#baz
         return NIL;
@@ -3818,6 +5602,18 @@ ExprParser.prototype.parse_concat = function(token, left) {
 ExprParser.prototype.parse_identifier = function() {
     this.reader.skip_white();
     var npos = this.reader.getpos();
+    if (this.vim9) {
+        // Vim9 script has no curly-braces names.
+        var node = Node(NODE_IDENTIFIER);
+        node.pos = npos;
+        if (viml_equalci(this.reader.peekn(5), "<SID>")) {
+            node.value = this.reader.getn(5) + this.reader.read_vim9_name();
+        }
+        else {
+            node.value = this.reader.read_vim9_name();
+        }
+        return node;
+    }
     var curly_parts = this.parse_curly_parts();
     if (viml_len(curly_parts) == 1 && curly_parts[0].type == NODE_CURLYNAMEPART) {
         var node = Node(NODE_IDENTIFIER);
@@ -4013,20 +5809,32 @@ StringReader.prototype.__init__ = function(lines) {
     var offset = 0;
     while (lnum < viml_len(lines)) {
         var col = 0;
-        var __c7 = viml_split(lines[lnum], "\\zs");
-        for (var __i7 = 0; __i7 < __c7.length; ++__i7) {
-            var c = __c7[__i7];
+        var __c12 = viml_split(lines[lnum], "\\zs");
+        for (var __i12 = 0; __i12 < __c12.length; ++__i12) {
+            var c = __c12[__i12];
             viml_add(this.buf, c);
             viml_add(this.pos, [lnum + 1, col + 1, offset]);
             col += viml_len(c);
             offset += viml_len(c);
         }
-        while (lnum + 1 < viml_len(lines) && viml_eqregh(lines[lnum + 1], "^\\s*\\\\")) {
+        while (TRUE) {
+            // Comment lines "\ and #\ may appear between continuation lines.
+            var next = lnum + 1;
+            while (next < viml_len(lines) && viml_eqregh(lines[next], "^\\s*[\"#]\\\\ ")) {
+                next += 1;
+            }
+            if (next >= viml_len(lines) || !viml_eqregh(lines[next], "^\\s*\\\\")) {
+                break;
+            }
+            while (lnum + 1 < next) {
+                offset += viml_len(lines[lnum + 1]) + 1;
+                lnum += 1;
+            }
             var skip = TRUE;
             var col = 0;
-            var __c8 = viml_split(lines[lnum + 1], "\\zs");
-            for (var __i8 = 0; __i8 < __c8.length; ++__i8) {
-                var c = __c8[__i8];
+            var __c13 = viml_split(lines[lnum + 1], "\\zs");
+            for (var __i13 = 0; __i13 < __c13.length; ++__i13) {
+                var c = __c13[__i13];
                 if (skip) {
                     if (c == "\\") {
                         var skip = FALSE;
@@ -4128,9 +5936,9 @@ StringReader.prototype.readline = function() {
 
 StringReader.prototype.getstr = function(begin, end) {
     var r = "";
-    var __c9 = viml_range(begin.i, end.i - 1);
-    for (var __i9 = 0; __i9 < __c9.length; ++__i9) {
-        var i = __c9[__i9];
+    var __c14 = viml_range(begin.i, end.i - 1);
+    for (var __i14 = 0; __i14 < __c14.length; ++__i14) {
+        var i = __c14[__i14];
         if (i >= viml_len(this.buf)) {
             break;
         }
@@ -4261,6 +6069,20 @@ StringReader.prototype.read_nonwhite = function() {
 StringReader.prototype.read_name = function() {
     var r = "";
     while (isnamec(this.peekn(1))) {
+        r += this.getn(1);
+    }
+    return r;
+}
+
+// Read a Vim9 variable or function name.  Unlike read_name() a colon is only
+// part of the name after a one letter scope, e.g. "g:name".
+StringReader.prototype.read_vim9_name = function() {
+    var r = "";
+    var c = this.peekn(1);
+    if (c != "" && viml_stridx("bgltsvw", c) != -1 && this.p(1) == ":" && !iswhite(this.p(2))) {
+        var r = this.getn(2);
+    }
+    while (iswordc(this.peekn(1)) || this.peekn(1) == "#") {
         r += this.getn(1);
     }
     return r;
@@ -4536,6 +6358,12 @@ Compiler.prototype.compile = function(node) {
     else if (node.type == NODE_REMAINDER) {
         return this.compile_remainder(node);
     }
+    else if (node.type == NODE_LSHIFT) {
+        return this.compile_lshift(node);
+    }
+    else if (node.type == NODE_RSHIFT) {
+        return this.compile_rshift(node);
+    }
     else if (node.type == NODE_NOT) {
         return this.compile_not(node);
     }
@@ -4602,6 +6430,86 @@ Compiler.prototype.compile = function(node) {
     else if (node.type == NODE_HEREDOC) {
         return this.compile_heredoc(node);
     }
+    else if (node.type == NODE_DEF) {
+        this.compile_def(node);
+        return NIL;
+    }
+    else if (node.type == NODE_VAR) {
+        this.compile_var(node);
+        return NIL;
+    }
+    else if (node.type == NODE_FINAL) {
+        this.compile_final(node);
+        return NIL;
+    }
+    else if (node.type == NODE_EXPORT) {
+        this.compile_export(node);
+        return NIL;
+    }
+    else if (node.type == NODE_IMPORT) {
+        this.compile_import(node);
+        return NIL;
+    }
+    else if (node.type == NODE_VIM9SCRIPT) {
+        this.compile_vim9script(node);
+        return NIL;
+    }
+    else if (node.type == NODE_ASSIGN) {
+        this.compile_assign(node);
+        return NIL;
+    }
+    else if (node.type == NODE_BLOCK) {
+        this.compile_block(node);
+        return NIL;
+    }
+    else if (node.type == NODE_CLASS) {
+        this.compile_class(node);
+        return NIL;
+    }
+    else if (node.type == NODE_INTERFACE) {
+        this.compile_interface(node);
+        return NIL;
+    }
+    else if (node.type == NODE_ENUM) {
+        this.compile_enum(node);
+        return NIL;
+    }
+    else if (node.type == NODE_TYPE) {
+        this.compile_type(node);
+        return NIL;
+    }
+    else if (node.type == NODE_PUBLIC) {
+        this.compile_wrapper(node, "public");
+        return NIL;
+    }
+    else if (node.type == NODE_STATIC) {
+        this.compile_wrapper(node, "static");
+        return NIL;
+    }
+    else if (node.type == NODE_ABSTRACT) {
+        this.compile_wrapper(node, "abstract");
+        return NIL;
+    }
+    else if (node.type == NODE_DEFER) {
+        this.compile_defer(node);
+        return NIL;
+    }
+    else if (node.type == NODE_ECHOWINDOW) {
+        this.compile_echowindow(node);
+        return NIL;
+    }
+    else if (node.type == NODE_TUPLE) {
+        return this.compile_tuple(node);
+    }
+    else if (node.type == NODE_FALSY) {
+        return this.compile_falsy(node);
+    }
+    else if (node.type == NODE_INTERPOLATION) {
+        return this.compile_interpolation(node);
+    }
+    else if (node.type == NODE_CAST) {
+        return this.compile_cast(node);
+    }
     else {
         throw viml_printf("Compiler: unknown node: %s", viml_string(node));
     }
@@ -4609,9 +6517,9 @@ Compiler.prototype.compile = function(node) {
 }
 
 Compiler.prototype.compile_body = function(body) {
-    var __c10 = body;
-    for (var __i10 = 0; __i10 < __c10.length; ++__i10) {
-        var node = __c10[__i10];
+    var __c15 = body;
+    for (var __i15 = 0; __i15 < __c15.length; ++__i15) {
+        var node = __c15[__i15];
         this.compile(node);
     }
 }
@@ -4626,7 +6534,15 @@ Compiler.prototype.compile_comment = function(node) {
 }
 
 Compiler.prototype.compile_excmd = function(node) {
-    this.out("(excmd \"%s\")", viml_escape(node.str, "\\\""));
+    if (!viml_has_key(node, "block")) {
+        this.out("(excmd \"%s\")", viml_escape(node.str, "\\\""));
+        return;
+    }
+    this.out("(excmd \"%s\"", viml_escape(node.str, "\\\""));
+    this.incindent("  ");
+    this.compile_body(node.block.body);
+    this.out(")");
+    this.decindent();
 }
 
 Compiler.prototype.compile_function = function(node) {
@@ -4639,9 +6555,9 @@ Compiler.prototype.compile_function = function(node) {
             viml_remove(rlist, -1);
             var remaining = TRUE;
         }
-        var __c11 = viml_range(viml_len(rlist));
-        for (var __i11 = 0; __i11 < __c11.length; ++__i11) {
-            var i = __c11[__i11];
+        var __c16 = viml_range(viml_len(rlist));
+        for (var __i16 = 0; __i16 < __c16.length; ++__i16) {
+            var i = __c16[__i16];
             if (i < viml_len(rlist) - viml_len(default_args)) {
                 left += viml_printf(" %s", rlist[i]);
             }
@@ -4697,8 +6613,15 @@ Compiler.prototype.compile_let = function(node) {
     this.out("(let %s %s %s)", node.op, left, right);
 }
 
-// TODO: merge with s:Compiler.compile_let() ?
-Compiler.prototype.compile_const = function(node) {
+Compiler.prototype.compile_block = function(node) {
+    this.out("(block");
+    this.incindent("  ");
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_assign = function(node) {
     var left = "";
     if (node.left !== NIL) {
         var left = this.compile(node.left);
@@ -4710,8 +6633,17 @@ Compiler.prototype.compile_const = function(node) {
         }
         var left = "(" + left + ")";
     }
-    var right = this.compile(node.right);
-    this.out("(const %s %s %s)", node.op, left, right);
+    if (node.right === NIL) {
+        this.out("(assign %s %s)", node.op, left);
+    }
+    else {
+        this.out("(assign %s %s %s)", node.op, left, this.compile(node.right));
+    }
+}
+
+// TODO: merge with s:Compiler.compile_let() ?
+Compiler.prototype.compile_const = function(node) {
+    this.compile_decl(node, "const");
 }
 
 Compiler.prototype.compile_unlet = function(node) {
@@ -4744,9 +6676,9 @@ Compiler.prototype.compile_if = function(node) {
     this.incindent("  ");
     this.compile_body(node.body);
     this.decindent();
-    var __c12 = node.elseif;
-    for (var __i12 = 0; __i12 < __c12.length; ++__i12) {
-        var enode = __c12[__i12];
+    var __c17 = node.elseif;
+    for (var __i17 = 0; __i17 < __c17.length; ++__i17) {
+        var enode = __c17[__i17];
         this.out(" elseif %s", this.compile(enode.cond));
         this.incindent("  ");
         this.compile_body(enode.body);
@@ -4774,12 +6706,12 @@ Compiler.prototype.compile_while = function(node) {
 Compiler.prototype.compile_for = function(node) {
     var left = "";
     if (node.left !== NIL) {
-        var left = this.compile(node.left);
+        var left = this.compile_decl_name(node.left);
     }
     else {
-        var left = viml_join(node.list.map((function(vval) { return this.compile(vval); }).bind(this)), " ");
+        var left = viml_join(node.list.map((function(vval) { return this.compile_decl_name(vval); }).bind(this)), " ");
         if (node.rest !== NIL) {
-            left += " . " + this.compile(node.rest);
+            left += " . " + this.compile_decl_name(node.rest);
         }
         var left = "(" + left + ")";
     }
@@ -4803,9 +6735,9 @@ Compiler.prototype.compile_try = function(node) {
     this.out("(try");
     this.incindent("  ");
     this.compile_body(node.body);
-    var __c13 = node.catch;
-    for (var __i13 = 0; __i13 < __c13.length; ++__i13) {
-        var cnode = __c13[__i13];
+    var __c18 = node.catch;
+    for (var __i18 = 0; __i18 < __c18.length; ++__i18) {
+        var cnode = __c18[__i18];
         if (cnode.pattern !== NIL) {
             this.decindent();
             this.out(" catch /%s/", cnode.pattern);
@@ -4860,6 +6792,15 @@ Compiler.prototype.compile_echoerr = function(node) {
 Compiler.prototype.compile_echoconsole = function(node) {
     var list = node.list.map((function(vval) { return this.compile(vval); }).bind(this));
     this.out("(echoconsole %s)", viml_join(list, " "));
+}
+
+Compiler.prototype.compile_echowindow = function(node) {
+    var list = node.list.map((function(vval) { return this.compile(vval); }).bind(this));
+    this.out("(echowindow %s)", viml_join(list, " "));
+}
+
+Compiler.prototype.compile_defer = function(node) {
+    this.out("(defer %s)", this.compile(node.left));
 }
 
 Compiler.prototype.compile_execute = function(node) {
@@ -5023,6 +6964,14 @@ Compiler.prototype.compile_remainder = function(node) {
     return viml_printf("(%% %s %s)", this.compile(node.left), this.compile(node.right));
 }
 
+Compiler.prototype.compile_lshift = function(node) {
+    return viml_printf("(<< %s %s)", this.compile(node.left), this.compile(node.right));
+}
+
+Compiler.prototype.compile_rshift = function(node) {
+    return viml_printf("(>> %s %s)", this.compile(node.left), this.compile(node.right));
+}
+
 Compiler.prototype.compile_not = function(node) {
     return viml_printf("(! %s)", this.compile(node.left));
 }
@@ -5055,11 +7004,15 @@ Compiler.prototype.compile_method = function(node) {
 
 Compiler.prototype.compile_call = function(node) {
     var rlist = node.rlist.map((function(vval) { return this.compile(vval); }).bind(this));
+    var left = this.compile(node.left);
+    if (viml_has_key(node, "type_args")) {
+        left += node.type_args;
+    }
     if (viml_empty(rlist)) {
-        return viml_printf("(%s)", this.compile(node.left));
+        return viml_printf("(%s)", left);
     }
     else {
-        return viml_printf("(%s %s)", this.compile(node.left), viml_join(rlist, " "));
+        return viml_printf("(%s %s)", left, viml_join(rlist, " "));
     }
 }
 
@@ -5126,9 +7079,9 @@ Compiler.prototype.compile_curlynameexpr = function(node) {
 Compiler.prototype.escape_string = function(str) {
     var m = {"\n":"\\n", "\t":"\\t", "\r":"\\r"};
     var out = "\"";
-    var __c14 = viml_range(viml_len(str));
-    for (var __i14 = 0; __i14 < __c14.length; ++__i14) {
-        var i = __c14[__i14];
+    var __c19 = viml_range(viml_len(str));
+    for (var __i19 = 0; __i19 < __c19.length; ++__i19) {
+        var i = __c19[__i19];
         var c = str[i];
         if (viml_has_key(m, c)) {
             out += m[c];
@@ -5143,7 +7096,55 @@ Compiler.prototype.escape_string = function(str) {
 
 Compiler.prototype.compile_lambda = function(node) {
     var rlist = node.rlist.map((function(vval) { return this.compile(vval); }).bind(this));
-    return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), this.compile(node.left));
+    if (node.left !== NIL) {
+        return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), this.compile(node.left));
+    }
+    // Vim9 lambda with a block: put the statements on one line.
+    var compiler = new Compiler();
+    compiler.compile_body(node.body);
+    var body = [];
+    var __c20 = compiler.lines;
+    for (var __i20 = 0; __i20 < __c20.length; ++__i20) {
+        var line = __c20[__i20];
+        var text = "";
+        var __c21 = viml_split(line, "\\zs");
+        for (var __i21 = 0; __i21 < __c21.length; ++__i21) {
+            var c = __c21[__i21];
+            if (text != "" || c != " ") {
+                text += c;
+            }
+        }
+        viml_add(body, text);
+    }
+    return viml_printf("(lambda (%s) %s)", viml_join(rlist, " "), viml_join(body, " "));
+}
+
+Compiler.prototype.compile_falsy = function(node) {
+    return viml_printf("(?? %s %s)", this.compile(node.left), this.compile(node.right));
+}
+
+Compiler.prototype.compile_interpolation = function(node) {
+    var value = node.value.map((function(vval) { return this.compile(vval); }).bind(this));
+    if (viml_empty(value)) {
+        return "(interpolation)";
+    }
+    else {
+        return viml_printf("(interpolation %s)", viml_join(value, " "));
+    }
+}
+
+Compiler.prototype.compile_tuple = function(node) {
+    var value = node.value.map((function(vval) { return this.compile(vval); }).bind(this));
+    if (viml_empty(value)) {
+        return "(tuple)";
+    }
+    else {
+        return viml_printf("(tuple %s)", viml_join(value, " "));
+    }
+}
+
+Compiler.prototype.compile_cast = function(node) {
+    return viml_printf("(cast <%s> %s)", node.type_str, this.compile(node.left));
 }
 
 Compiler.prototype.compile_heredoc = function(node) {
@@ -5161,6 +7162,166 @@ Compiler.prototype.compile_heredoc = function(node) {
     }
     var op = this.escape_string(node.op);
     return viml_printf("(heredoc %s %s %s)", rlist, op, body);
+}
+
+Compiler.prototype.compile_vim9script = function(node) {
+    if (node.noclear) {
+        this.out("(vim9script noclear)");
+    }
+    else {
+        this.out("(vim9script)");
+    }
+}
+
+Compiler.prototype.compile_def = function(node) {
+    var left = this.compile(node.left) + node.attr.type_params;
+    var rlist = node.rlist.map((function(vval) { return this.compile(vval); }).bind(this));
+    var default_args = node.default_args.map((function(vval) { return this.compile(vval); }).bind(this));
+    if (!viml_empty(rlist)) {
+        var remaining = FALSE;
+        if (viml_stridx(rlist[rlist.length - 1], "...") == 0) {
+            var va = rlist[rlist.length - 1];
+            viml_remove(rlist, -1);
+            var remaining = TRUE;
+        }
+        var __c22 = viml_range(viml_len(rlist));
+        for (var __i22 = 0; __i22 < __c22.length; ++__i22) {
+            var i = __c22[__i22];
+            if (i < viml_len(rlist) - viml_len(default_args)) {
+                left += viml_printf(" %s", rlist[i]);
+            }
+            else {
+                left += viml_printf(" (%s %s)", rlist[i], default_args[i + viml_len(default_args) - viml_len(rlist)]);
+            }
+        }
+        if (remaining) {
+            left += " . " + va;
+        }
+    }
+    if (node.attr.return_type != "") {
+        this.out("(def (%s): %s", left, node.attr.return_type);
+    }
+    else {
+        this.out("(def (%s)", left);
+    }
+    this.incindent("  ");
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_var = function(node) {
+    this.compile_decl(node, "var");
+}
+
+Compiler.prototype.compile_final = function(node) {
+    this.compile_decl(node, "final");
+}
+
+// A declared name with its Vim9 type, if any: "name: type"
+Compiler.prototype.compile_decl_name = function(node) {
+    var name = this.compile(node);
+    if (viml_has_key(node, "type_str") && node.type_str != "") {
+        name += ": " + node.type_str;
+    }
+    return name;
+}
+
+Compiler.prototype.compile_decl = function(node, cmd) {
+    var left = "";
+    if (node.left !== NIL) {
+        var left = this.compile_decl_name(node.left);
+    }
+    else {
+        var left = viml_join(node.list.map((function(vval) { return this.compile_decl_name(vval); }).bind(this)), " ");
+        if (node.rest !== NIL) {
+            left += " . " + this.compile_decl_name(node.rest);
+        }
+        var left = "(" + left + ")";
+    }
+    if (node.right === NIL) {
+        this.out("(%s %s)", cmd, left);
+    }
+    else {
+        this.out("(%s %s %s %s)", cmd, node.op, left, this.compile(node.right));
+    }
+}
+
+Compiler.prototype.compile_export = function(node) {
+    this.compile_wrapper(node, "export");
+}
+
+Compiler.prototype.compile_wrapper = function(node, name) {
+    this.out("(%s", name);
+    this.incindent("  ");
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_class = function(node) {
+    var s = node.name;
+    if (node.extends != "") {
+        s += " extends " + node.extends;
+    }
+    if (!viml_empty(node.implements)) {
+        s += " implements " + viml_join(node.implements, ", ");
+    }
+    this.out("(class %s", s);
+    this.incindent("  ");
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_interface = function(node) {
+    var s = node.name;
+    if (!viml_empty(node.extends)) {
+        s += " extends " + viml_join(node.extends, ", ");
+    }
+    this.out("(interface %s", s);
+    this.incindent("  ");
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_enum = function(node) {
+    var s = node.name;
+    if (!viml_empty(node.implements)) {
+        s += " implements " + viml_join(node.implements, ", ");
+    }
+    this.out("(enum %s", s);
+    this.incindent("  ");
+    var __c23 = node.enumvalues;
+    for (var __i23 = 0; __i23 < __c23.length; ++__i23) {
+        var value = __c23[__i23];
+        var rlist = value.rlist.map((function(vval) { return this.compile(vval); }).bind(this));
+        if (viml_empty(rlist)) {
+            this.out("(%s)", value.value);
+        }
+        else {
+            this.out("(%s %s)", value.value, viml_join(rlist, " "));
+        }
+    }
+    this.compile_body(node.body);
+    this.out(")");
+    this.decindent();
+}
+
+Compiler.prototype.compile_type = function(node) {
+    this.out("(type %s %s)", node.name, node.type_str);
+}
+
+Compiler.prototype.compile_import = function(node) {
+    var s = this.compile(node.left);
+    if (node.autoload) {
+        var s = "autoload " + s;
+    }
+    if (node.alias != "") {
+        s += " as " + node.alias;
+    }
+    this.out("(import %s)", s);
 }
 
 // TODO: under construction
@@ -5843,9 +8004,9 @@ RegexpParser.prototype.get_token_sq_char_class = function() {
         var r = this.reader.read_alpha();
         if (this.reader.p(0) == ":" && this.reader.p(1) == "]") {
             this.reader.seek_cur(2);
-            var __c15 = class_names;
-            for (var __i15 = 0; __i15 < __c15.length; ++__i15) {
-                var name = __c15[__i15];
+            var __c24 = class_names;
+            for (var __i24 = 0; __i24 < __c24.length; ++__i24) {
+                var name = __c24[__i24];
                 if (r == name) {
                     return "[:" + name + ":]";
                 }
@@ -5978,9 +8139,9 @@ RegexpParser.prototype.getoctchrs = function() {
 
 RegexpParser.prototype.gethexchrs = function(n) {
     var r = "";
-    var __c16 = viml_range(n);
-    for (var __i16 = 0; __i16 < __c16.length; ++__i16) {
-        var i = __c16[__i16];
+    var __c25 = viml_range(n);
+    for (var __i25 = 0; __i25 < __c25.length; ++__i25) {
+        var i = __c25[__i25];
         var c = this.reader.peek();
         if (!isxdigit(c)) {
             break;

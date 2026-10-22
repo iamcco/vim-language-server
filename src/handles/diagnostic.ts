@@ -1,45 +1,51 @@
 import {
+  Diagnostic,
   DiagnosticSeverity,
   Position,
   Range,
   TextDocument,
 } from "vscode-languageserver";
-import { errorLinePattern } from "../common/patterns";
+import { IParseError } from "../common/parse";
 import { connection } from "../server/connection";
 
-const fixNegativeNum = (num: number): number => {
-  if (num < 0) {
-    return 0;
-  }
-  return num;
-};
+const codePattern = /^(E\d+):/;
+
+// range of the word at the error, or of a single character
+function getRange(textDoc: TextDocument, error: IParseError): Range {
+  const line = Math.min(error.line, Math.max(textDoc.lineCount - 1, 0));
+  const text = textDoc.getText(Range.create(
+    Position.create(line, 0),
+    Position.create(line + 1, 0),
+  )).replace(/\r?\n$/, "");
+  const col = Math.min(error.col, text.length);
+  const m = text.slice(col).match(/^[\w#:]+/);
+  const end = m ? col + m[0].length : Math.min(col + 1, Math.max(text.length, col + 1));
+  return Range.create(Position.create(line, col), Position.create(line, end));
+}
+
+export function getDiagnostics(textDoc: TextDocument, errors: IParseError[]): Diagnostic[] {
+  const sorted = (errors || []).slice().sort((a, b) => a.line - b.line || a.col - b.col);
+  return sorted.map((error) => {
+    const m = error.message.match(codePattern);
+    const diagnostic: Diagnostic = {
+      source: "vimlsp",
+      message: error.message,
+      range: getRange(textDoc, error),
+      severity: DiagnosticSeverity.Error,
+    };
+    if (m) {
+      diagnostic.code = m[1];
+    }
+    return diagnostic;
+  });
+}
 
 export async function handleDiagnostic(
   textDoc: TextDocument,
-  error: string,
+  errors: IParseError[],
 ) {
-  const m = (error || "").match(errorLinePattern);
-  if (m) {
-    const lines = textDoc.lineCount;
-    const line = fixNegativeNum(parseFloat(m[2]) - 1);
-    const col = fixNegativeNum(parseFloat(m[3]) - 1);
-    return connection.sendDiagnostics({
-      uri: textDoc.uri,
-      diagnostics: [{
-        source: "vimlsp",
-        message: m[1],
-        range: Range.create(
-          Position.create(line > lines ? lines : line, col),
-          Position.create(line > lines ? lines : line, col + 1),
-        ),
-        severity: DiagnosticSeverity.Error,
-      }],
-    });
-  }
-
-  // clear diagnostics
-  connection.sendDiagnostics({
+  return connection.sendDiagnostics({
     uri: textDoc.uri,
-    diagnostics: [],
+    diagnostics: getDiagnostics(textDoc, errors),
   });
 }

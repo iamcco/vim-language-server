@@ -2,7 +2,7 @@ import {DocumentSymbolParams, DocumentSymbol, SymbolKind, Range, Position, Symbo
 import * as shvl from "shvl";
 
 import {workspace} from "../server/workspaces";
-import {IFunction, IIdentifier} from "../server/buffer";
+import {Buffer, IFunction, IIdentifier} from "../server/buffer";
 import {documents} from "../server/documents";
 import config from "../server/config";
 
@@ -18,9 +18,10 @@ export const documentSymbolProvider = async (params: DocumentSymbolParams): Prom
   const scriptFunctions = buffer.getScriptFunctions()
   const globalVariables = buffer.getGlobalIdentifiers()
   const localVariables = buffer.getLocalIdentifiers()
+  const symbolKinds = new Map<IFunction, SymbolKind>()
   const functions = Object.values(globalFunctions).concat(Object.values(scriptFunctions)).reduce((pre, cur) => {
     return pre.concat(cur)
-  }, [])
+  }, []).concat(getVim9Symbols(buffer, symbolKinds))
   let variables = Object.values(globalVariables).concat(Object.values(localVariables)).reduce((pre, cur) => {
     return pre.concat(cur)
   }, [])
@@ -49,7 +50,7 @@ export const documentSymbolProvider = async (params: DocumentSymbolParams): Prom
         )
       return {
         name: item.name,
-        kind: vimRange ? SymbolKind.Function : SymbolKind.Variable,
+        kind: symbolKinds.get(item as IFunction) || (vimRange ? SymbolKind.Function : SymbolKind.Variable),
         location: {
           uri: textDocument.uri,
           range,
@@ -88,7 +89,7 @@ export const documentSymbolProvider = async (params: DocumentSymbolParams): Prom
       )
       const ds: DocumentSymbol = {
         name: func.name,
-        kind: SymbolKind.Function,
+        kind: symbolKinds.get(func) || SymbolKind.Function,
         range,
         selectionRange: range,
         children: []
@@ -140,4 +141,41 @@ export const documentSymbolProvider = async (params: DocumentSymbolParams): Prom
         }
       })
     )
+}
+
+/*
+ * Vim9 classes, interfaces, enums, types and methods as functions, with
+ * their kind in symbolKinds
+ */
+function getVim9Symbols(buffer: Buffer, symbolKinds: Map<IFunction, SymbolKind>): IFunction[] {
+  const kinds = {
+    class: SymbolKind.Class,
+    enum: SymbolKind.Enum,
+    interface: SymbolKind.Interface,
+    type: SymbolKind.TypeParameter,
+  }
+  const res: IFunction[] = []
+  Object.values(buffer.getClasses()).forEach((list) => list.forEach((item) => {
+    const symbol: IFunction = {
+      name: item.name,
+      args: [],
+      startLine: item.startLine,
+      startCol: item.startCol,
+      endLine: item.endLine,
+      endCol: item.endCol,
+      range: {
+        startLine: item.startLine,
+        startCol: 1,
+        endLine: item.endLine,
+        endCol: item.endCol,
+      },
+    }
+    symbolKinds.set(symbol, kinds[item.kind])
+    res.push(symbol)
+  }))
+  Object.values(buffer.getMethods()).forEach((list) => list.forEach((method) => {
+    symbolKinds.set(method, SymbolKind.Method)
+    res.push(method)
+  }))
+  return res
 }

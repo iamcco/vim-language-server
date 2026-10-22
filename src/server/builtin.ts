@@ -122,7 +122,7 @@ class Builtin {
     if (params) {
       return {
         signatures: [{
-          label: `${name}(${params[0]})${params[1] ? `: ${params[1]}` : ""}`,
+          label: this.getSignatureByName(name)!,
           documentation: this.formatVimDocument(this.vimBuiltFunctionDocuments[name]),
           parameters: params[0].replace(/[\[\]]/g, "").split(",").map((param) => {
             return {
@@ -135,6 +135,16 @@ class Builtin {
       };
     }
     return;
+  }
+
+  private getSignatureByName(name: string): string | undefined {
+    const params = this.vimBuiltFunctionSignatureHelp[name];
+
+    if (!params) {
+      return undefined;
+    }
+
+    return `${name}(${params[0]})${params[1] ? `: ${params[1]}` : ""}`;
   }
 
   public getDocumentByCompletionItem(
@@ -213,10 +223,18 @@ class Builtin {
       };
     // builtin functions
     } else if (builtinFunctionPattern.test(next) && this.vimBuiltFunctionDocuments[name]) {
+      const signature = this.getSignatureByName(name);
+      const documentation = this.formatVimDocument(this.vimBuiltFunctionDocuments[name]);
+
       return {
-        contents: this.formatVimDocument(this.vimBuiltFunctionDocuments[name]),
+        contents: {
+          kind: MarkupKind.Markdown,
+          value: [
+            ...(signature ? [`\`\`\`viml\n${signature}\n\`\`\``] : []),
+            documentation.value,
+          ].join("\n\n"),
+        },
       };
-    // has features
     } else if (isSomeMatchPattern(featurePattern, pre) && this.vimFeatureDocuments[name]) {
       return {
         contents: this.formatVimDocument(this.vimFeatureDocuments[name]),

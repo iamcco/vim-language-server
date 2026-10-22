@@ -6,7 +6,9 @@ import { catchError, filter, map, switchMap, timeout } from "rxjs/operators";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { URI } from "vscode-uri";
 
+import { lint } from "../common/lint";
 import logger from "../common/logger";
+import { IParseError } from "../common/parse";
 import { IParserHandles} from "../common/types";
 import {delay} from "../common/util";
 import { handleDiagnostic } from "../handles/diagnostic";
@@ -143,16 +145,18 @@ export function next(
               error: `Timeout: 50000ms`,
               isTimeout: true,
             })
-          })
+          }),
+          // the document that was parsed, for the positions of diagnostics
+          map((data) => ({ ...data, td })),
         )
       }, true),
     ).subscribe(
       (data) => {
-        const { res, error, isTimeout } = data
+        const { res, error, isTimeout, td } = data
         if (res) {
           if (config.diagnostic.enable) {
             // handle diagnostic
-            handleDiagnostic(textDoc, res[1]);
+            handleDiagnostic(td, res[1].concat(lint(res[0], td.getText().split(/\r\n|\r|\n/))));
           }
           // handle node
           workspace.updateBuffer(uri, res[0]);
@@ -235,7 +239,7 @@ export async function parserFiles (paths: string[]) {
         }
         indexesFsPaths[fsPath] = true
         const id = `${Date.now()}-${Math.random()}`
-        const data = await new Promise<{res?: [INode | null, string], error: any, timeout?: boolean}>(res => {
+        const data = await new Promise<{res?: [INode | null, IParseError[]], error: any, timeout?: boolean}>(res => {
           parserCallbacks[id] = res
           const isSend = send({
             id,

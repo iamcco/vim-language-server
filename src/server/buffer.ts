@@ -90,6 +90,30 @@ const NODE_CONST = 94;
 const NODE_EVAL = 95;
 const NODE_HEREDOC = 96;
 const NODE_METHOD = 97;
+const NODE_ECHOCONSOLE = 98;
+const NODE_LSHIFT = 99;
+const NODE_RSHIFT = 100;
+const NODE_DEF = 101;
+const NODE_VAR = 103;
+const NODE_FINAL = 104;
+const NODE_EXPORT = 105;
+const NODE_VIM9SCRIPT = 107;
+const NODE_TUPLE = 108;
+const NODE_CAST = 109;
+const NODE_ASSIGN = 110;
+const NODE_BLOCK = 111;
+const NODE_CLASS = 113;
+const NODE_INTERFACE = 115;
+const NODE_ENUM = 117;
+const NODE_ENUMVALUE = 119;
+const NODE_TYPE = 120;
+const NODE_PUBLIC = 121;
+const NODE_STATIC = 122;
+const NODE_ABSTRACT = 123;
+const NODE_FALSY = 124;
+const NODE_INTERPOLATION = 125;
+const NODE_DEFER = 126;
+const NODE_ECHOWINDOW = 127;
 
 /*
  * buffer's completion items
@@ -107,6 +131,8 @@ const NODE_METHOD = 97;
 export interface IFunction {
   name: string;
   args: INode[];
+  // :def function, the arguments have no "a:"
+  vim9?: boolean;
   startLine: number;
   startCol: number;
   endLine: number;
@@ -133,6 +159,15 @@ export interface IIdentifier {
 }
 
 /*
+ * Vim9 class, interface, enum or type alias
+ */
+export interface IClass extends IIdentifier {
+  kind: "class" | "interface" | "enum" | "type";
+  endLine: number;
+  endCol: number;
+}
+
+/*
  * xxxx
  * endxxx
  *
@@ -149,6 +184,9 @@ const scriptFuncPattern = /^(s:\w+(\.\w+)*|<SID>\w+(\.\w+)*)$/i;
 const globalVariablePattern = /^(g:\w+(\.\w+)*|b:\w+(\.\w+)*|\w{1,}(\.\w+)*|\w+(#\w+)+)$/;
 const localVariablePattern = /^(s:\w+(\.\w+)*|l:\w+(\.\w+)*|a:\w+(\.\w+)*)$/;
 const envPattern = /^\$\w+$/;
+const plainNamePattern = /^[a-zA-Z_]\w*$/;
+// names that are assigned without declaration in Vim9 script
+const undeclaredPattern = /^([gbwtv]:|[$&@])/;
 
 export class Buffer {
 
@@ -166,6 +204,13 @@ export class Buffer {
   private envRefs: Record<string, IIdentifier[]> = {};
 
   private ranges: IRange[] = []
+
+  // Vim9 script
+  private isVim9: boolean = false;
+  private classes: Record<string, IClass[]> = {};
+  private methods: Record<string, IFunction[]> = {};
+  // declared names without scope, sorted out when the functions are known
+  private vim9Declarations: IIdentifier[] = [];
 
   constructor(
     private uri: string,
@@ -211,6 +256,22 @@ export class Buffer {
     return this.ranges
   }
 
+  public getNode() {
+    return this.node;
+  }
+
+  public getClasses() {
+    return this.classes;
+  }
+
+  public getMethods() {
+    return this.methods;
+  }
+
+  public getIsVim9() {
+    return this.isVim9;
+  }
+
   public getProjectRoot() {
     return this.projectRoot;
   }
@@ -223,7 +284,9 @@ export class Buffer {
     this.node = node;
     this.resetProperties();
     try {
+      this.isVim9 = (node.body || []).some((n) => n.type === NODE_VIM9SCRIPT);
       this.resolveCompletionItems([node]);
+      this.takeVim9Declarations();
     } catch (error) {
       log.warn(`updateBufferByNode: ${error.stack}`);
     }
@@ -329,7 +392,28 @@ export class Buffer {
       .concat(
         this.getIdentifierItems(refs, sortTexts.two),
       )
-      .filter((item) => !/^(a|l):/.test(item.label));
+      .filter((item) => !/^(a|l):/.test(item.label))
+      .concat(this.getClassItems());
+  }
+
+  /*
+   * Vim9 classes, interfaces, enums and types
+   */
+  public getClassItems(): CompletionItem[] {
+    const kinds = {
+      class: CompletionItemKind.Class,
+      enum: CompletionItemKind.Enum,
+      interface: CompletionItemKind.Interface,
+      type: CompletionItemKind.TypeParameter,
+    };
+    return Object.keys(this.classes).map<CompletionItem>((name) => ({
+      label: name,
+      kind: kinds[this.classes[name][0].kind],
+      sortText: sortTexts.two,
+      documentation: `User defined ${this.classes[name][0].kind}`,
+      insertText: name,
+      insertTextFormat: InsertTextFormat.PlainText,
+    }));
   }
 
   /*
@@ -359,18 +443,20 @@ export class Buffer {
         return fun.startLine < vimLineNum && vimLineNum < fun.endLine;
       })
       .reduce<string[]>((res, next) => {
-        (next.args || []).forEach((name) => {
-          if (res.indexOf(name.value) === -1) {
-            res.push(name.value);
+        (next.args || []).forEach((arg) => {
+          // ...name of a :def function
+          const name = next.vim9 ? `${arg.value}`.replace(/^\.\.\./, "") : `a:${arg.value}`;
+          if (res.indexOf(name) === -1) {
+            res.push(name);
           }
         });
         return res;
       }, [])
       .map((name) => ({
-        label: `a:${name}`,
+        label: name,
         kind: CompletionItemKind.Variable,
         sortText: sortTexts.one,
-        insertText: `a:${name}`,
+        insertText: name,
         insertTextFormat: InsertTextFormat.PlainText,
       }));
     if (startLine !== -1 && endLine !== -1) {
@@ -421,6 +507,10 @@ export class Buffer {
     this.envs = {};
     this.envRefs = {};
     this.ranges = []
+    this.isVim9 = false;
+    this.classes = {};
+    this.methods = {};
+    this.vim9Declarations = [];
   }
 
   private resolveCompletionItems(nodes: INode | INode[]) {
@@ -434,13 +524,47 @@ export class Buffer {
         // autocmd/command/map
         case NODE_EXCMD:
           this.takeFuncRefByExcmd(node);
+          if (node.block) {
+            nodeList = nodeList.concat(node.block.body || []);
+            this.takeRange(node.block, "endblock");
+          }
           break;
         case NODE_EXCALL:
         case NODE_RETURN:
         case NODE_DELFUNCTION:
         case NODE_THROW:
         case NODE_EVAL:
-          nodeList = nodeList.concat(node.left);
+        case NODE_DEFER:
+        case NODE_CAST:
+          nodeList = nodeList.concat(node.left || []);
+          break;
+        case NODE_EXPORT:
+        case NODE_PUBLIC:
+        case NODE_STATIC:
+        case NODE_ABSTRACT:
+          nodeList = nodeList.concat(node.body || []);
+          break;
+        case NODE_BLOCK:
+          nodeList = nodeList.concat(node.body || []);
+          this.takeRange(node, "endblock");
+          break;
+        case NODE_CLASS:
+        case NODE_INTERFACE:
+        case NODE_ENUM:
+          nodeList = nodeList.concat(node.body || []);
+          nodeList = nodeList.concat(node.enumvalues || []);
+          this.takeClass(node);
+          this.takeRange(node, ["endclass", "endinterface", "endenum"]);
+          break;
+        case NODE_TYPE:
+          this.takeClass(node);
+          break;
+        case NODE_ENUMVALUE:
+          nodeList = nodeList.concat(node.rlist || []);
+          break;
+        case NODE_TUPLE:
+        case NODE_INTERPOLATION:
+          nodeList = nodeList.concat(node.value || []);
           break;
         case NODE_DOT:
           nodeList = nodeList.concat(node.left);
@@ -450,6 +574,8 @@ export class Buffer {
         case NODE_ECHON:
         case NODE_ECHOMSG:
         case NODE_ECHOERR:
+        case NODE_ECHOCONSOLE:
+        case NODE_ECHOWINDOW:
         case NODE_UNLET:
         case NODE_LOCKVAR:
         case NODE_UNLOCKVAR:
@@ -514,6 +640,9 @@ export class Buffer {
         case NODE_SUBTRACT:
         case NODE_SUBSCRIPT:
         case NODE_METHOD:
+        case NODE_LSHIFT:
+        case NODE_RSHIFT:
+        case NODE_FALSY:
           nodeList = nodeList.concat(node.left || []);
           nodeList = nodeList.concat(node.right || []);
           break;
@@ -539,6 +668,12 @@ export class Buffer {
           this.takeFunction(node);
           this.takeRange(node, 'endfunction')
           break;
+        case NODE_DEF:
+          nodeList = nodeList.concat(node.body || []);
+          nodeList = nodeList.concat(node.default_args || []);
+          this.takeFunction(node);
+          this.takeRange(node, "enddef");
+          break;
         case NODE_LIST:
           nodeList = nodeList.concat(node.value || []);
           break;
@@ -551,6 +686,8 @@ export class Buffer {
         case NODE_LAMBDA:
           nodeList = nodeList.concat(node.left || []);
           nodeList = nodeList.concat(node.rlist || []);
+          // Vim9 lambda with a block
+          nodeList = nodeList.concat(node.body || []);
           break;
         case NODE_CALL:
           nodeList = nodeList.concat(node.rlist || []);
@@ -562,14 +699,32 @@ export class Buffer {
           break;
         case NODE_LET:
         case NODE_CONST:
+        case NODE_VAR:
+        case NODE_FINAL:
           nodeList = nodeList.concat(node.right || []);
           if (node.left && node.left.type === NODE_DOT) {
             nodeList = nodeList.concat(node.left.left);
           }
+          // let [a, b] = ...
+          this.takeFor([].concat(node.list || []).concat(node.rest || []));
           // not a function by function()/funcref()
-          if (!this.takeFunctionByRef(node)) {
+          if (node.left && !this.takeFunctionByRef(node)) {
             this.takeLet(node);
           }
+          break;
+        case NODE_ASSIGN:
+          // Vim9 assignment: g:var, $ENV, &opt and @r are defined by it, other
+          // variables were declared before
+          nodeList = nodeList.concat(node.right || []);
+          [].concat(node.left || []).concat(node.list || []).concat(node.rest || [])
+            .forEach((left: INode) => {
+              const name = this.getDotName(left);
+              if (left.type !== NODE_DOT && left.type !== NODE_SUBSCRIPT && undeclaredPattern.test(name)) {
+                this.takeLet({ ...node, left });
+              } else {
+                nodeList.push(left);
+              }
+            });
           break;
         case NODE_ENV:
         case NODE_IDENTIFIER:
@@ -583,7 +738,10 @@ export class Buffer {
   }
 
   private takeFunction(node: INode) {
-    const { left, rlist, endfunction } = node;
+    const { left, rlist } = node;
+    // a function that is not closed ends where it starts
+    const endNode = node.type === NODE_DEF ? node.enddef : node.endfunction;
+    const end = (endNode && endNode.pos) || node.pos;
     const name = this.getDotName(left);
     if (!name) {
       return;
@@ -595,18 +753,31 @@ export class Buffer {
     const func: IFunction = {
       name,
       args: rlist || [],
+      vim9: node.type === NODE_DEF,
       startLine: pos.lnum,
       startCol: pos.col,
-      endLine: endfunction!.pos.lnum,
-      endCol: endfunction!.pos.col,
+      endLine: end.lnum,
+      endCol: end.col,
       range: {
         startLine: node.pos.lnum,
         startCol: node.pos.col,
-        endLine: endfunction!.pos.lnum,
-        endCol: endfunction!.pos.col,
+        endLine: end.lnum,
+        endCol: end.col,
       }
     };
-    if (globalFuncPattern.test(name)) {
+    if (this.getClassAt(node.pos.lnum)) {
+      // method of a Vim9 class
+      if (!this.methods[name]) {
+        this.methods[name] = [];
+      }
+      this.methods[name].push(func);
+    } else if (this.isVim9 && plainNamePattern.test(name)) {
+      // functions without a scope are script-local in Vim9 script
+      if (!this.scriptFunctions[name]) {
+        this.scriptFunctions[name] = [];
+      }
+      this.scriptFunctions[name].push(func);
+    } else if (globalFuncPattern.test(name)) {
       if (!this.globalFunctions[name] || !Array.isArray(this.globalFunctions[name])) {
         this.globalFunctions[name] = [];
       }
@@ -815,7 +986,9 @@ export class Buffer {
       startLine: pos.lnum,
       startCol: pos.col,
     };
-    if (localVariablePattern.test(name)) {
+    if (this.isVim9 && plainNamePattern.test(name)) {
+      this.vim9Declarations.push(identifier);
+    } else if (localVariablePattern.test(name)) {
       if (!this.localVariables[name] || !Array.isArray(this.localVariables[name])) {
         this.localVariables[name] = [];
       }
@@ -831,6 +1004,76 @@ export class Buffer {
       }
       this.envs[name].push(identifier);
     }
+  }
+
+  /*
+   * Vim9 class, interface, enum and type alias
+   */
+  private takeClass(node: INode) {
+    if (!node.name || !node.pos) {
+      return;
+    }
+    const kinds: Record<number, IClass["kind"]> = {
+      [NODE_CLASS]: "class",
+      [NODE_INTERFACE]: "interface",
+      [NODE_ENUM]: "enum",
+      [NODE_TYPE]: "type",
+    };
+    const end = [node.endclass, node.endinterface, node.endenum]
+      .filter((n) => n && n.pos)
+      .map((n) => n.pos)[0] || node.pos;
+    // the name is the argument of the command
+    const line = (node.ea && node.ea.argpos && node.ea.argpos.lnum) ? node.ea.argpos : node.pos;
+    const item: IClass = {
+      name: node.name,
+      kind: kinds[node.type],
+      startLine: line.lnum,
+      startCol: line.col,
+      endLine: end.lnum,
+      endCol: end.col,
+    };
+    if (!this.classes[node.name]) {
+      this.classes[node.name] = [];
+    }
+    this.classes[node.name].push(item);
+  }
+
+  private getClassAt(lnum: number): IClass | undefined {
+    let res: IClass | undefined;
+    Object.values(this.classes).forEach((list) => {
+      list.forEach((item) => {
+        if (item.kind !== "type" && item.startLine < lnum && lnum < item.endLine) {
+          res = item;
+        }
+      });
+    });
+    return res;
+  }
+
+  /*
+   * Vim9 variables without a scope: in a function they are local like
+   * legacy function variables, in a class they are members, otherwise they
+   * are script-local.
+   */
+  private takeVim9Declarations() {
+    const funcs = ([] as IFunction[])
+      .concat(...Object.values(this.globalFunctions))
+      .concat(...Object.values(this.scriptFunctions))
+      .concat(...Object.values(this.methods));
+    this.vim9Declarations.forEach((identifier) => {
+      const inFunction = funcs.some((f) => f.startLine < identifier.startLine && identifier.startLine < f.endLine);
+      let list = this.localVariables;
+      if (inFunction) {
+        list = this.globalVariables;
+      } else if (this.getClassAt(identifier.startLine)) {
+        return;
+      }
+      if (!list[identifier.name]) {
+        list[identifier.name] = [];
+      }
+      list[identifier.name].push(identifier);
+    });
+    this.vim9Declarations = [];
   }
 
   private takeRange(node: INode, keys: string | string[]) {
@@ -857,7 +1100,9 @@ export class Buffer {
         startLine: node.pos.lnum,
         startCol: node.pos.col,
       };
-      if (localVariablePattern.test(name)) {
+      if (this.isVim9 && plainNamePattern.test(name)) {
+        this.vim9Declarations.push(identifier);
+      } else if (localVariablePattern.test(name)) {
         if (!this.localVariables[name] || !Array.isArray(this.localVariables[name])) {
           this.localVariables[name] = [];
         }

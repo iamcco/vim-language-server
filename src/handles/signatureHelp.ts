@@ -4,7 +4,7 @@ import {
   SignatureHelp,
   TextDocumentPositionParams,
 } from "vscode-languageserver";
-import { commentPattern } from "../common/patterns";
+import { isCommentLine } from "../common/util";
 import { builtinDocs } from "../server/builtin";
 import { documents } from "../server/documents";
 
@@ -24,7 +24,7 @@ export const signatureHelpProvider =
     );
 
     // comment line
-    if (commentPattern.test(currentLine)) {
+    if (isCommentLine(doc, currentLine)) {
       return;
     }
 

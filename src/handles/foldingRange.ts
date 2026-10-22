@@ -1,5 +1,6 @@
 import {FoldingRange, FoldingRangeParams} from "vscode-languageserver";
 
+import {IRange} from "../server/buffer";
 import {workspace} from "../server/workspaces";
 
 export const foldingRangeProvider = async (params: FoldingRangeParams) => {
@@ -11,7 +12,14 @@ export const foldingRangeProvider = async (params: FoldingRangeParams) => {
   }
   const globalFunctions = buffer.getGlobalFunctions();
   const scriptFunctions = buffer.getScriptFunctions();
-  return Object.values(globalFunctions).concat(Object.values(scriptFunctions))
+  const ranges: IRange[][] = [
+    ...Object.values(globalFunctions),
+    ...Object.values(scriptFunctions),
+    ...Object.values(buffer.getMethods()),
+    // Vim9 classes, interfaces and enums
+    ...Object.values(buffer.getClasses()).map((list) => list.filter((item) => item.endLine > item.startLine)),
+  ];
+  return ranges
     .reduce((pre, cur) => {
       return pre.concat(cur);
     }, [])

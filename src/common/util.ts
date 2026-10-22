@@ -5,19 +5,18 @@ import fs, {Stats} from "fs";
 import path from "path";
 import {Readable} from "stream";
 import {CompletionItem, InsertTextFormat, Position, Range, TextDocument} from "vscode-languageserver";
-import {INode, StringReader, VimLParser} from "../lib/vimparser";
-import { commentPattern, keywordPattern, kindPattern, wordNextPattern, wordPrePattern } from "./patterns";
+import {INode} from "../lib/vimparser";
+import { IParseError, parseWithRecovery } from "./parse";
+import {
+  commentPattern,
+  keywordPattern,
+  kindPattern,
+  vim9CommentPattern,
+  vim9scriptPattern,
+  wordNextPattern,
+  wordPrePattern,
+} from "./patterns";
 import config from '../server/config';
-
-// FIXME vimlparser missing update builtin_commands
-if (VimLParser.prototype) {
-  (VimLParser.prototype as any).builtin_commands?.push({
-    name: 'balt',
-    minlen: 4,
-    flags: 'NEEDARG|FILE1|EDITCMD|TRLBAR|CMDWIN',
-    parser: 'parse_cmd_common'
-  })
-}
 
 export function isSomeMatchPattern(patterns: kindPattern, line: string): boolean {
   return patterns.some((p) => p.test(line));
@@ -156,7 +155,7 @@ export function getWordFromPosition(
   );
 
   // comment line
-  if (commentPattern.test(currentLine)) {
+  if (isCommentLine(doc, currentLine)) {
     return;
   }
 
@@ -179,16 +178,18 @@ export function getWordFromPosition(
   };
 }
 
-// parse vim buffer
-export async function handleParse(textDoc: TextDocument | string): Promise<[INode | null, string]> {
-  const text = textDoc instanceof Object ? textDoc.getText() : textDoc;
-  const tokens = new StringReader(text.split(/\r\n|\r|\n/));
-  try {
-    const node: INode = new VimLParser(config.isNeovim).parse(tokens);
-    return [node, ""];
-  } catch (error) {
-    return [null, error];
+// a comment line, with the comment syntax of the script
+export function isCommentLine(doc: TextDocument, line: string): boolean {
+  if (vim9scriptPattern.test(doc.getText())) {
+    return vim9CommentPattern.test(line);
   }
+  return commentPattern.test(line);
+}
+
+// parse vim buffer
+export async function handleParse(textDoc: TextDocument | string): Promise<[INode | null, IParseError[]]> {
+  const text = textDoc instanceof Object ? textDoc.getText() : textDoc;
+  return parseWithRecovery(text.split(/\r\n|\r|\n/), config.isNeovim);
 }
 
 // remove snippets of completionItem

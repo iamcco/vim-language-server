@@ -20,7 +20,10 @@
 - select range
 - rename
 - snippets
-- diagnostic
+- diagnostic: all parse errors, and Vim9 script errors like `:let` in Vim9
+  script or `:var` in legacy script
+- Vim9 script: `:def`, `:var`, classes, enums, interfaces, `:type` and
+  `:import`; go to definition follows scopes, `this.`, `super.` and imports
 
 ![autocomplete](https://user-images.githubusercontent.com/5492542/81493984-909c2e80-92d7-11ea-9638-d7be3e18e1d1.gif)
 
